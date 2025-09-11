@@ -3,3 +3,4 @@ class Project:
         self.path = repo_path
         self.builds_path = builds_path
         self.build_system = "cmake"
+        self.targets = []
