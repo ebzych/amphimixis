@@ -1,6 +1,8 @@
 """Module for profiling executables within a project."""
 
 import os
+import subprocess
+import time
 from non_amphimixis import Project
 
 STATS_EXECUTION_TIME_FIELD = "execution_time"
@@ -36,7 +38,10 @@ class Profiler:
 
     def execution_time(self):
         """Measure execution time of the executable."""
-        raise NotImplementedError
+        start_time = time.time()
+        subprocess.run([self.executable], check=True)
+        end_time = time.time()
+        self.stats.update({STATS_EXECUTION_TIME_FIELD: end_time - start_time})
 
     def perf_stat_collect(self):
         """Collect performance statistics using 'perf stat'."""
