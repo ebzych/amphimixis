@@ -1,14 +1,36 @@
 """Module for profiling executables within a project."""
 
+import os
 from non_amphimixis import Project
+
+STATS_EXECUTION_TIME_FIELD = "execution_time"
+
+
+def _executable_choose(files):
+    return files[0]
+
+
+def _choose_executable(project: Project) -> str:
+    executables = []
+    files = os.listdir(project.builds_path)
+    for file in files:
+        with open(os.path.join(project.builds_path, file), "rb") as data:
+            _bytes = data.read(4)
+            if _bytes[:2] == "MZ" or _bytes == b"\x7fELF":
+                executables.append(file)
+
+    return _executable_choose(files)
 
 
 class Profiler:
     """Class for profiling an executable within a project."""
 
-    def __init__(self, project: Project, executable: str):
+    def __init__(self, project: Project, executable: str = ""):
         self.project = project
-        self.executable = executable
+        if executable == "":
+            self.executable = _choose_executable(project)
+        else:
+            self.executable = executable
 
         self.stats = {}
 
