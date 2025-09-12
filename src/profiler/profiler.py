@@ -42,7 +42,12 @@ class Profiler:
     def execution_time(self):
         """Measure execution time of the executable."""
         start_time = time.time()
-        subprocess.run([self.executable], check=True)
+        subprocess.Popen(
+            [self.executable],
+            cwd=self.project.path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).wait()
         end_time = time.time()
         self.stats.update({STATS_EXECUTION_TIME_FIELD: end_time - start_time})
 
