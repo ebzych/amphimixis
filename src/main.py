@@ -1,6 +1,6 @@
 import sys
 from analyzer import Analyzer
-from non_amphimixis import Project
+from general import Project
 import configurator
 
 if __name__ == "__main__":
