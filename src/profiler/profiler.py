@@ -14,14 +14,17 @@ def _executable_choose(files):
 
 def _choose_executable(project: Project) -> str:
     executables = []
-    files = os.listdir(project.builds_path)
+    files = os.listdir(os.path.join(project.builds_path))
     for file in files:
+        if os.path.isdir(os.path.join(project.builds_path, file)):
+            continue
+
         with open(os.path.join(project.builds_path, file), "rb") as data:
             _bytes = data.read(4)
             if _bytes[:2] == "MZ" or _bytes == b"\x7fELF":
                 executables.append(file)
 
-    return _executable_choose(files)
+    return os.path.join(project.builds_path, _executable_choose(executables))
 
 
 class Profiler:
