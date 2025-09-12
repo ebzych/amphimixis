@@ -12,14 +12,16 @@ class Project:
 from enum import Enum
 
 
-"""Supported architectures"""
 class Arch(Enum):
+    """Supported architectures"""
+
     X86 = 0
     RISCV = 1
     ARM = 2
 
-"""Supported build systems"""
 class BuildSystem(Enum):
+    """Supported build systems"""
+    
     MAKE = 0
     CMAKE = 1
     NINJA = 2
