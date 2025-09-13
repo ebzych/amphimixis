@@ -26,6 +26,7 @@ class Build:
                  is_specified_script    : bool,
                     # True if user specify build script
                     #               and False if script is simple: configuration -> build
+                 specified_script       : str,
                  build_system           : BuildSystem,              # is high-level build system
                  config_flags           : str,
                  cxx_flags              : str,
@@ -34,6 +35,7 @@ class Build:
         self.build_path = build_path
         self.arch = arch
         self.is_specified_script = is_specified_script
+        self.specified_script = specified_script
         self.build_system = build_system
         self.config_flags = config_flags
         self.cxx_flags = cxx_flags
