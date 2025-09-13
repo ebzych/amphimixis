@@ -3,7 +3,7 @@
 import os
 import subprocess
 import time
-from non_amphimixis import non_amphimixis
+from general import general
 
 STATS_EXECUTION_TIME_FIELD = "execution_time"
 
@@ -12,7 +12,7 @@ def _executable_choose(files):
     return files[0]
 
 
-def _choose_executable(project: non_amphimixis.Project) -> str:
+def _choose_executable(project: general.Project) -> str:
     executables = []
     files = os.listdir(os.path.join(project.builds_path))
     for file in files:
@@ -30,7 +30,7 @@ def _choose_executable(project: non_amphimixis.Project) -> str:
 class Profiler:
     """Class for profiling an executable within a project."""
 
-    def __init__(self, project: non_amphimixis.Project, executable: str = ""):
+    def __init__(self, project: general.Project, executable: str = ""):
         self.project = project
         if executable == "":
             self.executable = _choose_executable(project)
