@@ -1,4 +1,4 @@
-from NonAmphimixis.src.general import general
+from general import general
 import json
 
 
