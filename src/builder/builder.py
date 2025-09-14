@@ -1,2 +1,3 @@
 class Builder:
-    def __init__(self, )
+    def __init__(self):
+        raise NotImplementedError
