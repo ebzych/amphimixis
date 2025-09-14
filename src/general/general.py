@@ -1,4 +1,5 @@
-import os
+"""Module with general project classes and enums"""
+
 from enum import Enum
 
 
