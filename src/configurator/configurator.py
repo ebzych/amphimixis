@@ -1,22 +1,34 @@
 from NonAmphimixis.src.general import general
 import json
+import general
+import os
 
 
-def configure(project: general.Project):
-    args = []
-    name = input("Name curremt config\n")
-    while True:
-        arg = input("Enter arg\n")
-        if arg == "":
-            break
+def configure(
+    project: general.Project,
+    build_path: str,
+    arch: general.IArch,
+    is_specified_script: bool,
+    specified_script: str,
+    build_system: general.IBuildSystem,
+    config_flags: str,
+    compiler_flags: str,
+    runner: str,
+):
+    build_name = input("Name current build:\n")
+    build_path = os.path.join(build_path, build_name)
+    os.makedirs(build_path, exist_ok=True)
 
-        args.append(arg)
-    config = {
-        "config_name": name,
-        "args": str(args),
-        "project_path": project.path,
-        "build_path": project.builds_path,
-        "build_system": project.build_system
-    }
-    with open(f"{name}.json", "w") as file:
+    build = general.Build(arch, build_system, runner, build_path)
+    build.is_specified_script = is_specified_script
+    build.specified_script = specified_script
+    build.config_flags = config_flags
+    build.compiler_flags = compiler_flags
+
+    project.builds.append(build)
+
+    config = build.__dict__
+
+    config_path = os.path.join(build_path, "config.json")
+    with open(config_path, "w") as file:
         json.dump(config, file, indent=4)
