@@ -46,8 +46,8 @@ class Build:
         #   and False if script is simple: configuration -> build
         specified_script: str,
         build_system: IBuildSystem,  # is high-level build system
+        config_flags: str,
         compiler_flags: str,
-        c_flags: str,
         runner: IBuildSystem,  # is low-level build system
     ):
         self.build_path = build_path
@@ -55,8 +55,8 @@ class Build:
         self.is_specified_script = is_specified_script
         self.specified_script = specified_script
         self.build_system = build_system
+        self.config_flags = config_flags
         self.compiler_flags = compiler_flags
-        self.c_flags = c_flags
         self.runner = runner
 
 
