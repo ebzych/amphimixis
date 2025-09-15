@@ -6,9 +6,6 @@ from general import Project, Build
 
 
 class Builder:
-    def build_with_specified_script(self, build: Build):
-        return 0
-
     """The class is representing a module which builds a build based on its configuration"""
 
     @staticmethod
