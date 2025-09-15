@@ -1,3 +1,5 @@
+from general import Build
+
 class Builder:
-    def __init__(self):
-        raise NotImplementedError
+    def build_with_specified_script(self, build: Build):
+        return 0

@@ -1,5 +1,5 @@
-from general import general
 import json
+import general
 
 
 def configure(project: general.Project):
