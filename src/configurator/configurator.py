@@ -1,7 +1,8 @@
-from NonAmphimixis.src.general import general
+"""Module for configuring a new build"""
+
+import os
 import json
 import general
-import os
 
 
 def configure(
@@ -15,6 +16,8 @@ def configure(
     compiler_flags: str,
     runner: str,
 ):
+    """Function to configure a new build and save its configuration to a JSON file"""
+
     build_name = input("Name current build:\n")
     build_path = os.path.join(build_path, build_name)
     os.makedirs(build_path, exist_ok=True)
@@ -30,5 +33,5 @@ def configure(
     config = build.__dict__
 
     config_path = os.path.join(build_path, "config.json")
-    with open(config_path, "w") as file:
+    with open(config_path, "w", encoding="UTF-8") as file:
         json.dump(config, file, indent=4)
