@@ -1,8 +1,8 @@
-from non_amphimixis import non_amphimixis
+from NonAmphimixis.src.general import general
 import json
 
 
-def configure(project: non_amphimixis.Project):
+def configure(project: general.Project):
     args = []
     name = input("Name curremt config\n")
     while True:
