@@ -1,6 +1,5 @@
 """The common module that is used in most other modules"""
 
-import os
 from abc import ABC, abstractmethod
 
 
