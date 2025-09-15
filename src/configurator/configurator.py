@@ -14,7 +14,7 @@ def configure(
     build_system: general.IBuildSystem,
     config_flags: str,
     compiler_flags: str,
-    runner: str,
+    runner: general.IBuildSystem,
 ):
     """Function to configure a new build and save its configuration to a JSON file"""
 
