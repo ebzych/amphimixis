@@ -43,16 +43,16 @@ class Build:
 
     def __init__(
         self,
-        build_path: str,  # path to directory with this build;
         # directory { dir:builded_project, file:config.json, file:build.log, ... }
         arch: IArch,
-        is_specified_script: bool,  # True if user specify build script
         #   and False if script is simple: configuration -> build
-        specified_script: str,
         build_system: IBuildSystem,  # is high-level build system
-        config_flags: str,
-        compiler_flags: str,
         runner: IBuildSystem,  # is low-level build system
+        build_path: str,  # path to directory with this build;
+        is_specified_script: bool = False,  # True if user specify build script
+        specified_script: str = "",
+        config_flags: str = "",
+        compiler_flags: str = "",
     ):
         self.build_path = build_path
         self.arch = arch
