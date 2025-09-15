@@ -1,1 +1,3 @@
-from .general import Project
+"""The common module that is used in most other modules"""
+
+from .general import Project, Build, IArch, IBuildSystem

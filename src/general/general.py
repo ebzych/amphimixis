@@ -1,5 +1,6 @@
-import os
-from enum import Enum
+"""The common module that is used in most other modules"""
+
+from abc import ABC, abstractmethod
 
 
 class IArch(ABC):
@@ -22,15 +23,19 @@ class IBuildSystem(ABC):
 
     @staticmethod
     @abstractmethod
-    def insert_config_flags(build, command: str):  # type of "build" is Build
+    def insert_config_flags(build, command: str) -> str:  # type of "build" is Build
         """Method insert flags in 'command' in line with call of build system
-        or return string with command which run build system with inserted flags"""
+        or return string with command which run build system with inserted flags
+        If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
+        else return string 'command' with 'config_flags' inserted"""
 
     @staticmethod
     @abstractmethod
-    def insert_runner_flags(build, command: str):  # type of "build" is Build
+    def insert_runner_flags(build, command: str) -> str:  # type of "build" is Build
         """Method insert flags in 'command' in line with call of runner
-        or return string with command which run runner with inserted flags"""
+        or return string with command which run runner with inserted flags
+        If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
+        else return string 'command' with 'runner_flags' inserted"""
 
 
 class Build:
@@ -52,10 +57,10 @@ class Build:
         self.build_path = build_path
         self.arch = arch
         self.is_specified_script = is_specified_script
+        self.specified_script = specified_script
         self.build_system = build_system
         self.config_flags = config_flags
-        self.cxx_flags = cxx_flags
-        self.c_flags = c_flags
+        self.compiler_flags = compiler_flags
         self.runner = runner
 
 
