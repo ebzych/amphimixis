@@ -37,7 +37,7 @@ class Profiler:
         else:
             self.executable = executable
 
-        self.stats = {}
+        self.stats: dict[str, str] = {}
 
     def execution_time(self):
         """Measure execution time of the executable."""
@@ -51,7 +51,7 @@ class Profiler:
             process.wait()
 
         end_time = time.time()
-        self.stats.update({STATS_EXECUTION_TIME_FIELD: end_time - start_time})
+        self.stats.update({STATS_EXECUTION_TIME_FIELD: str(end_time - start_time)})
 
     def perf_stat_collect(self):
         """Collect performance statistics using 'perf stat'."""
