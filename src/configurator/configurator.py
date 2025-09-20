@@ -9,10 +9,14 @@ def configure(
     project: general.Project,
     build_path: str,
 <<<<<<< HEAD
+<<<<<<< HEAD
     machine: general.MachineInfo,
 =======
     machine: general.RemoteMachine,
 >>>>>>> 4b26d41 (refactor: using dataclasses and add class for remote machine)
+=======
+    machine: general.MachineInfo,
+>>>>>>> 7ccc1f6 (refactor: renamed RemoteMachine into MachineInfo and add class for authentication info)
     is_specified_script: bool,
     specified_script: str,
     build_system: general.IBuildSystem,

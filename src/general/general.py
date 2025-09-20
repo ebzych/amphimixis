@@ -19,8 +19,17 @@ class Arch(Enum):
 
 
 @dataclass
-class RemoteMachine:
-    """Information about the remote machine
+class MachineAuthenticationInfo:
+    """Information about authentication on remote machine"""
+
+    username: str
+    password: str | None
+    port: int
+
+
+@dataclass
+class MachineInfo:
+    """Information about the machine
 
     :var arch Arch: Architecture of the remote machine.
     :var ip str: IP address of the remote machine.
@@ -29,8 +38,12 @@ class RemoteMachine:
 
     arch: Arch
     ip: str
+<<<<<<< HEAD
     port: int
 >>>>>>> 4b26d41 (refactor: using dataclasses and add class for remote machine)
+=======
+    auth: MachineAuthenticationInfo | None
+>>>>>>> 7ccc1f6 (refactor: renamed RemoteMachine into MachineInfo and add class for authentication info)
 
 
 class Arch(str, Enum):
@@ -217,7 +230,7 @@ class Build:
     :var str compiler_flags: Compiler flags for the build.
     """
 
-    machine: RemoteMachine
+    machine: MachineInfo
     build_path: str
     is_specified_script: bool = False
     specified_script: str = ""
