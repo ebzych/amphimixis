@@ -8,7 +8,7 @@ import general
 def configure(
     project: general.Project,
     build_path: str,
-    machine: general.RemoteMachine,
+    machine: general.MachineInfo,
     is_specified_script: bool,
     specified_script: str,
     build_system: general.IBuildSystem,
