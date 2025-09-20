@@ -14,8 +14,17 @@ class Arch(Enum):
 
 
 @dataclass
-class RemoteMachine:
-    """Information about the remote machine
+class MachineAuthenticationInfo:
+    """Information about authentication on remote machine"""
+
+    username: str
+    password: str | None
+    port: int
+
+
+@dataclass
+class MachineInfo:
+    """Information about the machine
 
     :var arch Arch: Architecture of the remote machine.
     :var ip str: IP address of the remote machine.
@@ -24,7 +33,7 @@ class RemoteMachine:
 
     arch: Arch
     ip: str
-    port: int
+    auth: MachineAuthenticationInfo | None
 
 
 class IArch(ABC):
@@ -74,7 +83,7 @@ class Build:
     :var str compiler_flags: Compiler flags for the build.
     """
 
-    machine: RemoteMachine
+    machine: MachineInfo
     build_path: str
     is_specified_script: bool = False
     specified_script: str = ""
