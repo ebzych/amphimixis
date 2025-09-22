@@ -29,9 +29,9 @@ class CMake(IBuildSystem):
 
         command = "cmake " + CMake.find_cmakelists_path(project)
         command += " " + build.config_flags + " "
-        command += ' CXXFLAGS="' + build.compiler_flags + '"'
-        command += ' CFLAGS="' + build.compiler_flags
-        command += " COMPILER=" + build.arch.compiler()
+        command += " CXXFLAGS='" + build.compiler_flags + "'"
+        command += " CFLAGS='" + build.compiler_flags + "'"
+        command += " -DCMAKE_TOOLCHAIN_FILE=" + build.arch.compiler()
         return command
 
     @staticmethod
