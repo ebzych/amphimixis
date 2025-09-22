@@ -1,18 +1,13 @@
-"""CMake implementaion of IBuildSystem"""
+"""Make implementaion of IBuildSystem"""
 
+from os import cpu_count
 from abc import abstractmethod
 from general import Build, Project
 from .build_system_interface import IBuildSystem
 
 
-class CMake(IBuildSystem):
-    """The CMake implementation of IBuildSystem"""
-
-    @staticmethod
-    def find_cmakelists_path(project: Project):
-        """The method find first CMakeLists.txt file"""
-
-        raise NotImplementedError
+class Make(IBuildSystem):
+    """The Make implementation of IBuildSystem"""
 
     @staticmethod
     @abstractmethod
@@ -22,15 +17,7 @@ class CMake(IBuildSystem):
         If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
         else return string 'command' with 'config_flags' inserted"""
 
-        if command != "":
-            raise NotImplementedError
-
-        command = "cmake " + CMake.find_cmakelists_path(project)
-        command += " " + build.config_flags + " "
-        command += " CXXFLAGS='" + build.compiler_flags + "'"
-        command += " CFLAGS='" + build.compiler_flags + "'"
-        command += " -DCMAKE_TOOLCHAIN_FILE=" + build.arch.compiler()
-        return command
+        raise NotImplementedError
 
     @staticmethod
     @abstractmethod
@@ -40,4 +27,7 @@ class CMake(IBuildSystem):
         If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
         else return string 'command' with 'runner_flags' inserted"""
 
-        raise NotImplementedError
+        if command != "":
+            raise NotImplementedError
+
+        return "make -j" + str(cpu_count())

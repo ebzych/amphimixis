@@ -1,7 +1,7 @@
 """The common module that is used in most other modules"""
 
 from abc import ABC, abstractmethod
-from .definitions import IBuildSystem
+from .build_system_interface import IBuildSystem
 
 
 class IArch(ABC):
