@@ -126,6 +126,7 @@ class Project:
     def __init__(self, repo_path: str, builds: list[Build]):
         self.path = repo_path
         self.builds = builds
+<<<<<<< HEAD
 
 
 class CMake(IBuildSystem):
@@ -168,3 +169,5 @@ class CMake(IBuildSystem):
         else return string 'command' with 'runner_flags' inserted"""
 
         raise NotImplementedError
+=======
+>>>>>>> 1ee3c5c (refactor: rename definitions.py to build_system_interface.py and separate CMake implementation, IBuildSystem and general.py)
