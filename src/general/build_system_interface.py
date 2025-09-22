@@ -9,9 +9,7 @@ class IBuildSystem(ABC):
 
     @staticmethod
     @abstractmethod
-    def insert_config_flags(
-        project: Project, build: Build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
+    def insert_config_flags(project: Project, build: Build, command: str) -> str:
         """Method insert flags in 'command' in line with call of build system
         or return string with command which run build system with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
@@ -19,9 +17,7 @@ class IBuildSystem(ABC):
 
     @staticmethod
     @abstractmethod
-    def insert_runner_flags(
-        project: Project, build: Build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
+    def insert_runner_flags(project: Project, build: Build, command: str) -> str:
         """Method insert flags in 'command' in line with call of runner
         or return string with command which run runner with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
