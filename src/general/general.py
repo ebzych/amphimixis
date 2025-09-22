@@ -2,6 +2,7 @@
 
 from enum import Enum
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from dataclasses import dataclass
 
 
@@ -47,6 +48,9 @@ class MachineInfo:
             ip=self.ip,
             auth=self.auth.reprJSON() if self.auth is not None else None,
         )
+=======
+from .build_system_interface import IBuildSystem
+>>>>>>> f26938f (fix(build_system_cmake.py): fix the return command in CMake.insert_config_flags())
 
 
 class IArch(ABC):
