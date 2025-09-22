@@ -5,12 +5,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 
-class Arch(Enum):
+class Arch(str, Enum):
     """Supported architectures"""
 
-    X86 = 0
-    RISCV = 1
-    ARM = 2
+    X86 = "x86"
+    RISCV = "riscv"
+    ARM = "arm"
 
 
 @dataclass
@@ -20,6 +20,10 @@ class MachineAuthenticationInfo:
     username: str
     password: str | None
     port: int
+
+    def reprJSON(self):
+        """Method for correct JSON serialization"""
+        return dict(username=self.username, password=self.password, port=self.port)
 
 
 @dataclass
@@ -34,6 +38,15 @@ class MachineInfo:
     arch: Arch
     ip: str
     auth: MachineAuthenticationInfo | None
+
+    def reprJSON(self):
+        """Method for correct JSON serialization"""
+
+        return dict(
+            arch=self.arch,
+            ip=self.ip,
+            auth=self.auth.reprJSON() if self.auth is not None else None,
+        )
 
 
 class IArch(ABC):
@@ -102,6 +115,6 @@ class Project:
     """
 
     path: str
-    build_system: IBuildSystem
-    runner: IBuildSystem
+    build_system: IBuildSystem | None
+    runner: IBuildSystem | None
     builds: list[Build]
