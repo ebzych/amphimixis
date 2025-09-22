@@ -2,7 +2,21 @@
 
 import subprocess
 import shlex
+import os
 from general import Project, Build
+
+
+def run_command(command: str, cwd=None):
+    command_formatted = shlex.split(command)
+    try:
+        process = subprocess.run(
+            command_formatted, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        return process.returncode == 0
+
+    except Exception as e:
+        print(f'Error executing command "{command}": {e}')
+        return False
 
 
 class Builder:
@@ -11,7 +25,6 @@ class Builder:
     @staticmethod
     def process(project: Project):
         """The method build all builds"""
-
         for build in project.builds:
             if build.is_specified_script:
                 Builder.build_with_specified_script(project, build)
