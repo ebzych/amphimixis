@@ -149,13 +149,13 @@ class CMake(IBuildSystem):
 
         if command != "":
             raise NotImplementedError
-        else:
-            command = "cmake " + CMake.find_cmakelists_path(project)
-            command += " " + build.config_flags + " "
-            command += ' CXXFLAGS="' + build.compiler_flags + '"'
-            command += ' CFLAGS="' + build.compiler_flags
-            # command += " COMPILER=" + build.arch.compiler()
-            return command
+
+        command = "cmake " + CMake.find_cmakelists_path(project)
+        command += " " + build.config_flags + " "
+        command += ' CXXFLAGS="' + build.compiler_flags + '"'
+        command += ' CFLAGS="' + build.compiler_flags
+        # command += " COMPILER=" + build.arch.compiler()
+        return command
 
     @staticmethod
     @abstractmethod
