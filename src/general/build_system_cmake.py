@@ -25,8 +25,8 @@ class CMake(IBuildSystem):
         if command != "":
             raise NotImplementedError
 
-        command = "cmake " + CMake.find_cmakelists_path(project)
-        command += " " + build.config_flags + " "
+        command = "cmake " + CMake.find_cmakelists_path(project) + " "
+        command += build.config_flags
         command += " CXXFLAGS='" + build.compiler_flags + "'"
         command += " CFLAGS='" + build.compiler_flags + "'"
         command += " -DCMAKE_TOOLCHAIN_FILE=" + build.arch.compiler()
