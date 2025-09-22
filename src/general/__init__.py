@@ -11,9 +11,13 @@ from .general import (
     IBuildSystem,
     MachineAuthenticationInfo,
 <<<<<<< HEAD
+<<<<<<< HEAD
     Arch,
 =======
 >>>>>>> 7ccc1f6 (refactor: renamed RemoteMachine into MachineInfo and add class for authentication info)
+=======
+    Arch,
+>>>>>>> b9853d6 (refactor: update Arch class to use string values)
 )
 
 __all__ = [
@@ -23,6 +27,9 @@ __all__ = [
     "IBuildSystem",
     "MachineAuthenticationInfo",
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b9853d6 (refactor: update Arch class to use string values)
     "Arch",
 ]
 =======
