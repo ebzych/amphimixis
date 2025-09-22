@@ -1,5 +1,6 @@
 """CMake implementaion of IBuildSystem"""
 
+from os import walk, path
 from abc import abstractmethod
 from general import Build, Project
 from .build_system_interface import IBuildSystem
@@ -9,8 +10,13 @@ class CMake(IBuildSystem):
     """The CMake implementation of IBuildSystem"""
 
     @staticmethod
-    def find_cmakelists_path(project: Project):
+    def find_cmakelists_path(project: Project) -> str:
         """The method find first CMakeLists.txt file"""
+
+        for root, _, files in walk(project.path):
+            for name in files:
+                if name == "CMakeLists.txt":
+                    return path.join(root, name)
 
         raise NotImplementedError
 
