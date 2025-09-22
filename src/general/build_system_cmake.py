@@ -10,7 +10,7 @@ class CMake(IBuildSystem):
 
     @staticmethod
     def find_cmakelists_path(project: Project):
-        """The method find CMakeLists.txt file"""
+        """The method find first CMakeLists.txt file"""
 
         raise NotImplementedError
 
