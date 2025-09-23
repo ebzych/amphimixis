@@ -1,4 +1,4 @@
-"""Is a module which builds a build based on its configuration"""
+"""Module that builds a build based on configuration"""
 
 import subprocess
 import shlex
