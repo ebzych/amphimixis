@@ -81,17 +81,10 @@ class Project:
     :var list[Build]: List of project configurations to be build.
     """
 
-    def __init__(
-        self,
-        build_system: "IBuildSystem",
-        runner: "IBuildSystem",
-        repo_path: str,
-        builds: list[Build],
-    ):
-        self.path = repo_path
-        self.builds = builds
-        self.build_system = build_system
-        self.runner = runner
+    path: str
+    builds: list[Build]
+    build_system: "type[IBuildSystem]"
+    runner: "type[IBuildSystem]"
 
 
 class IBuildSystem(ABC):
@@ -118,12 +111,8 @@ class IBuildSystem(ABC):
         else return string 'command' with 'runner_flags' inserted"""
 
 
-@dataclass
 class CMake(IBuildSystem):
     """The CMake implementation of IBuildSystem"""
-
-    def __init__(self):
-        pass
 
     @staticmethod
     def find_cmakelists_path(project: Project) -> str:
@@ -166,9 +155,6 @@ class CMake(IBuildSystem):
 
 class Make(IBuildSystem):
     """The Make implementation of IBuildSystem"""
-
-    def __init__(self):
-        pass
 
     @staticmethod
     def insert_config_flags(project: Project, build: Build, command: str) -> str:
