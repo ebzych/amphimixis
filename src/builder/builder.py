@@ -22,13 +22,13 @@ class Builder:
     def build_for_linux(project: Project, build: Build):
         """The method build program on Linux"""
 
-        command = "mkdir " + build.build_path
+        command = "mkdir -p " + build.build_path
         command += " && cd " + build.build_path
-        command += " && cmake" + build.runner.insert_config_flags(project, build, "")
-        command += " && make" + build.runner.insert_runner_flags(project, build, "")
+        command += " && " + project.build_system.insert_config_flags(project, build, "")
+        command += " && " + project.runner.insert_runner_flags(project, build, "")
         # make install
         args = shlex.split(command)
-        subprocess.Popen(args)
+        subprocess.Popen(["sh", "-c"] + [command])
         # terminal one?
         # windws trubles
 
@@ -37,5 +37,5 @@ class Builder:
         """The method handle case when user specify a script for building"""
 
         command = build.specified_script
-        command = build.build_system.insert_config_flags(project, build, command)
-        command = build.runner.insert_runner_flags(project, build, command)
+        command = project.build_system.insert_config_flags(project, build, command)
+        command = project.runner.insert_runner_flags(project, build, command)
