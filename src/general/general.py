@@ -26,10 +26,6 @@ class MachineAuthenticationInfo:
     password: str | None
     port: int
 
-    def reprJSON(self):
-        """Method for correct JSON serialization"""
-        return dict(username=self.username, password=self.password, port=self.port)
-
 
 @dataclass
 class MachineInfo:
@@ -85,6 +81,7 @@ class MachineInfo:
     ip: str
     auth: MachineAuthenticationInfo | None
 
+<<<<<<< HEAD
     def reprJSON(self):
         """Method for correct JSON serialization"""
 <<<<<<< HEAD
@@ -104,6 +101,8 @@ class MachineInfo:
             auth=self.auth.reprJSON() if self.auth is not None else None,
         )
 
+=======
+>>>>>>> daf000a (refactor: remove unnecessary json representation function)
 
 @dataclass
 class Build:
