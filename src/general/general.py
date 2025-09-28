@@ -1,49 +1,9 @@
 """The common module that is used in most other modules"""
 
 from enum import Enum
-<<<<<<< HEAD
 from os import walk, path, cpu_count
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-=======
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-
-
-class Arch(str, Enum):
-    """Supported architectures"""
-
-    X86 = "x86"
-    RISCV = "riscv"
-    ARM = "arm"
-
-
-@dataclass
-class MachineAuthenticationInfo:
-    """Information about authentication on remote machine"""
-
-    username: str
-    password: str | None
-    port: int
-
-
-@dataclass
-class MachineInfo:
-    """Information about the machine
-
-    :var arch Arch: Architecture of the remote machine.
-    :var ip str: IP address of the remote machine.
-    :var port int: Port of ssh service of the remote machine to connect.
-    """
-
-    arch: Arch
-    ip: str
-<<<<<<< HEAD
-    port: int
->>>>>>> 4b26d41 (refactor: using dataclasses and add class for remote machine)
-=======
-    auth: MachineAuthenticationInfo | None
->>>>>>> 7ccc1f6 (refactor: renamed RemoteMachine into MachineInfo and add class for authentication info)
 
 
 class Arch(str, Enum):
@@ -81,11 +41,8 @@ class MachineInfo:
     ip: str
     auth: MachineAuthenticationInfo | None
 
-<<<<<<< HEAD
     def reprJSON(self):
         """Method for correct JSON serialization"""
-<<<<<<< HEAD
-=======
 
         return dict(
             arch=self.arch,
@@ -93,16 +50,6 @@ class MachineInfo:
             auth=self.auth.reprJSON() if self.auth is not None else None,
         )
 
->>>>>>> b9853d6 (refactor: update Arch class to use string values)
-
-        return dict(
-            arch=self.arch,
-            ip=self.ip,
-            auth=self.auth.reprJSON() if self.auth is not None else None,
-        )
-
-=======
->>>>>>> daf000a (refactor: remove unnecessary json representation function)
 
 @dataclass
 class Build:
@@ -164,7 +111,6 @@ class IBuildSystem(ABC):
         else return string 'command' with 'runner_flags' inserted"""
 
 
-<<<<<<< HEAD
 class CMake(IBuildSystem):
     """The CMake implementation of IBuildSystem"""
 
@@ -230,39 +176,3 @@ class Make(IBuildSystem):
             raise NotImplementedError
 
         return "make -j" + str(cpu_count())
-=======
-@dataclass
-class Build:
-    """Class with information about one build of project
-
-    :var RemoteMachine machine: Information about the remote machine.
-    :var str build_path: Path to the directory with this build.
-    :var bool is_specified_script: True if user specified a build script, False if script is simple.
-    :var str specified_script: The user-specified build script.
-    :var str config_flags: Configuration flags for the build.
-    :var str compiler_flags: Compiler flags for the build.
-    """
-
-    machine: MachineInfo
-    build_path: str
-    is_specified_script: bool = False
-    specified_script: str = ""
-    config_flags: str = ""
-    compiler_flags: str = ""
-
-
-@dataclass
-class Project:
-    """Class with information about project and his builds
-
-    :var str path: Path to project for research.
-    :var IBuildSystem build_system: High-level build system interface.
-    :var IBuildSystem runner: Low-level build system interface.
-    :var list[Build]: List of project configurations to be build.
-    """
-
-    path: str
-    build_system: IBuildSystem | None
-    runner: IBuildSystem | None
-    builds: list[Build]
->>>>>>> 4b26d41 (refactor: using dataclasses and add class for remote machine)
