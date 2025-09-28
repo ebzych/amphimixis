@@ -1,8 +1,8 @@
 """The common module that is used in most other modules"""
 
 from enum import Enum
+from os import walk, path, cpu_count
 from abc import ABC, abstractmethod
-<<<<<<< HEAD
 from dataclasses import dataclass
 
 
@@ -24,6 +24,7 @@ class MachineAuthenticationInfo:
 
     def reprJSON(self):
         """Method for correct JSON serialization"""
+
         return dict(username=self.username, password=self.password, port=self.port)
 
 
@@ -48,48 +49,6 @@ class MachineInfo:
             ip=self.ip,
             auth=self.auth.reprJSON() if self.auth is not None else None,
         )
-=======
-from .build_system_interface import IBuildSystem
->>>>>>> f26938f (fix(build_system_cmake.py): fix the return command in CMake.insert_config_flags())
-
-
-class IArch(ABC):
-    """Interface for classes implementing interaction with arch of project build
-    which specify compiler and sysroot"""
-
-    @staticmethod
-    @abstractmethod
-    def compiler() -> str:
-        """The getter of path to compiler"""
-
-    @staticmethod
-    @abstractmethod
-    def sysroot() -> str:
-        """The getter of path to sysroot"""
-
-
-class IBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system"""
-
-    @staticmethod
-    @abstractmethod
-    def insert_config_flags(
-        project, build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
-        """Method insert flags in 'command' in line with call of build system
-        or return string with command which run build system with inserted flags
-        If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
-        else return string 'command' with 'config_flags' inserted"""
-
-    @staticmethod
-    @abstractmethod
-    def insert_runner_flags(
-        project, build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
-        """Method insert flags in 'command' in line with call of runner
-        or return string with command which run runner with inserted flags
-        If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
-        else return string 'command' with 'runner_flags' inserted"""
 
 
 @dataclass
@@ -112,8 +71,40 @@ class Build:
     compiler_flags: str = ""
 
 
+class _AProject(ABC):
+    """Abstract class of class Projcet resolving circular dependency"""
+
+    path: str
+    build_system: None
+    runner: None
+
+
+class IBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system"""
+
+    @staticmethod
+    @abstractmethod
+    def insert_config_flags(
+        project: _AProject, build: Build, command: str
+    ) -> str:  # type of "build" is Build, type of "project" is Project
+        """Method insert flags in 'command' in line with call of build system
+        or return string with command which run build system with inserted flags
+        If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
+        else return string 'command' with 'config_flags' inserted"""
+
+    @staticmethod
+    @abstractmethod
+    def insert_runner_flags(
+        project: _AProject, build: Build, command: str
+    ) -> str:  # type of "build" is Build, type of "project" is Project
+        """Method insert flags in 'command' in line with call of runner
+        or return string with command which run runner with inserted flags
+        If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
+        else return string 'command' with 'runner_flags' inserted"""
+
+
 @dataclass
-class Project:
+class Project(_AProject):
     """Class with information about project and his builds
 
     :var str path: Path to project for research.
@@ -122,31 +113,30 @@ class Project:
     :var list[Build]: List of project configurations to be build.
     """
 
-    path: str
-    build_system: IBuildSystem | None
-    runner: IBuildSystem | None
-    builds: list[Build]
-
     def __init__(self, repo_path: str, builds: list[Build]):
         self.path = repo_path
         self.builds = builds
-<<<<<<< HEAD
+        self.build_system = None
+        self.runner = None
 
 
 class CMake(IBuildSystem):
     """The CMake implementation of IBuildSystem"""
 
     @staticmethod
-    def find_cmakelists_path(project: Project):
-        """The method find CMakeLists.txt file"""
+    def find_cmakelists_path(project: _AProject) -> str:
+        """The method find first CMakeLists.txt file"""
 
-        raise NotImplementedError
+        path_ = ""
+        for root, _, files in walk(project.path):
+            for name in files:
+                if name == "CMakeLists.txt":
+                    path_ = path.join(root, name)
+        return path_
 
     @staticmethod
     @abstractmethod
-    def insert_config_flags(
-        project: Project, build: Build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
+    def insert_config_flags(project: _AProject, build: Build, command: str) -> str:
         """Method insert flags in 'command' in line with call of build system
         or return string with command which run build system with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
@@ -155,23 +145,46 @@ class CMake(IBuildSystem):
         if command != "":
             raise NotImplementedError
 
-        command = "cmake " + CMake.find_cmakelists_path(project)
-        command += " " + build.config_flags + " "
-        command += ' CXXFLAGS="' + build.compiler_flags + '"'
-        command += ' CFLAGS="' + build.compiler_flags
-        # command += " COMPILER=" + build.arch.compiler()
+        command = "cmake " + CMake.find_cmakelists_path(project) + " "
+        command += build.config_flags
+        command += " CXXFLAGS='" + build.compiler_flags + "'"
+        command += " CFLAGS='" + build.compiler_flags + "'"
+        # command += " -DCMAKE_TOOLCHAIN_FILE=" + build.arch.compiler()
         return command
 
     @staticmethod
     @abstractmethod
-    def insert_runner_flags(
-        project: Project, build: Build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
+    def insert_runner_flags(project: _AProject, build: Build, command: str) -> str:
         """Method insert flags in 'command' in line with call of runner
         or return string with command which run runner with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
         else return string 'command' with 'runner_flags' inserted"""
 
         raise NotImplementedError
-=======
->>>>>>> 1ee3c5c (refactor: rename definitions.py to build_system_interface.py and separate CMake implementation, IBuildSystem and general.py)
+
+
+class Make(IBuildSystem):
+    """The Make implementation of IBuildSystem"""
+
+    @staticmethod
+    @abstractmethod
+    def insert_config_flags(project: _AProject, build: Build, command: str) -> str:
+        """Method insert flags in 'command' in line with call of build system
+        or return string with command which run build system with inserted flags
+        If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
+        else return string 'command' with 'config_flags' inserted"""
+
+        raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    def insert_runner_flags(project: _AProject, build: Build, command: str) -> str:
+        """Method insert flags in 'command' in line with call of runner
+        or return string with command which run runner with inserted flags
+        If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
+        else return string 'command' with 'runner_flags' inserted"""
+
+        if command != "":
+            raise NotImplementedError
+
+        return "make -j" + str(cpu_count())
