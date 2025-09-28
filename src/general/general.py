@@ -55,7 +55,7 @@ class MachineInfo:
 class Build:
     """Class with information about one build of project
 
-    :var RemoteMachine machine: Information about the remote machine.
+    :var MachineInfo machine: Information about the machine.
     :var str build_path: Path to the directory with this build.
     :var bool is_specified_script: True if user specified a build script, False if script is simple.
     :var str specified_script: The user-specified build script.
@@ -76,8 +76,8 @@ class Project:
     """Class with information about project and his builds
 
     :var str path: Path to project for research.
-    :var IBuildSystem build_system: High-level build system interface.
-    :var IBuildSystem runner: Low-level build system interface.
+    :var type[IBuildSystem] build_system: High-level build system interface.
+    :var type[IBuildSystem] runner: Low-level build system interface.
     :var list[Build]: List of project configurations to be build.
     """
 
