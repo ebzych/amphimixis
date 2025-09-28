@@ -81,7 +81,13 @@ class Project:
     :var list[Build]: List of project configurations to be build.
     """
 
-    def __init__(self, build_system, runner, repo_path: str, builds: list[Build]):
+    def __init__(
+        self,
+        build_system: "IBuildSystem",
+        runner: "IBuildSystem",
+        repo_path: str,
+        builds: list[Build],
+    ):
         self.path = repo_path
         self.builds = builds
         self.build_system = build_system
