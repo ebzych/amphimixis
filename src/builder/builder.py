@@ -6,7 +6,7 @@ import os
 from general import Project, Build
 
 
-def run_command(command: str, cwd=None):
+def run_command(command: str, cwd: str = "") -> bool:
     command_formatted = shlex.split(command)
     try:
         process = subprocess.run(
@@ -23,7 +23,7 @@ class Builder:
     """The class is representing a module which builds a build based on its configuration"""
 
     @staticmethod
-    def process(project: Project):
+    def process(project: Project) -> None:
         """The method build all builds"""
         for build in project.builds:
             if build.is_specified_script:
@@ -37,7 +37,7 @@ class Builder:
                 print("Build failed.")
 
     @staticmethod
-    def build_for_linux(project: Project, build: Build):
+    def build_for_linux(project: Project, build: Build) -> bool:
         """The method build program on Linux"""
         os.makedirs(build.build_path, exist_ok=True)
 
@@ -52,9 +52,7 @@ class Builder:
         return True
 
     @staticmethod
-    def build_with_specified_script(project: Project, build: Build):
+    def build_with_specified_script(project: Project, build: Build) -> None:
         """The method handle case when user specify a script for building"""
 
-        command = build.specified_script
-        command = build.build_system.insert_config_flags(project, build, command)
-        command = build.runner.insert_runner_flags(project, build, command)
+        raise NotImplementedError
