@@ -12,7 +12,9 @@ def run_command(command: str, cwd=None):
         process = subprocess.run(
             command_formatted, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        return process.returncode == 0
+        if process.returncode:
+            print("Command executed successfully.")
+            return True
 
     except Exception as e:
         print(f'Error executing command "{command}": {e}')
@@ -27,28 +29,34 @@ class Builder:
         """The method build all builds"""
         for build in project.builds:
             if build.is_specified_script:
-                Builder.build_with_specified_script(project, build)
+                success = Builder.build_with_specified_script(project, build)
             else:
-                Builder.build_for_linux(project, build)
+                success = Builder.build_for_linux(project, build)
+
+            if success:
+                print("Build passed.")
+            else:
+                print("Build failed.")
 
     @staticmethod
     def build_for_linux(project: Project, build: Build):
         """The method build program on Linux"""
+        os.makedirs(build.build_path, exist_ok=True)
 
-        command = "mkdir -p " + build.build_path
-        command += " && cd " + build.build_path
-        command += " && " + project.build_system.insert_config_flags(project, build, "")
-        command += " && " + project.runner.insert_runner_flags(project, build, "")
-        # make install
-        args = shlex.split(command)
-        subprocess.Popen(["sh", "-c"] + [command])
-        # terminal one?
-        # windws trubles
+        commands = [
+            build.build_system.insert_config_flags(project, build, ""),
+            build.runner.insert_runner_flags(project, build, ""),
+        ]
+
+        for command in commands:
+            if not run_command(command, build.build_path):
+                return False
+        return True
 
     @staticmethod
     def build_with_specified_script(project: Project, build: Build):
         """The method handle case when user specify a script for building"""
 
         command = build.specified_script
-        command = project.build_system.insert_config_flags(project, build, command)
-        command = project.runner.insert_runner_flags(project, build, command)
+        command = build.build_system.insert_config_flags(project, build, command)
+        command = build.runner.insert_runner_flags(project, build, command)
