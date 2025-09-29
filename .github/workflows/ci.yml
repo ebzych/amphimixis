@@ -17,15 +17,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install pylint mypy black
         uv sync
     - name: Analysing the code with pylint
       run: |
-        pylint -E $(git ls-files '*.py')
+        uv run pylint -E $(git ls-files '*.py')
     - name: Static type check with mypy
       run: |
-        mypy $(git ls-files '*.py')
+        uv run mypy $(git ls-files '*.py')
     - name: Check code style using Black
       run: |
-        black --check $(git ls-files '*.py')
+        uv run black --check $(git ls-files '*.py')
