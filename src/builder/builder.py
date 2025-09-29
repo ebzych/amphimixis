@@ -12,9 +12,7 @@ def run_command(command: str, cwd=None):
         process = subprocess.run(
             command_formatted, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        if process.returncode:
-            print("Command executed successfully.")
-            return True
+        return process.returncode == 0
 
     except Exception as e:
         print(f'Error executing command "{command}": {e}')
@@ -44,8 +42,8 @@ class Builder:
         os.makedirs(build.build_path, exist_ok=True)
 
         commands = [
-            build.build_system.insert_config_flags(project, build, ""),
-            build.runner.insert_runner_flags(project, build, ""),
+            project.build_system.insert_config_flags(project, build, ""),
+            project.runner.insert_runner_flags(project, build, ""),
         ]
 
         for command in commands:
