@@ -87,4 +87,5 @@ def get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
     for item in items:
         if item["id"] == target_id:
             return item
-    return {}
+
+    raise LookupError("Item id didn't match any existed id, check input file")
