@@ -35,6 +35,8 @@ def parse_config(project: general.Project) -> None:
                 get_by_id(input_config["receipts"], build["receipt_id"]),
             )
 
+    print("Configuration completed successfully!")
+
 
 def configure(
     project: general.Project,
