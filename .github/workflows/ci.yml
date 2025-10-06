@@ -15,15 +15,20 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Make scripts executable
+      run: |
+        chmod +x ci/pylint.sh
+        chmod +x ci/mypy.sh
+        chmod +x ci/black.sh
     - name: Install dependencies
       run: |
-        uv sync
+        uv sync --dev
     - name: Analysing the code with pylint
       run: |
-        uv run pylint -E $(git ls-files '*.py')
+        uv run ci/pylint.sh
     - name: Static type check with mypy
       run: |
-        uv run mypy $(git ls-files '*.py')
+        uv run ci/mypy.sh
     - name: Check code style using Black
       run: |
-        uv run black --check $(git ls-files '*.py')
+        uv run ci/black
