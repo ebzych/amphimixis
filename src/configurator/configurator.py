@@ -9,6 +9,9 @@ import general
 def parse_config(project: general.Project) -> None:
     """Module enter function"""
 
+    if not path.exists(project.path):
+        raise FileNotFoundError("Incorrect project path @_@, look input arguments")
+
     project.builds = []
     with open("input.yml", "r", encoding="UTF-8") as f:
         input_config = yaml.safe_load(f)

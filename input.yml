@@ -1,0 +1,42 @@
+---
+build_system: CMake
+runner: mAkE
+platforms:
+- id: 1
+  ip: 192.168.1.1
+  arch: x86
+  username: trololo
+  port: 22
+  password: '123456'
+- id: 2
+  ip: 192.168.1.2
+  arch: riscv
+  username: trololo
+  password: '123456'
+  port: 22
+- id: 3
+  ip: 192.168.1.3
+  arch: x86
+  username: trololo
+  password: '123456'
+      
+receipts:
+- id: 1
+  config_flags: "-DCMAKE_BUILD_TYPE=Release"
+  compiler_flags: "-ftree-vectorize"
+  script: "/root/trololo"
+- id: 2 
+  config_flags: "-DCMAKE_BUILD_TYPE=Debug"
+  compiler_flags: "-O0"
+  script: "/root/trololo"
+- id: 3
+  build_path: build1
+  config_flags: "-DCMAKE_BUILD_TYPE=Release"
+  compiler_flags: "-ftree-vectorize"
+  script: "/root/trololo"
+
+builds:
+- platform_id: 1
+  receipt_id: 1
+- platform_id: 1
+  receipt_id: 2
