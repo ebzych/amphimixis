@@ -13,27 +13,30 @@ def parse_config(project: general.Project) -> None:
         raise FileNotFoundError("Incorrect project path @_@, look input arguments")
 
     project.builds = []
-    with open("input.yml", "r", encoding="UTF-8") as f:
-        input_config = yaml.safe_load(f)
+    try:
+        with open("input.yml", "r", encoding="UTF-8") as f:
+            input_config = yaml.safe_load(f)
 
-        if not isinstance(input_config["build_system"], str):
-            raise TypeError("Invalid build system type :(, look config file")
+            if not isinstance(input_config["build_system"], str):
+                raise TypeError("Invalid build system type :(, look config file")
 
-        project.build_system = general.build_systems_dict[
-            input_config["build_system"].lower()
-        ]
+            project.build_system = general.build_systems_dict[
+                input_config["build_system"].lower()
+            ]
 
-        if not isinstance(input_config["runner"], str):
-            raise TypeError("Invalid runner type ^~^, look config file")
+            if not isinstance(input_config["runner"], str):
+                raise TypeError("Invalid runner type ^~^, look config file")
 
-        project.runner = general.build_systems_dict[input_config["runner"].lower()]
+            project.runner = general.build_systems_dict[input_config["runner"].lower()]
 
-        for build in input_config["builds"]:
-            configure(
-                project,
-                get_by_id(input_config["platforms"], build["platform_id"]),
-                get_by_id(input_config["receipts"], build["receipt_id"]),
-            )
+            for build in input_config["builds"]:
+                configure(
+                    project,
+                    get_by_id(input_config["platforms"], build["platform_id"]),
+                    get_by_id(input_config["receipts"], build["receipt_id"]),
+                )
+    except FileNotFoundError as e:
+        print(f"Error opening file, check input data. {e}")
 
     print("Configuration completed successfully!")
 
