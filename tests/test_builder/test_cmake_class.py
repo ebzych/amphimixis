@@ -1,0 +1,1 @@
+"""Test of CMake class"""
