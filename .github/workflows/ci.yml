@@ -20,7 +20,7 @@ jobs:
         chmod +x ci/*.sh
     - name: Install uv
       run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
+        curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -y
     - name: Install dependencies
       run: |
         uv sync
