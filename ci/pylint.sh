@@ -1,3 +1,3 @@
 #!/bin/bash
 
-uv run pylint $(git ls-files '*.py')
+uv run pylint $(git ls-files 'src/*.py')

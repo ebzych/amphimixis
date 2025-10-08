@@ -1,3 +1,3 @@
 #!/bin/bash
 
-uv run black --check $(git ls-files '*.py')
+uv run black --check $(git ls-files 'src/*.py')
