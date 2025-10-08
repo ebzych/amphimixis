@@ -1,4 +1,3 @@
 #!/bin/bash
 
-sudo apt install -y black
-black .
+uv run black --check $(git ls-files '*.py')

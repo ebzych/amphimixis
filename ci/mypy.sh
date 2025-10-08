@@ -1,4 +1,4 @@
 #!/bin/bash
 
-sudo apt install -y mypy
-mypy .
+uv run mypy $(git ls-files '*.py')
+

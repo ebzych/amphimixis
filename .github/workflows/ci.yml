@@ -17,18 +17,16 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Make scripts executable
       run: |
-        chmod +x ci/pylint.sh
-        chmod +x ci/mypy.sh
-        chmod +x ci/black.sh
+        chmod +x ci/*.sh
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
     - name: Install dependencies
       run: |
-        uv sync --dev
-    - name: Analysing the code with pylint
+        uv sync
+    - name: Run CI
       run: |
-        uv run ci/pylint.sh
-    - name: Static type check with mypy
-      run: |
-        uv run ci/mypy.sh
-    - name: Check code style using Black
-      run: |
-        uv run ci/black
+        for script in ci/*.sh; do
+          bash "$script"
+        done
+
