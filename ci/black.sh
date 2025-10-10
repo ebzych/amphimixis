@@ -1,3 +1,4 @@
 #!/bin/bash
 
-uv run black --check $(git ls-files 'src/*.py')
+COMMAND="${1:-uv}"
+"$COMMAND" run black --check $(git ls-files 'src/*.py')

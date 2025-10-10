@@ -1,4 +1,5 @@
 #!/bin/bash
 
-uv run mypy $(git ls-files '*src/*.py')
+COMMAND="${1:-uv}"
+"$COMMAND" run mypy $(git ls-files '*src/*.py')
 
