@@ -33,7 +33,7 @@ class MachineInfo:
     """
 
     arch: Arch
-    ip: str
+    ip: str | None
     auth: MachineAuthenticationInfo | None
 
 
