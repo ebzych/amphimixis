@@ -32,15 +32,11 @@ class _SSHHandler(IShellHandler):
 
     def __del__(self) -> None:
         self.ssh.kill()
-        try:
+        if self.ssh.stdout is not None:
             self.ssh.stdout.close()
-        except AttributeError:
-            pass
 
-        try:
+        if self.ssh.stdin is not None:
             self.ssh.stdin.close()
-        except AttributeError:
-            pass
 
     def run(self, command: str) -> None:
         if self.ssh.stdin is None:
