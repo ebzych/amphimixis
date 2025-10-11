@@ -22,11 +22,6 @@ class MachineAuthenticationInfo:
     password: str | None
     port: int
 
-    def reprJSON(self):
-        """Method for correct JSON serialization"""
-
-        return dict(username=self.username, password=self.password, port=self.port)
-
 
 @dataclass
 class MachineInfo:
@@ -40,15 +35,6 @@ class MachineInfo:
     arch: Arch
     ip: str
     auth: MachineAuthenticationInfo | None
-
-    def reprJSON(self):
-        """Method for correct JSON serialization"""
-
-        return dict(
-            arch=self.arch,
-            ip=self.ip,
-            auth=self.auth.reprJSON() if self.auth is not None else None,
-        )
 
 
 @dataclass
