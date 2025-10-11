@@ -16,7 +16,14 @@ class Arch(str, Enum):
 
 @dataclass
 class MachineAuthenticationInfo:
-    """Information about authentication on remote machine"""
+    """Information about authentication on a remote machine
+
+    :var str username: Username for authentication.
+    :var str | None password: Password for authentication.
+    Password can be set to None if an SSH agent is used.
+
+    :var int port: Port number for the SSH connection.
+    """
 
     username: str
     password: str | None
@@ -27,11 +34,11 @@ class MachineAuthenticationInfo:
 class MachineInfo:
     """Information about the machine
 
-    :var Arch arch: Architecture of the remote machine.
+    :var Arch arch: Architecture of the machine.
     :var str | None ip: IP address of the remote machine.
-    If is None, the machine is considered to be local.
+    If ip is None, the machine is considered to be local.
 
-    :var int port: Port of ssh service of the remote machine to connect.
+    :var MachineAuthenticationInfo auth: Authentication info for the machine.
     """
 
     arch: Arch
