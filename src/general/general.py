@@ -27,9 +27,11 @@ class MachineAuthenticationInfo:
 class MachineInfo:
     """Information about the machine
 
-    :var arch Arch: Architecture of the remote machine.
-    :var ip str: IP address of the remote machine.
-    :var port int: Port of ssh service of the remote machine to connect.
+    :var Arch arch: Architecture of the remote machine.
+    :var str | None ip: IP address of the remote machine.
+    If is None, the machine is considered to be local.
+
+    :var int port: Port of ssh service of the remote machine to connect.
     """
 
     arch: Arch
