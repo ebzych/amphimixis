@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 
-class IShell(ABC):
+class IShellHandler(ABC):
     """Abstract base class for shell handlers."""
 
     @abstractmethod

@@ -1,12 +1,12 @@
 """SSH shell handler implementation."""
 
 import subprocess
-from .shell_interface import IShell
+from .shell_interface import IShellHandler
 
 _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 
 
-class _SSHHandler(IShell):
+class _SSHHandler(IShellHandler):
 
     def __init__(self, ip: str, port: int, username: str, password: str | None) -> None:
         self.ip = ip

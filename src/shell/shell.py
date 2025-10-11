@@ -3,7 +3,7 @@
 import ipaddress
 from typing import Self
 
-from .shell_interface import IShell
+from .shell_interface import IShellHandler
 from .ssh_shell_handler import _SSHHandler
 from .local_shell_handler import _LocalShellHandler
 
@@ -12,7 +12,7 @@ class Shell:
     """Shell class to manage shell operations."""
 
     def __init__(self, ip: str, port: str, username: str, password: str):
-        self._shell: IShell
+        self._shell: IShellHandler
         self.username = username
         self.password = password
         self.ip = ipaddress.ip_address(ip)

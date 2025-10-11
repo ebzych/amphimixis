@@ -2,10 +2,10 @@
 
 import os
 import subprocess
-from .shell_interface import IShell
+from .shell_interface import IShellHandler
 
 
-class _LocalShellHandler(IShell):
+class _LocalShellHandler(IShellHandler):
     def __init__(self) -> None:
         default_shell = os.getenv("SHELL")
         if default_shell is None:
