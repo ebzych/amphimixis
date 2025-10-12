@@ -20,7 +20,8 @@ class _SSHHandler(IShellHandler):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        if self.ssh.stdin is None or self.ssh.stdout is None:
+
+        if self.ssh.stdin is None or self.ssh.stdout is None or self.ssh.stderr is None:
             raise BrokenPipeError()
 
         self.ssh.stdin.write(b"echo ")

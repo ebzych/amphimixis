@@ -19,6 +19,13 @@ class _LocalShellHandler(IShellHandler):
             stderr=subprocess.PIPE,
         )
 
+        if (
+            self.shell.stdin is None
+            or self.shell.stdout is None
+            or self.shell.stderr is None
+        ):
+            raise BrokenPipeError()
+
     def __del__(self) -> None:
         self.shell.kill()
         self.shell.wait()
