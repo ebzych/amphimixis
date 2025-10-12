@@ -1,9 +1,9 @@
 """The common module that is used in most other modules"""
 
-from enum import Enum
-from os import walk, path, cpu_count
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
+from os import cpu_count, path, walk
 
 
 class Arch(str, Enum):
@@ -35,14 +35,14 @@ class MachineInfo:
     """Information about the machine
 
     :var Arch arch: Architecture of the machine.
-    :var str | None ip: IP address of the remote machine.
-    If ip is None, the machine is considered to be local.
+    :var str | None address: IP address or hostname of the remote machine.
+    If address is None, the machine is considered to be local.
 
     :var MachineAuthenticationInfo auth: Authentication info for the machine.
     """
 
     arch: Arch
-    ip: str | None
+    address: str | None
     auth: MachineAuthenticationInfo | None
 
 
