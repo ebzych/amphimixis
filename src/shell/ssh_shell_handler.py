@@ -32,11 +32,7 @@ class _SSHHandler(IShellHandler):
 
     def __del__(self) -> None:
         self.ssh.kill()
-        if self.ssh.stdout is not None:
-            self.ssh.stdout.close()
-
-        if self.ssh.stdin is not None:
-            self.ssh.stdin.close()
+        self.ssh.wait()
 
     def run(self, command: str) -> None:
         if self.ssh.stdin is None:
