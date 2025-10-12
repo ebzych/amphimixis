@@ -10,11 +10,11 @@ from .general import (
     MachineInfo,
     IBuildSystem,
     MachineAuthenticationInfo,
-    Arch,
     build_systems_dict,
 )
 
 from .ToolchainManager import ToolchainManager
+from .Arch import Arch
 
 __all__ = [
     "Project",

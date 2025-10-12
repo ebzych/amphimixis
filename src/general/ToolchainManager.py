@@ -4,7 +4,7 @@ from os import makedirs, getlogin
 from os.path import exists
 from abc import ABC
 import yaml
-from . import general
+from .Arch import Arch
 
 
 class ToolchainManager(ABC):
@@ -48,13 +48,13 @@ class ToolchainManager(ABC):
         raise NotImplementedError
 
     @staticmethod
-    def add_compiler(machine_name: str, path: str, arch: general.Arch) -> None:
+    def add_compiler(machine_name: str, path: str, arch: Arch) -> None:
         """"""
 
         raise NotImplementedError
 
     @staticmethod
-    def add_sysroot(name_machine: str, path: str, arch: general.Arch) -> None:
+    def add_sysroot(name_machine: str, path: str, arch: Arch) -> None:
         """"""
 
         raise NotImplementedError

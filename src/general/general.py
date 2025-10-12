@@ -2,16 +2,9 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import Enum
 from os import cpu_count, path, walk
-
-
-class Arch(str, Enum):
-    """Supported architectures"""
-
-    X86 = "x86"
-    RISCV = "riscv"
-    ARM = "arm"
+from .ToolchainManager import ToolchainManager
+from .Arch import Arch
 
 
 @dataclass
@@ -91,7 +84,7 @@ class IBuildSystem(ABC):
     @staticmethod
     @abstractmethod
     def insert_config_flags(project: Project, build: Build, command: str) -> str:
-        """Method insert flags in 'command' in line with call of build system
+        """Insert flags in 'command' in line with call of build system
         or return string with command which run build system with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
         else return string 'command' with 'config_flags' inserted"""
@@ -99,10 +92,20 @@ class IBuildSystem(ABC):
     @staticmethod
     @abstractmethod
     def insert_runner_flags(project: Project, build: Build, command: str) -> str:
-        """Method insert flags in 'command' in line with call of runner
+        """Insert flags in 'command' in line with call of runner
         or return string with command which run runner with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
         else return string 'command' with 'runner_flags' inserted"""
+
+    @staticmethod
+    @abstractmethod
+    def insert_compiler(build: Build) -> str:
+        """Return flag that specify compiler in build system call"""
+
+    @staticmethod
+    @abstractmethod
+    def insert_sysroot(build: Build) -> str:
+        """Return flag that specify sysroot in build system call"""
 
 
 class CMake(IBuildSystem):
@@ -134,6 +137,8 @@ class CMake(IBuildSystem):
         command += build.config_flags
         command += " CXXFLAGS='" + build.compiler_flags + "'"
         command += " CFLAGS='" + build.compiler_flags + "'"
+        command += " " + CMake.insert_compiler(build)
+        command += " " + CMake.insert_sysroot(build)
         return command
 
     @staticmethod
@@ -144,6 +149,16 @@ class CMake(IBuildSystem):
         else return string 'command' with 'runner_flags' inserted"""
 
         raise NotImplementedError
+
+    @staticmethod
+    def insert_compiler(build: Build) -> str:
+        """Return flag that specify compiler in build system call"""
+        return ""
+
+    @staticmethod
+    def insert_sysroot(build: Build) -> str:
+        """Return flag that specify sysroot in build system call"""
+        return ""
 
 
 class Make(IBuildSystem):
@@ -169,6 +184,16 @@ class Make(IBuildSystem):
             raise NotImplementedError
 
         return "make -j" + str(cpu_count())
+
+    @staticmethod
+    def insert_compiler(build: Build) -> str:
+        """Return flag that specify compiler in build system call"""
+        return ""
+
+    @staticmethod
+    def insert_sysroot(build: Build) -> str:
+        """Return flag that specify sysroot in build system call"""
+        return ""
 
 
 build_systems_dict: dict[str, type[IBuildSystem]] = {
