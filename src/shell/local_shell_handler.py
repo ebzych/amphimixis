@@ -16,6 +16,7 @@ class _LocalShellHandler(IShellHandler):
             [default_shell],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
 
     def __del__(self) -> None:
