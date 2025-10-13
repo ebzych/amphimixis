@@ -44,7 +44,7 @@ class Shell:
 
         return self
 
-    def run(self, *commands: str) -> Tuple[int, List[str], List[str]]:
+    def run(self, *commands: str) -> Tuple[int, List[List[str]], List[List[str]]]:
         """Run the commands through the shell.
 
         - Execute commands one by one until:
@@ -55,15 +55,15 @@ class Shell:
 
         :param str *commands: commands to be executed
 
-        :rtype: Tuple[int, List[str], List[str]]
+        :rtype: Tuple[int, List[List[str]], List[List[str]]]
         :return: A tuple of three :\n
             - :int: error code of the last executed command
-            - :List[str]: lines from stdout of each command
-            - :List[str]: lines from stderr of each command
+            - :List[List[str]]: lines from stdout of each command
+            - :List[List[str]]: lines from stderr of each command
         """
 
-        stdout: List["str"] = []
-        stderr: List["str"] = []
+        stdout: List[List[str]] = []
+        stderr: List[List[str]] = []
         error_code = 0
         for cmd in commands:
             if error_code:
@@ -73,22 +73,22 @@ class Shell:
             # newline added in case of it is missing in the previous output line
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}:$?"')
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}:$?">&2')
-            cmd_stdout = ""
-            cmd_stderr = ""
+            cmd_stdout: List[str] = []
+            cmd_stderr: List[str] = []
             while line := self._shell.stdout_readline():
                 if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
                     error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
-                    cmd_stdout = cmd_stdout[:-1]
+                    del cmd_stdout[-1]
                     break
-                cmd_stdout += line
+                cmd_stdout.append(line)
             stdout.append(cmd_stdout)
 
             while line := self._shell.stderr_readline():
                 if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
                     error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
-                    cmd_stderr = cmd_stderr[:-1]
+                    del cmd_stderr[-1]
                     break
-                cmd_stderr += line
+                cmd_stderr.append(line)
             stderr.append(cmd_stderr)
 
         return (error_code, stdout, stderr)
