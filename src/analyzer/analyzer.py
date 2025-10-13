@@ -3,7 +3,6 @@
 import glob
 import os
 import json
-from typing import Literal
 from general import Colors
 
 

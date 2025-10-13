@@ -1,5 +1,9 @@
 """The common module that is used in most other modules"""
 
+from .colors import (
+    Colors,
+)
+
 from .general import (
     Project,
     Build,
@@ -18,4 +22,5 @@ __all__ = [
     "MachineAuthenticationInfo",
     "Arch",
     "build_systems_dict",
+    "Colors",
 ]
