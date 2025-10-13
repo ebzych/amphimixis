@@ -1,4 +1,10 @@
 #!/bin/bash
+BLUE='\e[34m'
+NC='\e[0m'
+COMMAND="${1}"
 
-COMMAND="${1:-uv}"
-"$COMMAND" run black --check $(git ls-files 'src/*.py')
+echo -e "${BLUE}Running Black code formatter...${NC}"
+mapfile -t files < <(git ls-files 'src/*.py')
+"$COMMAND" run black --check "${files[@]}"
+
+
