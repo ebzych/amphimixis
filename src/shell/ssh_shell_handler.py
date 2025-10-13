@@ -1,47 +1,80 @@
 """SSH shell handler implementation."""
 
-import paramiko
-from .shell_interface import IShell
+import select
+import subprocess
+from ctypes import ArgumentError
+
+from general import MachineInfo
+
+from .shell_interface import IShellHandler
+
+_CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 
 
-class _SSHHandler(IShell):
-    def __init__(self, ip: str, port: int, username: str, password: str | None) -> None:
-        self.ip = ip
-        self.port = port
-        self.username = username
-        self.password = password
-        self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.ssh.connect(
-            self.ip, self.port, username=self.username, password=self.password
+class _SSHHandler(IShellHandler):
+
+    def __init__(self, machine: MachineInfo, connect_timeout=5) -> None:
+        if machine.auth is None:
+            raise ArgumentError("Authentication data is not provided")
+
+        self.machine = machine
+        # pylint: disable=consider-using-with
+        self.ssh = subprocess.Popen(
+            [
+                "ssh",
+                "-q",
+                "-o",
+                f"ConnectTimeout={connect_timeout}",
+                "-p",
+                str(machine.auth.port),
+                f"{machine.auth.username}@{machine.address}",
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
-        channel = self.ssh.invoke_shell()
-        self.stdin = channel.makefile("wb")
-        self.stdout = channel.makefile("r")
+
+        if self.ssh.stdin is None or self.ssh.stdout is None or self.ssh.stderr is None:
+            raise BrokenPipeError()
+
+        r, _, _ = select.select([self.ssh.stdout], [], [], connect_timeout)
+
+        if not r or self.ssh.poll() is not None:
+            raise ConnectionError("can't connect to ssh")
+
+        self.ssh.stdin.write(b"echo ")
+        self.ssh.stdin.write(_CLEAR_OUTPUT_FLAG)
+        self.ssh.stdin.flush()
+        for i in self.ssh.stdout:
+            if i == _CLEAR_OUTPUT_FLAG:
+                break
 
     def __del__(self) -> None:
-        self.ssh.close()
-        try:
-            self.stdout.close()
-            self.stdin.close()
-        except AttributeError:
-            pass
+        self.ssh.kill()
+        self.ssh.wait()
 
     def run(self, command: str) -> None:
-        if self.stdin is None:
+        if self.ssh.stdin is None:
             raise BrokenPipeError("Can't write to process' stdin")
 
         cmd_bytes = command.encode("UTF-8")
 
-        self.stdin.write(cmd_bytes)
-        self.stdin.write(b"\n")
-        self.stdin.flush()
+        self.ssh.stdin.write(cmd_bytes)
+        self.ssh.stdin.write(b"\n")
+        self.ssh.stdin.flush()
 
-    def readline(self) -> str:
-        if self.stdout is None:
+    def stdout_readline(self) -> str:
+        if self.ssh.stdout is None:
             raise BrokenPipeError("Can't read from process' stdout")
-        line = self.stdout.readline()
-        if not isinstance(line, str):
-            raise TypeError("Can't read a line from ssh session")
 
+        line_bytes = self.ssh.stdout.readline()
+        line = line_bytes.decode("UTF-8")
+        return line
+
+    def stderr_readline(self) -> str:
+        if self.ssh.stderr is None:
+            raise BrokenPipeError("Can't read from process' stdout")
+
+        line_bytes = self.ssh.stderr.readline()
+        line = line_bytes.decode("UTF-8")
         return line
