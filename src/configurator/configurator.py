@@ -10,7 +10,7 @@ def parse_config(project: general.Project) -> None:
     """Module enter function"""
 
     if not path.exists(project.path):
-        raise FileNotFoundError("Incorrect project path @_@, look input arguments")
+        raise FileNotFoundError("Incorrect project path @_@, check input arguments")
 
     project.builds = []
     try:
@@ -18,14 +18,14 @@ def parse_config(project: general.Project) -> None:
             input_config = yaml.safe_load(f)
 
             if not isinstance(input_config["build_system"], str):
-                raise TypeError("Invalid build system type :(, look config file")
+                raise TypeError("Invalid build system type :(, check config file")
 
             project.build_system = general.build_systems_dict[
                 input_config["build_system"].lower()
             ]
 
             if not isinstance(input_config["runner"], str):
-                raise TypeError("Invalid runner type ^~^, look config file")
+                raise TypeError("Invalid runner type ^~^, check config file")
 
             project.runner = general.build_systems_dict[input_config["runner"].lower()]
 
