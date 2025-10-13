@@ -75,11 +75,18 @@ class Analyzer:
             ]
             self.results["dependencies"].extend(dirs)
         print("dependencies:")
-        for dep in self.results["dependencies"]:
-            print(f"\t{dep}")
+        if self.results["dependencies"]:
+            for dep in self.results["dependencies"]:
+                print(f"\t{dep}")
+        else:
+            print("\tnot found")
 
     def analyze(self):
         """Analyzes project and collects its information"""
+
+        if not os.path.exists(self.repo_path):
+            raise FileNotFoundError(f'Directory "{self.repo_path}" not found')
+
         print(f"Analyzing {self.repo_path}\n")
 
         self._search_tests()
@@ -90,3 +97,4 @@ class Analyzer:
 
         with open("amphimixis.log", "w", encoding="utf8") as file:
             json.dump(self.results, file, indent=4)
+            print()

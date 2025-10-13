@@ -1,9 +1,9 @@
 """The common module that is used in most other modules"""
 
-from enum import Enum
-from os import walk, path, cpu_count
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
+from os import cpu_count, path, walk
 
 
 class Arch(str, Enum):
@@ -16,39 +16,34 @@ class Arch(str, Enum):
 
 @dataclass
 class MachineAuthenticationInfo:
-    """Information about authentication on remote machine"""
+    """Information about authentication on a remote machine
+
+    :var str username: Username for authentication.
+    :var str | None password: Password for authentication.
+    Password can be set to None if an SSH agent is used.
+
+    :var int port: Port number for the SSH connection.
+    """
 
     username: str
     password: str | None
     port: int
-
-    def reprJSON(self):
-        """Method for correct JSON serialization"""
-
-        return dict(username=self.username, password=self.password, port=self.port)
 
 
 @dataclass
 class MachineInfo:
     """Information about the machine
 
-    :var arch Arch: Architecture of the remote machine.
-    :var ip str: IP address of the remote machine.
-    :var port int: Port of ssh service of the remote machine to connect.
+    :var Arch arch: Architecture of the machine.
+    :var str | None address: IP address or hostname of the remote machine.
+    If address is None, the machine is considered to be local.
+
+    :var MachineAuthenticationInfo auth: Authentication info for the machine.
     """
 
     arch: Arch
-    ip: str
+    address: str | None
     auth: MachineAuthenticationInfo | None
-
-    def reprJSON(self):
-        """Method for correct JSON serialization"""
-
-        return dict(
-            arch=self.arch,
-            ip=self.ip,
-            auth=self.auth.reprJSON() if self.auth is not None else None,
-        )
 
 
 @dataclass
@@ -92,9 +87,7 @@ class IBuildSystem(ABC):
 
     @staticmethod
     @abstractmethod
-    def insert_config_flags(
-        project: Project, build: Build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
+    def insert_config_flags(project: Project, build: Build, command: str) -> str:
         """Method insert flags in 'command' in line with call of build system
         or return string with command which run build system with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
@@ -102,9 +95,7 @@ class IBuildSystem(ABC):
 
     @staticmethod
     @abstractmethod
-    def insert_runner_flags(
-        project: Project, build: Build, command: str
-    ) -> str:  # type of "build" is Build, type of "project" is Project
+    def insert_runner_flags(project: Project, build: Build, command: str) -> str:
         """Method insert flags in 'command' in line with call of runner
         or return string with command which run runner with inserted flags
         If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
@@ -140,7 +131,6 @@ class CMake(IBuildSystem):
         command += build.config_flags
         command += " CXXFLAGS='" + build.compiler_flags + "'"
         command += " CFLAGS='" + build.compiler_flags + "'"
-        # command += " -DCMAKE_TOOLCHAIN_FILE=" + build.arch.compiler()
         return command
 
     @staticmethod

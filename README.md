@@ -2,6 +2,8 @@
 
 Amphimixis is a tool that automates project builds and helps to analyze application performance. It is designed to simplify the build process and compare results across different platforms.
 
+!!!Amphimixis in the pre-pre-pre-pre-pre-alpha version!!!
+
 Amphimixis can:
 
 + Analyze a project for the presence of:
