@@ -3,6 +3,8 @@
 import glob
 import os
 import json
+from typing import Literal
+from general import Colors
 
 
 class Analyzer:
@@ -19,6 +21,7 @@ class Analyzer:
 
     def __init__(self, repo_path: str):
         self.repo_path = repo_path
+        self.basename = os.path.basename(os.path.normpath(repo_path))
         self.results = {
             "tests": False,
             "benchmarks": False,
@@ -33,37 +36,51 @@ class Analyzer:
         }
 
     def _search_tests(self):
-        if glob.glob(os.path.join(self.repo_path, "**/*test*"), recursive=True):
+        path = glob.glob(os.path.join(self.repo_path, "**/*test*"), recursive=True)
+        if path:
             self.results["tests"] = True
-        if self.results["tests"] is True:
-            print("tests: found")
+            first_found_dir = path[0]
+            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
+            rel_path = os.path.relpath(first_found_dir, parent_dir)
+            print("tests:".ljust(16) + Colors.GREEN + rel_path + Colors.NONE + "\n")
         else:
-            print("tests: not found")
+            print("tests:".ljust(16) + Colors.RED + "not found\n" + Colors.NONE)
 
     def _search_benchmarks(self):
-        if glob.glob(os.path.join(self.repo_path, "**/*benchmark*"), recursive=True):
+        path = glob.glob(os.path.join(self.repo_path, "**/*benchmark*"), recursive=True)
+        if path:
             self.results["benchmarks"] = True
-        if self.results["benchmarks"] is True:
-            print("benchmarks: found")
+            first_found_dir = path[0]
+            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
+            rel_path = os.path.relpath(first_found_dir, parent_dir)
+            print(
+                "benchmarks:".ljust(16) + Colors.GREEN + rel_path + Colors.NONE + "\n"
+            )
         else:
-            print("benchmarks: not found")
+            print("benchmarks:".ljust(16) + Colors.RED + "not found\n" + Colors.NONE)
 
     def _search_ci(self):
+        path = ""
         for pattern in self.ci_list:
-            if glob.glob(os.path.join(self.repo_path, pattern), recursive=True):
-                self.results["ci"] = True
-        if self.results["ci"] is True:
-            print("ci: found")
+            path = glob.glob(os.path.join(self.repo_path, pattern), recursive=True)
+        if path:
+            self.results["ci"] = True
+            first_found_dir = path[0]
+            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
+            rel_path = os.path.relpath(first_found_dir, parent_dir)
+            print("ci:".ljust(16) + Colors.GREEN + rel_path + Colors.NONE + "\n")
         else:
-            print("ci: not found")
+            print("ci:".ljust(16) + Colors.RED + "not found\n" + Colors.NONE)
 
     def _search_build_systems(self):
         print("build systems:")
         for pattern, system in self.build_systems_list.items():
             if glob.glob(os.path.join(self.repo_path, pattern), recursive=True):
                 self.results["build_systems"][system] = True
-            if self.results["build_systems"][system] is True:
-                print(f"\t{system}")
+                print("".ljust(16) + f"{system}")
+        if not any(self.results["build_systems"].values()):
+            print("".ljust(16) + Colors.RED + "not found" + Colors.NONE)
+        print()
 
     def _search_dependencies(self):
         dep_path = os.path.join(self.repo_path, "third_party")
@@ -77,9 +94,10 @@ class Analyzer:
         print("dependencies:")
         if self.results["dependencies"]:
             for dep in self.results["dependencies"]:
-                print(f"\t{dep}")
+                print("".ljust(16) + f"{dep}")
         else:
-            print("\tnot found")
+            print("".ljust(16) + "not found")
+        print()
 
     def analyze(self):
         """Analyzes project and collects its information"""
@@ -87,13 +105,17 @@ class Analyzer:
         if not os.path.exists(self.repo_path):
             raise FileNotFoundError(f'Directory "{self.repo_path}" not found')
 
-        print(f"Analyzing {self.repo_path}\n")
+        print(f"Analyzing {self.basename}\n")
+        print()
 
         self._search_tests()
         self._search_benchmarks()
         self._search_ci()
         self._search_build_systems()
         self._search_dependencies()
+
+        print()
+        print("Analyzing done\n")
 
         with open("amphimixis.log", "w", encoding="utf8") as file:
             json.dump(self.results, file, indent=4)
