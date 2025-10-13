@@ -1,6 +1,10 @@
 """SSH shell handler implementation."""
 
 import subprocess
+from ctypes import ArgumentError
+
+from general import MachineInfo
+
 from .shell_interface import IShellHandler
 
 _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
@@ -8,14 +12,22 @@ _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 
 class _SSHHandler(IShellHandler):
 
-    def __init__(self, ip: str, port: int, username: str, password: str | None) -> None:
-        self.ip = ip
-        self.port = port
-        self.username = username
-        self.password = password
+    def __init__(self, machine: MachineInfo, connect_timeout=5) -> None:
+        if machine.auth is None:
+            raise ArgumentError("Authentication data is not provided")
+
+        self.machine = machine
         # pylint: disable=consider-using-with
         self.ssh = subprocess.Popen(
-            ["ssh", "-q", "-p", str(port), f"{username}@{ip}"],
+            [
+                "ssh",
+                "-q",
+                "-o",
+                f"ConnectTimeout={connect_timeout}",
+                "-p",
+                str(machine.auth.port),
+                f"{machine.auth.username}@{machine.address}",
+            ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -45,13 +57,18 @@ class _SSHHandler(IShellHandler):
         self.ssh.stdin.write(b"\n")
         self.ssh.stdin.flush()
 
-    def readline(self) -> str:
+    def stdout_readline(self) -> str:
         if self.ssh.stdout is None:
             raise BrokenPipeError("Can't read from process' stdout")
 
         line_bytes = self.ssh.stdout.readline()
-        if not isinstance(line_bytes, bytes):
-            raise TypeError("Can't read a line from ssh session")
+        line = line_bytes.decode("UTF-8")
+        return line
 
+    def stderr_readline(self) -> str:
+        if self.ssh.stderr is None:
+            raise BrokenPipeError("Can't read from process' stdout")
+
+        line_bytes = self.ssh.stderr.readline()
         line = line_bytes.decode("UTF-8")
         return line

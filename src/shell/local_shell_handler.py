@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+
 from .shell_interface import IShellHandler
 
 
@@ -44,7 +45,12 @@ class _LocalShellHandler(IShellHandler):
 
         self.shell.stdin.flush()
 
-    def readline(self) -> str:
+    def stdout_readline(self) -> str:
         if self.shell.stdout is None:
             raise BrokenPipeError("Can't read from process' stdout")
         return self.shell.stdout.readline().decode()
+
+    def stderr_readline(self) -> str:
+        if self.shell.stderr is None:
+            raise BrokenPipeError("Can't read from process' stderr")
+        return self.shell.stderr.readline().decode()
