@@ -4,8 +4,8 @@ from os import makedirs, getlogin
 from os.path import exists
 from abc import ABC
 import yaml
-from Arch import Arch
-from general import Build, PathOnMachine, MachineInfo, MachineAuthenticationInfo
+from .Arch import Arch
+from .general import Build, PathOnMachine, MachineInfo, MachineAuthenticationInfo
 from shell import Shell
 
 
