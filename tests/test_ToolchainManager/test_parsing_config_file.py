@@ -8,7 +8,7 @@ from src.general import ToolchainManager  # type: ignore
 
 
 class FriendToolchainManager(ToolchainManager):
-    """Class then break encupsulation of ToolchainManager for testing him"""
+    """Class that break encupsulation of ToolchainManager for testing him"""
 
     @staticmethod
     def public_parse_config_file():
@@ -22,10 +22,10 @@ def is_file_exists_and_correct(pth: str) -> bool:
 
     is_correct_filled = False
     with open(
-        f"/home/{getlogin()}/.config/amphimixis/toolset.yml", "r", encoding="utf-8"
+        f"/home/{getlogin()}/.config/amphimixis/toolbox.yml", "r", encoding="utf-8"
     ) as f:
-        toolset = yaml.safe_load(f)
-        is_correct_filled = toolset.keys() == {"compilers", "platforms", "sysroots"}
+        toolbox = yaml.safe_load(f)
+        is_correct_filled = toolbox.keys() == {"compilers", "platforms", "sysroots"}
     return is_exists and is_correct_filled
 
 
@@ -43,15 +43,15 @@ def test_creating_dir() -> None:
 
 def test_creating_file() -> None:
     """
-    Remove f"/home/{getlogin}/.config/amphimixis/toolset.yml" and call _parse_config_file()
-    Expected: create file f"/home/{getlogin}/.config/amphimixis/toolset.yml" and fill it correct
+    Remove f"/home/{getlogin}/.config/amphimixis/toolbox.yml" and call _parse_config_file()
+    Expected: create file f"/home/{getlogin}/.config/amphimixis/toolbox.yml" and fill it correct
     """
-    if path.exists(f"/home/{getlogin()}/.config/amphimixis/toolset.yml"):
-        remove(f"/home/{getlogin()}/.config/amphimixis/toolset.yml")
+    if path.exists(f"/home/{getlogin()}/.config/amphimixis/toolbox.yml"):
+        remove(f"/home/{getlogin()}/.config/amphimixis/toolbox.yml")
 
     FriendToolchainManager.public_parse_config_file()
     assert is_file_exists_and_correct(
-        f"/home/{getlogin()}/.config/amphimixis/toolset.yml"
+        f"/home/{getlogin()}/.config/amphimixis/toolbox.yml"
     )
 
 
@@ -62,5 +62,5 @@ def test_creating_dir_and_file():
 
     assert path.exists(f"/home/{getlogin()}/.config/amphimixis")
     assert is_file_exists_and_correct(
-        f"/home/{getlogin()}/.config/amphimixis/toolset.yml"
+        f"/home/{getlogin()}/.config/amphimixis/toolbox.yml"
     )
