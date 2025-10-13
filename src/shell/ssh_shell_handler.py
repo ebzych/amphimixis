@@ -1,5 +1,6 @@
 """SSH shell handler implementation."""
 
+import select
 import subprocess
 from ctypes import ArgumentError
 
@@ -35,6 +36,11 @@ class _SSHHandler(IShellHandler):
 
         if self.ssh.stdin is None or self.ssh.stdout is None or self.ssh.stderr is None:
             raise BrokenPipeError()
+
+        r, _, _ = select.select([self.ssh.stdout], [], [], connect_timeout)
+
+        if not r or self.ssh.poll() is not None:
+            raise ConnectionError("can't connect to ssh")
 
         self.ssh.stdin.write(b"echo ")
         self.ssh.stdin.write(_CLEAR_OUTPUT_FLAG)
