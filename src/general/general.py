@@ -58,8 +58,11 @@ class Build:
     :var str compiler_flags: Compiler flags for the build.
     """
 
-    machine: MachineInfo
+    build_machine: MachineInfo
+    run_machine: MachineInfo
     build_path: str
+    toolchain: str | None
+    sysroot: str | None
     is_specified_script: bool = False
     specified_script: str = ""
     config_flags: str = ""
