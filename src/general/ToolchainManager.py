@@ -4,9 +4,9 @@ from os import makedirs, getlogin
 from os.path import exists
 from abc import ABC
 import yaml
-from .Arch import Arch
-from .general import Build, PathOnMachine, MachineInfo, MachineAuthenticationInfo
 from shell import Shell
+from .Arch import Arch
+from .general import Build, MachineInfo
 
 
 class ToolchainManager(ABC):
@@ -34,38 +34,92 @@ class ToolchainManager(ABC):
                 "w",
                 encoding="utf-8",
             ) as f:
-                template = {"platforms": None, "compilers": None, "sysroots": None}
+                template = {"platforms": None, "toolchains": None, "sysroots": None}
                 yaml.safe_dump(template, f)
 
     @staticmethod
-    def _get_compiler_by_name(name: str) -> PathOnMachine:
+    def _get_toolchain_by_name(name: str) -> tuple[MachineInfo, str]:
         """"""
 
         raise NotImplementedError
 
     @staticmethod
-    def _get_sysroot_by_str(name: str) -> PathOnMachine:
+    def _get_sysroot_by_str(name: str) -> tuple[MachineInfo, str]:
         """"""
 
         raise NotImplementedError
 
     @staticmethod
-    def get_compiler_from_build(build: Build) -> str:
-        """"""
-        compiler: PathOnMachine
-        if type(build.compiler) == str:
-            compiler = ToolchainManager._get_compiler_by_name(build.compiler)
-        elif type(build.compiler) == PathOnMachine:
-            compiler = build.compiler
-
-        return ""
-
-    @staticmethod
-    def get_sysroot_from_build(build: Build) -> str:
-        return ""
+    def _is_path_is_absolute_path(s: str) -> bool:
+        __is_path = False
+        # pylint: disable=consider-using-enumerate
+        for i in range(len(s)):
+            if s[i] == " " and (i >= 1 and s[i - 1] != "\\" or i == 0):
+                raise ValueError("Invalid path to the toolchain")
+            if s[i] == "/":
+                __is_path = True
+        if __is_path and s[0] != "/":
+            raise ValueError("Absolute path required for toolchain")
+        return __is_path
 
     @staticmethod
-    def add_compiler(machine_name: str, path: str, arch: Arch) -> None:
+    def get_toolchain_from_build(build: Build) -> str | None:
+        """Resolve string Build.toolchain: absolute path or name of known toolchain
+        Return absolute path to toolchain on building machine"""
+        if build.toolchain is None:
+            if build.build_machine.arch != build.run_machine.arch:
+                raise ValueError(
+                    "Machine and toolchain compatible error: "
+                    "architecture of running machine and "
+                    "target architecture of toolchain is different"
+                )
+            return None
+
+        toolchain_path: str
+        # temporary pylint disabling while 'else' not implemented
+        # pylint: disable=no-else-return
+        if ToolchainManager._is_path_is_absolute_path(build.toolchain):
+            toolchain_path = build.toolchain
+        else:
+            raise NotImplementedError
+
+        shell = Shell(build.build_machine)
+        shell.connect()
+        if shell.run(f"test -d {toolchain_path}") != 0:
+            raise ValueError("Toolchain not found on the building machine")
+
+        return toolchain_path
+
+    @staticmethod
+    def get_sysroot_from_build(build: Build) -> str | None:
+        """Resolve string Build.sysroot: absolute path or name of known sysroot
+        Return absolute path to sysroot on building machine"""
+        if build.sysroot is None:
+            if build.build_machine.arch != build.run_machine.arch:
+                raise ValueError(
+                    "Machine and sysroot compatible error: "
+                    "architecture of running machine and "
+                    "architecture of sysroot is different"
+                )
+            return None
+
+        sysroot_path: str
+        # temporary pylint disabling while 'else' not implemented
+        # pylint: disable=no-else-return
+        if ToolchainManager._is_path_is_absolute_path(build.sysroot):
+            sysroot_path = build.sysroot
+        else:
+            raise NotImplementedError
+
+        shell = Shell(build.build_machine)
+        shell.connect()
+        if shell.run(f"test -d {sysroot_path}") != 0:
+            raise ValueError("Sysroot not found on the building machine")
+
+        return sysroot_path
+
+    @staticmethod
+    def add_toolchain(machine_name: str, path: str, arch: Arch) -> None:
         """"""
 
         raise NotImplementedError
@@ -83,7 +137,7 @@ class ToolchainManager(ABC):
         raise NotImplementedError
 
     @staticmethod
-    def remove_compiler(name: str) -> None:
+    def remove_toolchain(name: str) -> None:
         """"""
 
         raise NotImplementedError

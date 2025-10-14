@@ -99,8 +99,8 @@ class IBuildSystem(ABC):
 
     @staticmethod
     @abstractmethod
-    def insert_compiler(build: Build) -> str:
-        """Return flag that specify compiler in build system call"""
+    def insert_toolchain(build: Build) -> str:
+        """Return flag that specify toolchain in build system call"""
 
     @staticmethod
     @abstractmethod
@@ -137,7 +137,7 @@ class CMake(IBuildSystem):
         command += build.config_flags
         command += " CXXFLAGS='" + build.compiler_flags + "'"
         command += " CFLAGS='" + build.compiler_flags + "'"
-        command += " " + CMake.insert_compiler(build)
+        command += " " + CMake.insert_toolchain(build)
         command += " " + CMake.insert_sysroot(build)
         return command
 
@@ -151,20 +151,22 @@ class CMake(IBuildSystem):
         raise NotImplementedError
 
     @staticmethod
-    def insert_compiler(build: Build) -> str:
-        """Return flag that specify compiler in build system call"""
-        path_to_compiler = ToolchainManager.get_compiler_from_build(build)
-        flag_path_to_compiler = "-DCMAKE_C_COMPILER=" + path_to_compiler
-        flag_path_to_compiler += " -DCMAKE_CXX_COMPILER=" + path_to_compiler
-        return flag_path_to_compiler
+    def insert_toolchain(build: Build) -> str:
+        """Return flag that specify toolchain in build system call"""
+        path_to_toolchain = ToolchainManager.get_toolchain_from_build(build)
+        if path_to_toolchain is not None:
+            flag_path_to_toolchain = "-DCMAKE_C_COMPILER=" + path_to_toolchain
+            flag_path_to_toolchain += " -DCMAKE_CXX_COMPILER=" + path_to_toolchain
+            return flag_path_to_toolchain
+        return ""
 
     @staticmethod
     def insert_sysroot(build: Build) -> str:
         """Return flag that specify sysroot in build system call"""
-        flag_path_to_sysroot = (
-            "-DCMAKE_SYSROOT=" + ToolchainManager.get_sysroot_from_build(build)
-        )
-        return flag_path_to_sysroot
+        path_to_sysroot = ToolchainManager.get_sysroot_from_build(build)
+        if path_to_sysroot is not None:
+            return "-DCMAKE_SYSROOT=" + path_to_sysroot
+        return ""
 
 
 class Make(IBuildSystem):
@@ -192,14 +194,14 @@ class Make(IBuildSystem):
         return "make -j" + str(cpu_count())
 
     @staticmethod
-    def insert_compiler(build: Build) -> str:
-        """Return flag that specify compiler in build system call"""
-        return ""
+    def insert_toolchain(build: Build) -> str:
+        """Return flag that specify toolchain in build system call"""
+        raise NotImplementedError
 
     @staticmethod
     def insert_sysroot(build: Build) -> str:
         """Return flag that specify sysroot in build system call"""
-        return ""
+        raise NotImplementedError
 
 
 build_systems_dict: dict[str, type[IBuildSystem]] = {
