@@ -40,18 +40,6 @@ class MachineInfo:
 
 
 @dataclass
-class PathOnMachine:
-    """Class represent full path to anything on the concrete machine
-
-    :var MachineInfo machine: Info about machine that contain path
-    :var str path: Path to file or directory on the machine
-    """
-
-    machine: MachineInfo
-    path: str
-
-
-@dataclass
 class Build:
     """Class with information about one build of project
 
