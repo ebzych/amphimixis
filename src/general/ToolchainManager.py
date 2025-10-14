@@ -57,12 +57,6 @@ class ToolchainManager(ABC):
             compiler = ToolchainManager._get_compiler_by_name(build.compiler)
         elif type(build.compiler) == PathOnMachine:
             compiler = build.compiler
-        verifier = Shell(
-            str(compiler.machine.address),
-            MachineAuthenticationInfo(compiler.machine.auth).port,
-            compiler.machine.auth.username,
-            compiler.machine.auth.password,
-        )
 
         return ""
 

@@ -165,7 +165,7 @@ class CMake(IBuildSystem):
     @staticmethod
     def insert_compiler(build: Build) -> str:
         """Return flag that specify compiler in build system call"""
-        path_to_compiler = ToolchainManager.get_compiler_from_build(build.compiler)
+        path_to_compiler = ToolchainManager.get_compiler_from_build(build)
         flag_path_to_compiler = "-DCMAKE_C_COMPILER=" + path_to_compiler
         flag_path_to_compiler += " -DCMAKE_CXX_COMPILER=" + path_to_compiler
         return flag_path_to_compiler
@@ -174,7 +174,7 @@ class CMake(IBuildSystem):
     def insert_sysroot(build: Build) -> str:
         """Return flag that specify sysroot in build system call"""
         flag_path_to_sysroot = (
-            "-DCMAKE_SYSROOT=" + ToolchainManager.get_sysroot_from_build(build.compiler)
+            "-DCMAKE_SYSROOT=" + ToolchainManager.get_sysroot_from_build(build)
         )
         return flag_path_to_sysroot
 

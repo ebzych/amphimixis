@@ -3,7 +3,6 @@ import general, analyzer, builder, configurator, profiler
 
 try:
     analyzer_ = analyzer.Analyzer(sys.argv[1])
-
     analyzer_.analyze()
 except FileNotFoundError as e:
     print(f"{e}")
