@@ -14,7 +14,10 @@ _READING_BARRIER_FLAG = "READING_BARRIER_FLAG"
 
 
 class Shell:
-    """Shell class to manage shell operations."""
+    """Shell class to manage shell operations.
+
+    In case of local machine $SHELL is used as shell.
+    """
 
     def __init__(self, machine: MachineInfo, connect_timeout=5):
         self._shell: IShellHandler
