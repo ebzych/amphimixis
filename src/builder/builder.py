@@ -4,6 +4,7 @@ import subprocess
 import shlex
 import os
 from general import Project, Build
+from general.shell import Shell
 
 
 def run_command(command: str, cwd: str = "") -> bool:
@@ -40,16 +41,15 @@ class Builder:
     def build_for_linux(project: Project, build: Build) -> bool:
         """The method build program on Linux"""
         os.makedirs(build.build_path, exist_ok=True)
-
-        commands = [
-            project.build_system.insert_config_flags(project, build, ""),
-            project.runner.insert_runner_flags(project, build, ""),
-        ]
-
-        for command in commands:
-            if not run_command(command, build.build_path):
-                return False
-        return True
+        shell = Shell(build.build_machine)
+        shell.connect()
+        return (
+            shell.run(
+                project.build_system.insert_config_flags(project, build, ""),
+                project.runner.insert_runner_flags(project, build, ""),
+            )[0]
+            == 0
+        )
 
     @staticmethod
     def build_with_specified_script(project: Project, build: Build) -> None:

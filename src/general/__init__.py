@@ -7,14 +7,13 @@ from .colors import (
 from .general import (
     Project,
     Build,
-    MachineInfo,
     IBuildSystem,
-    MachineAuthenticationInfo,
     build_systems_dict,
 )
 
 from .ToolchainManager import ToolchainManager
 from .Arch import Arch
+from .machine import MachineAuthenticationInfo, MachineInfo
 
 __all__ = [
     "Project",
@@ -26,4 +25,6 @@ __all__ = [
     "build_systems_dict",
     "Colors",
     "ToolchainManager",
+    "MachineInfo",
+    "MachineAuthenticationInfo",
 ]

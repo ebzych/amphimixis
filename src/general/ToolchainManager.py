@@ -4,9 +4,10 @@ from os import makedirs, getlogin
 from os.path import exists
 from abc import ABC
 import yaml
-from shell import Shell
+from .shell import Shell
 from .Arch import Arch
-from .general import Build, MachineInfo
+from .general import Build
+from .machine import MachineInfo
 
 
 class ToolchainManager(ABC):
@@ -85,7 +86,7 @@ class ToolchainManager(ABC):
 
         shell = Shell(build.build_machine)
         shell.connect()
-        if shell.run(f"test -d {toolchain_path}") != 0:
+        if shell.run(f"bash ls {toolchain_path}")[0] != 0:
             raise ValueError("Toolchain not found on the building machine")
 
         return toolchain_path
@@ -113,7 +114,7 @@ class ToolchainManager(ABC):
 
         shell = Shell(build.build_machine)
         shell.connect()
-        if shell.run(f"test -d {sysroot_path}") != 0:
+        if shell.run(f"bash ls {sysroot_path}")[0] != 0:
             raise ValueError("Sysroot not found on the building machine")
 
         return sysroot_path
