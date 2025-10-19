@@ -4,7 +4,7 @@ import subprocess
 import shlex
 import os
 from general import Project, Build
-from general.shell import Shell
+from shell import Shell
 
 
 def run_command(command: str, cwd: str = "") -> bool:

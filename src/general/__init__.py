@@ -8,11 +8,10 @@ from .general import (
     Project,
     Build,
     IBuildSystem,
-    build_systems_dict,
 )
 
-from .ToolchainManager import ToolchainManager
-from .Arch import Arch
+from .build_systems_impl import build_systems_dict
+from .architecture import Arch
 from .machine import MachineAuthenticationInfo, MachineInfo
 
 __all__ = [
@@ -24,7 +23,6 @@ __all__ = [
     "Arch",
     "build_systems_dict",
     "Colors",
-    "ToolchainManager",
     "MachineInfo",
     "MachineAuthenticationInfo",
 ]

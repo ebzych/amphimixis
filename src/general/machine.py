@@ -1,7 +1,7 @@
 """Contain classes which represent machine"""
 
 from dataclasses import dataclass
-from .Arch import Arch
+from .architecture import Arch
 
 
 @dataclass

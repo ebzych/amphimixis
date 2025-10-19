@@ -4,7 +4,7 @@ import socket
 from ctypes import ArgumentError
 from typing import List, Self, Tuple
 
-from ..machine import MachineInfo
+from general.machine import MachineInfo
 
 from .local_shell_handler import _LocalShellHandler
 from .shell_interface import IShellHandler
