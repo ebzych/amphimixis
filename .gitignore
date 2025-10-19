@@ -4,3 +4,4 @@ __pycache__/
 config.json
 uv.lock
 config.yaml
+input.yml
