@@ -1,11 +1,12 @@
 """Module for profiling executables within a project."""
 
 import os
-import subprocess
-import time
-import general
+from ctypes import ArgumentError
 
-STATS_EXECUTION_TIME_FIELD = "execution_time"
+import general
+import shell
+
+from .constants import Perf, PerfStrings, Stats
 
 
 def _executable_choose(files):
@@ -30,32 +31,51 @@ def _choose_executable(build: general.Build) -> str:
 class Profiler:
     """Class for profiling an executable within a project."""
 
-    def __init__(self, build: general.Build, executable: str = ""):
+    def __init__(
+        self, machine: general.MachineInfo, build: general.Build, executable: str = ""
+    ):
+        self.machine = machine
         self.build = build
         if executable == "":
             self.executable = _choose_executable(build)
         else:
             self.executable = executable
+        self.shell = shell.Shell(self.machine).connect()
 
         self.stats: dict[str, str] = {}
+        self.perf_stat: dict[str, dict[str, str]] = {}
 
-    def execution_time(self):
-        """Measure execution time of the executable."""
-        start_time = time.time()
-        with subprocess.Popen(
-            [self.executable],
-            cwd=self.build.build_path,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        ) as process:
-            process.wait()
+    def test_executable(self) -> bool:
+        """Checks if executable runs and returns no errors"""
 
-        end_time = time.time()
-        self.stats.update({STATS_EXECUTION_TIME_FIELD: str(end_time - start_time)})
+        error, _, _ = self.shell.run(
+            f"cd {self.build.build_path}", f"{self.executable}"
+        )
+
+        self.stats.update(
+            {Stats.EXECUTABLE_RUN_SUCCESS: "true" if error == 0 else "false"}
+        )
+
+        return error == 0
 
     def perf_stat_collect(self):
         """Collect performance statistics using 'perf stat'."""
-        raise NotImplementedError
+
+        error, _, stderr = self.shell.run(
+            f"cd {self.build.build_path}",
+        )
+
+        if error != 0:
+            raise ArgumentError(str(*stderr[0]))
+
+        error, stdout, stderr = self.shell.run(
+            f"perf stat -ddd -x, sh -c'{self.executable} 2>/dev/null'",
+        )
+
+        if error != 0:
+            raise ArgumentError(str(*stderr[0]))
+
+        self._parse_perf_stat(stdout[0])
 
     def perf_record_collect(self):
         """Collect performance records using 'perf record'."""
@@ -64,6 +84,16 @@ class Profiler:
     def save_stats(self):
         """Save collected statistics to a file."""
         raise NotImplementedError
+
+    def _parse_perf_stat(self, perf_out: list[str]) -> None:
+        for line in perf_out:
+            parts = line.split(",")
+            if parts[1] == "":
+                continue
+            perf_event: dict[str, str] = dict()
+            for i, part in enumerate(parts):
+                perf_event.update({PerfStrings[Perf(i)]: part})
+            self.perf_stat.update({parts[Perf.EVENT]: perf_event})
 
 
 if __name__ == "__main__":
