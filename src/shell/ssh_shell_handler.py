@@ -13,10 +13,11 @@ _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 
 class _SSHHandler(IShellHandler):
 
-    def __init__(self, machine: MachineInfo, connect_timeout=5) -> None:
+    def __init__(self, machine: MachineInfo, connect_timeout: int = 5) -> None:
         if machine.auth is None:
             raise ArgumentError("Authentication data is not provided")
 
+        self.connect_timeout = connect_timeout
         self.machine = machine
         # pylint: disable=consider-using-with
         self.ssh = subprocess.Popen(
@@ -78,3 +79,16 @@ class _SSHHandler(IShellHandler):
         line_bytes = self.ssh.stderr.readline()
         line = line_bytes.decode("UTF-8")
         return line
+
+    def copy_to_remote(self, source: str, destination: str) -> None:
+        subprocess.check_call(
+            [
+                "scp",
+                "-o",
+                f"ConnectTimeout={self.connect_timeout}",
+                "-p",
+                str(object=self.machine.auth.port),
+                source,
+                f"{self.machine.auth.username}@{self.machine.address}:{destination}",
+            ]
+        )

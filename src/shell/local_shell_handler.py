@@ -54,3 +54,6 @@ class _LocalShellHandler(IShellHandler):
         if self.shell.stderr is None:
             raise BrokenPipeError("Can't read from process' stderr")
         return self.shell.stderr.readline().decode()
+
+    def copy_to_remote(self, source: str, destination: str) -> None:
+        subprocess.check_call(["cp", "-r", source, destination])
