@@ -1,7 +1,7 @@
 """Class that manages and provides toolchains and sysroots"""
 
 from os import makedirs, environ
-from os.path import exists
+from os.path import exists, isabs
 from abc import ABC
 import yaml
 from shell import Shell
@@ -51,19 +51,6 @@ class ToolchainManager(ABC):
         raise NotImplementedError
 
     @staticmethod
-    def _is_path_is_absolute_path(s: str) -> bool:
-        __is_path = False
-        # pylint: disable=consider-using-enumerate
-        for i in range(len(s)):
-            if s[i] == " " and (i >= 1 and s[i - 1] != "\\" or i == 0):
-                raise ValueError("Invalid path to the toolchain")
-            if s[i] == "/":
-                __is_path = True
-        if __is_path and s[0] != "/":
-            raise ValueError("Absolute path required for toolchain")
-        return __is_path
-
-    @staticmethod
     def get_toolchain_from_build(build: Build) -> str | None:
         """Resolve string Build.toolchain: absolute path or name of known toolchain
         Return absolute path to toolchain on building machine"""
@@ -79,9 +66,11 @@ class ToolchainManager(ABC):
         toolchain_path: str
         # temporary pylint disabling while 'else' not implemented
         # pylint: disable=no-else-return
-        if ToolchainManager._is_path_is_absolute_path(build.toolchain):
+        if isabs(build.toolchain):
             toolchain_path = build.toolchain
         else:
+            if build.toolchain.isalpha():
+                pass
             raise NotImplementedError
 
         shell = Shell(build.build_machine)
@@ -107,9 +96,11 @@ class ToolchainManager(ABC):
         sysroot_path: str
         # temporary pylint disabling while 'else' not implemented
         # pylint: disable=no-else-return
-        if ToolchainManager._is_path_is_absolute_path(build.sysroot):
+        if isabs(build.sysroot):
             sysroot_path = build.sysroot
         else:
+            if build.sysroot.isalpha():
+                pass
             raise NotImplementedError
 
         shell = Shell(build.build_machine)

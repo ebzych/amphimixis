@@ -52,8 +52,10 @@ class CMake(IBuildSystem):
         """Return flag that specify toolchain in build system call"""
         path_to_toolchain = ToolchainManager.get_toolchain_from_build(build)
         if path_to_toolchain is not None:
-            flag_path_to_toolchain = "-DCMAKE_C_COMPILER=" + path_to_toolchain
-            flag_path_to_toolchain += " -DCMAKE_CXX_COMPILER=" + path_to_toolchain
+            flag_path_to_toolchain = "-DCMAKE_C_COMPILER='" + path_to_toolchain + "'"
+            flag_path_to_toolchain += (
+                " -DCMAKE_CXX_COMPILER='" + path_to_toolchain + "'"
+            )
             return flag_path_to_toolchain
         return ""
 
@@ -62,7 +64,7 @@ class CMake(IBuildSystem):
         """Return flag that specify sysroot in build system call"""
         path_to_sysroot = ToolchainManager.get_sysroot_from_build(build)
         if path_to_sysroot is not None:
-            return "-DCMAKE_SYSROOT=" + path_to_sysroot
+            return "-DCMAKE_SYSROOT='" + path_to_sysroot + "'"
         return ""
 
 
