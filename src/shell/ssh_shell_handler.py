@@ -86,7 +86,7 @@ class _SSHHandler(IShellHandler):
                 "scp",
                 "-o",
                 f"ConnectTimeout={self.connect_timeout}",
-                "-p",
+                "-P",
                 str(object=self.machine.auth.port),
                 source,
                 f"{self.machine.auth.username}@{self.machine.address}:{destination}",
