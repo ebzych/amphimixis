@@ -5,7 +5,7 @@ import os
 import json
 from general import Colors
 
-_tab = 16
+_TAB = 16
 
 
 class Analyzer:
@@ -22,7 +22,6 @@ class Analyzer:
 
     def __init__(self, repo_path: str):
         self.repo_path = repo_path
-        self.basename = os.path.basename(os.path.normpath(repo_path))
         self.results = {
             "tests": False,
             "benchmarks": False,
@@ -36,51 +35,49 @@ class Analyzer:
             "dependencies": [],
         }
 
-    def _search_tests(self):
-        path = glob.glob(os.path.join(self.repo_path, "**/*test*"), recursive=True)
+    def _path_existence(self, pattern, path):
         if path:
-            self.results["tests"] = True
-            first_found_dir = path[0]
-            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
-            rel_path = os.path.relpath(first_found_dir, parent_dir)
-            print("tests:".ljust(_tab) + Colors.GREEN + rel_path + Colors.NONE + "\n")
-        else:
-            print("tests:".ljust(_tab) + Colors.RED + "not found\n" + Colors.NONE)
+            self.results[f"{pattern}"] = True
 
-    def _search_benchmarks(self):
-        path = glob.glob(os.path.join(self.repo_path, "**/*benchmark*"), recursive=True)
+    def _path_output(self, pattern, path):
         if path:
-            self.results["benchmarks"] = True
             first_found_dir = path[0]
             parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
             rel_path = os.path.relpath(first_found_dir, parent_dir)
             print(
-                "benchmarks:".ljust(_tab) + Colors.GREEN + rel_path + Colors.NONE + "\n"
+                f"{pattern}:".ljust(_TAB) + Colors.GREEN + rel_path + Colors.NONE + "\n"
             )
         else:
-            print("benchmarks:".ljust(_tab) + Colors.RED + "not found\n" + Colors.NONE)
+            print(f"{pattern}:".ljust(_TAB) + Colors.RED + "not found\n" + Colors.NONE)
+
+    def _search_tests(self):
+        path = glob.glob(os.path.join(self.repo_path, "**/*test*"), recursive=True)
+        self._path_existence("tests", path)
+        self._path_output("tests", path)
+
+    def _search_benchmarks(self):
+        path = glob.glob(os.path.join(self.repo_path, "**/*benchmark*"), recursive=True)
+        self._path_existence("benchmarks", path)
+        self._path_output("benchmarks", path)
 
     def _search_ci(self):
         path = ""
         for pattern in self.ci_list:
-            path = glob.glob(os.path.join(self.repo_path, pattern), recursive=True)
-        if path:
-            self.results["ci"] = True
-            first_found_dir = path[0]
-            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
-            rel_path = os.path.relpath(first_found_dir, parent_dir)
-            print("ci:".ljust(_tab) + Colors.GREEN + rel_path + Colors.NONE + "\n")
-        else:
-            print("ci:".ljust(_tab) + Colors.RED + "not found\n" + Colors.NONE)
+            if not path:
+                path = glob.glob(os.path.join(self.repo_path, pattern), recursive=True)
+            else:
+                break
+        self._path_existence("ci", path)
+        self._path_output("ci", path)
 
     def _search_build_systems(self):
         print("build systems:")
         for pattern, system in self.build_systems_list.items():
             if glob.glob(os.path.join(self.repo_path, pattern), recursive=True):
                 self.results["build_systems"][system] = True
-                print("".ljust(_tab) + f"{system}")
+                print("".ljust(_TAB) + f"{system}")
         if not any(self.results["build_systems"].values()):
-            print("".ljust(_tab) + Colors.RED + "not found" + Colors.NONE)
+            print("".ljust(_TAB) + Colors.RED + "not found" + Colors.NONE)
         print()
 
     def _search_dependencies(self):
@@ -95,9 +92,9 @@ class Analyzer:
         print("dependencies:")
         if self.results["dependencies"]:
             for dep in self.results["dependencies"]:
-                print("".ljust(_tab) + f"{dep}")
+                print("".ljust(_TAB) + f"{dep}")
         else:
-            print("".ljust(_tab) + "not found")
+            print("".ljust(_TAB) + "not found")
         print()
 
     def analyze(self):
@@ -106,7 +103,9 @@ class Analyzer:
         if not os.path.exists(self.repo_path):
             raise FileNotFoundError(f'Directory "{self.repo_path}" not found')
 
-        print(f"Analyzing {self.basename}\n" + "\n")
+        print(
+            f"Analyzing {os.path.basename(os.path.normpath(self.repo_path))}\n" + "\n"
+        )
 
         self._search_tests()
         self._search_benchmarks()
