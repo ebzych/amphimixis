@@ -15,7 +15,8 @@ if [ -n "$COMMAND" ]; then
     ./ci/black.sh "$COMMAND"
     ./ci/mypy.sh "$COMMAND" 
     ./ci/pylint.sh "$COMMAND"
-    ./ci/ruff.sh "$COMMAND"   
+    ./ci/ruff.sh "$COMMAND"
+    
 else
     echo -e "${RED}Error: CI can not run ${NC}"
     exit 1
