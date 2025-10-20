@@ -94,3 +94,6 @@ class Shell:
             stderr.append(cmd_stderr)
 
         return (error_code, stdout, stderr)
+
+    def copy_to_remote(self, source: str, destination: str) -> None:
+        self._shell.copy_to_remote(source, destination)
