@@ -81,6 +81,9 @@ class _SSHHandler(IShellHandler):
         return line
 
     def copy_to_remote(self, source: str, destination: str) -> None:
+        if self.machine.auth is None:
+            raise ArgumentError("Authentication data is not provided")
+
         subprocess.check_call(
             [
                 "scp",
