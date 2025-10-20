@@ -1,6 +1,6 @@
 """Class that manages and provides toolchains and sysroots"""
 
-from os import makedirs, getlogin
+from os import makedirs, environ
 from os.path import exists
 from abc import ABC
 import yaml
@@ -20,10 +20,10 @@ class ToolchainManager(ABC):
     def _parse_config_file() -> None:
         """Search ~/.config/amphimixis/toolbox.yml and parse in __toolbox list or create it"""
 
-        makedirs(f"/home/{getlogin()}/.config/amphimixis", exist_ok=True)
-        if exists(f"/home/{getlogin()}/.config/amphimixis/toolbox.yml"):
+        makedirs(f"{environ["HOME"]}/.config/amphimixis", exist_ok=True)
+        if exists(f"{environ["HOME"]}/.config/amphimixis/toolbox.yml"):
             with open(
-                f"/home/{getlogin()}/.config/amphimixis/toolbox.yml",
+                f"{environ["HOME"]}/.config/amphimixis/toolbox.yml",
                 "r",
                 encoding="utf-8",
             ) as f:
@@ -31,7 +31,7 @@ class ToolchainManager(ABC):
                 f.close()
         else:
             with open(
-                f"/home/{getlogin()}/.config/amphimixis/toolbox.yml",
+                f"{environ["HOME"]}/.config/amphimixis/toolbox.yml",
                 "w",
                 encoding="utf-8",
             ) as f:
