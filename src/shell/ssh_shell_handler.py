@@ -87,6 +87,7 @@ class _SSHHandler(IShellHandler):
         subprocess.check_call(
             [
                 "scp",
+                "-r",
                 "-o",
                 f"ConnectTimeout={self.connect_timeout}",
                 "-P",
