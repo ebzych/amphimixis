@@ -41,11 +41,11 @@ class Builder:
 
         path: str  # path to build on the machine
         if build.build_machine.address is not None:  # if building on the remote machine
-            path = f"$HOME/amphimixis/{os.path.basename(build.build_path)}"
+            path = f"~/amphimixis/{os.path.basename(build.build_path)}"
         else:
             path = f"{build.build_path}"  # if building on the local machine
 
-        shell.copy_to_remote(project.path, "$HOME/amphimixis")
+        shell.copy_to_remote(project.path, "~/amphimixis")
         shell.run(
             f"mkdir -p {path}",
             f"cd {path}",
