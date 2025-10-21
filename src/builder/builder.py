@@ -1,7 +1,5 @@
 """Module that builds a build based on configuration"""
 
-import subprocess
-import shlex
 import os
 from general import Project, Build
 from shell import Shell
@@ -28,11 +26,11 @@ class Builder:
 
         path: str  # path to build on the machine
         if build.build_machine.address is not None:  # if building on the remote machine
-            path = f"~/amphimixis/{os.path.basename(build.build_path)}"
+            path = f"~/amphimixis/{os.path.basename(project.path)}_builds/{os.path.basename(build.build_path)}"
+            shell.copy_to_remote(project.path, "~/amphimixis")
         else:
             path = f"{build.build_path}"  # if building on the local machine
 
-        shell.copy_to_remote(project.path, "~/amphimixis")
         shell.run(
             f"mkdir -p {path}",
             f"cd {path}",
