@@ -17,7 +17,7 @@ project = general.Project(
 
 configurator.parse_config(project)
 
-builder.Builder.process(project)
+builder.Builder.build(project)
 
 profiler_ = profiler.Profiler(project.builds[0])
 

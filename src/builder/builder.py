@@ -24,18 +24,20 @@ class Builder:
     """The class is representing a module which builds a build based on its configuration"""
 
     @staticmethod
-    def process(project: Project) -> None:
+    def build(project: Project) -> None:
         """The method build all builds"""
         for build in project.builds:
-            if build.is_specified_script:
-                success = Builder.build_with_specified_script(project, build)
-            else:
-                success = Builder.build_for_linux(project, build)
+            print(f"Build the {os.path.basename(build.build_path)}")
 
-            if success:
-                print("Build passed.")
+            if build.is_specified_script:
+                is_successed = Builder.build_with_specified_script(project, build)
             else:
-                print("Build failed.")
+                is_successed = Builder.build_for_linux(project, build)
+
+            if is_successed:
+                print("Build passed")
+            else:
+                print("Build failed")
 
     @staticmethod
     def build_for_linux(project: Project, build: Build) -> bool:
