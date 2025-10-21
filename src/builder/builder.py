@@ -40,9 +40,20 @@ class Builder:
     @staticmethod
     def build_for_linux(project: Project, build: Build) -> bool:
         """The method build program on Linux"""
-        os.makedirs(build.build_path, exist_ok=True)
-        shell = Shell(build.build_machine)
-        shell.connect()
+        shell = Shell(build.build_machine).connect()
+
+        path: str  # path to build on the machine
+        if build.build_machine.address is not None:  # if building on the remote machine
+            path = f"$HOME/amphimixis/{os.path.basename(build.build_path)}"
+        else:
+            path = f"{build.build_path}"  # if building on the local machine
+
+        shell.copy_to_remote(project.path, "$HOME/amphimixis")
+        shell.run(
+            f"mkdir -p {path}",
+            f"cd {path}",
+        )
+
         return (
             shell.run(
                 project.build_system.insert_config_flags(project, build, ""),
