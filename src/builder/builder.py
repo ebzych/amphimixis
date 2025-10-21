@@ -7,19 +7,6 @@ from general import Project, Build
 from shell import Shell
 
 
-def run_command(command: str, cwd: str = "") -> bool:
-    command_formatted = shlex.split(command)
-    try:
-        process = subprocess.run(
-            command_formatted, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        return process.returncode == 0
-
-    except Exception as e:
-        print(f'Error executing command "{command}": {e}')
-        return False
-
-
 class Builder:
     """The class is representing a module which builds a build based on its configuration"""
 
