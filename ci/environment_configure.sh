@@ -1,9 +1,5 @@
 #!/bin/bash
 
-BLUE='\e[34m'
-NC='\e[0m'
-
-CONFIG_FILE="$1"
 PREFIX=""
 TOOL=""
 
@@ -38,7 +34,6 @@ else
     COMMAND="$TOOL"
 fi
 
-touch "$CONFIG_FILE"
-echo "$COMMAND" > "$CONFIG_FILE"
-
 $COMMAND sync
+
+echo "$COMMAND"
