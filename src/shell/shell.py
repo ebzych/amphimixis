@@ -14,7 +14,10 @@ _READING_BARRIER_FLAG = "READING_BARRIER_FLAG"
 
 
 class Shell:
-    """Shell class to manage shell operations."""
+    """Shell class to manage shell operations.
+
+    In case of local machine $SHELL is used as shell.
+    """
 
     def __init__(self, machine: MachineInfo, connect_timeout=5):
         self._shell: IShellHandler
@@ -72,7 +75,7 @@ class Shell:
 
             # newline added in case of it is missing in the previous output line
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}:$?"')
-            self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}:$?">&2')
+            self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}">&2')
             cmd_stdout: List[str] = []
             cmd_stderr: List[str] = []
             while line := self._shell.stdout_readline():
@@ -84,11 +87,19 @@ class Shell:
             stdout.append(cmd_stdout)
 
             while line := self._shell.stderr_readline():
-                if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
-                    error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
+                if line[:-1] == _READING_BARRIER_FLAG:
                     del cmd_stderr[-1]
                     break
                 cmd_stderr.append(line)
             stderr.append(cmd_stderr)
 
         return (error_code, stdout, stderr)
+
+    def copy_to_remote(self, source: str, destination: str) -> None:
+        """Copy a file or folder from the host machine to remote machine
+
+        :var str source: absolute path to a file or folder on the host machine
+        :var str destination: absolute path to copy a file or folder to on the target machine
+        """
+
+        self._shell.copy_to_remote(source, destination)
