@@ -56,4 +56,4 @@ class _LocalShellHandler(IShellHandler):
         return self.shell.stderr.readline().decode()
 
     def copy_to_remote(self, source: str, destination: str) -> None:
-        subprocess.check_call(["cp", "-r", source, destination])
+        subprocess.check_call(["cp", "-a", source, destination])
