@@ -11,9 +11,6 @@ class Build:
 
     :var MachineInfo machine: Information about the machine.
     :var str build_path: Path to the directory with this build.
-    :var bool is_specified_script: True if user specified a build script, False if script is simple.
-    :var str specified_script: The user-specified build script.
-    :var str config_flags: Configuration flags for the build.
     :var str compiler_flags: Compiler flags for the build.
     """
 
@@ -22,8 +19,6 @@ class Build:
     build_path: str
     toolchain: str | None
     sysroot: str | None
-    is_specified_script: bool = False
-    specified_script: str = ""
     config_flags: str = ""
     compiler_flags: str = ""
 

@@ -29,12 +29,7 @@ class Builder:
         for build in project.builds:
             print(f"Build the {os.path.basename(build.build_path)}")
 
-            if build.is_specified_script:
-                is_successed = Builder.build_with_specified_script(project, build)
-            else:
-                is_successed = Builder.build_for_linux(project, build)
-
-            if is_successed:
+            if Builder.build_for_linux(project, build):
                 print("Build passed")
             else:
                 print("Build failed")
@@ -63,9 +58,3 @@ class Builder:
             )[0]
             == 0
         )
-
-    @staticmethod
-    def build_with_specified_script(project: Project, build: Build) -> None:
-        """The method handle case when user specify a script for building"""
-
-        raise NotImplementedError
