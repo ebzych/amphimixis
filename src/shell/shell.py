@@ -96,5 +96,10 @@ class Shell:
         return (error_code, stdout, stderr)
 
     def copy_to_remote(self, source: str, destination: str) -> None:
-        """Copy file from local machine to remote machine."""
+        """Copy a file or folder from the host machine to remote machine
+
+        :var str source: absolute path to a file or folder on the host machine
+        :var str destination: absolute path to copy a file or folder to on the target machine
+        """
+
         self._shell.copy_to_remote(source, destination)
