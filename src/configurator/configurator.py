@@ -73,22 +73,7 @@ def configure(
     build_machine = create_machine(build_machine_info)
     run_machine = create_machine(run_machine_info)
 
-    if "script" in recipe_info:
-        if not isinstance(recipe_info["script"], str):
-            raise TypeError("Invalid path to script type, check config file")
-        build = general.Build(
-            build_machine,
-            run_machine,
-            build_path,
-            toolchain,
-            sysroot,
-            True,
-            recipe_info["script"],
-        )
-    else:
-        build = general.Build(
-            build_machine, run_machine, build_path, toolchain, sysroot, False
-        )
+    build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
 
     build.config_flags = recipe_info["config_flags"]
     build.compiler_flags = recipe_info["compiler_flags"]
