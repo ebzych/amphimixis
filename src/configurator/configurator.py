@@ -45,7 +45,7 @@ def parse_config(project: general.Project) -> None:
                     project,
                     get_by_id(input_config["platforms"], build["build_machine"]),
                     get_by_id(input_config["platforms"], build["run_machine"]),
-                    get_by_id(input_config["receipts"], build["receipt_id"]),
+                    get_by_id(input_config["recipes"], build["recipe_id"]),
                     toolchain,
                     sysroot,
                 )
@@ -60,21 +60,21 @@ def configure(
     project: general.Project,
     build_machine_info: dict[str, str],
     run_machine_info: dict[str, str],
-    receipt_info: dict[str, str],
+    recipe_info: dict[str, str],
     toolchain: str | None,
     sysroot: str | None,
 ) -> None:
     """Function to configure a new build and save its configuration to a Pickle file"""
 
     build_path = generate_build_path(
-        build_machine_info["id"], run_machine_info["id"], receipt_info["id"]
+        build_machine_info["id"], run_machine_info["id"], recipe_info["id"]
     )
 
     build_machine = create_machine(build_machine_info)
     run_machine = create_machine(run_machine_info)
 
-    if "script" in receipt_info:
-        if not isinstance(receipt_info["script"], str):
+    if "script" in recipe_info:
+        if not isinstance(recipe_info["script"], str):
             raise TypeError("Invalid path to script type, check config file")
         build = general.Build(
             build_machine,
@@ -83,15 +83,15 @@ def configure(
             toolchain,
             sysroot,
             True,
-            receipt_info["script"],
+            recipe_info["script"],
         )
     else:
         build = general.Build(
             build_machine, run_machine, build_path, toolchain, sysroot, False
         )
 
-    build.config_flags = receipt_info["config_flags"]
-    build.compiler_flags = receipt_info["compiler_flags"]
+    build.config_flags = recipe_info["config_flags"]
+    build.compiler_flags = recipe_info["compiler_flags"]
 
     project.builds.append(build)
 
@@ -147,14 +147,14 @@ def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
     return machine
 
 
-def generate_build_path(build_id: str, run_id: str, receipt_id: str) -> str:
-    """Function to create path to build, depending on build, run and receipt ids"""
+def generate_build_path(build_id: str, run_id: str, recipe_id: str) -> str:
+    """Function to create path to build, depending on build, run and recipes ids"""
 
-    return path.join(getcwd(), f"{build_id}_{run_id}_{receipt_id}")
+    return path.join(getcwd(), f"{build_id}_{run_id}_{recipe_id}")
 
 
 def get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
-    """Finds platform or receipt by id"""
+    """Finds platform or recipe by id"""
 
     for item in items:
         if item["id"] == target_id:
