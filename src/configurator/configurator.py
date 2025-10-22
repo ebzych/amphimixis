@@ -117,7 +117,7 @@ def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
         if port is not DEFAULT_PORT and not isinstance(port, int):
             raise TypeError("Invalid port type, check config file")
 
-        auth = general.MachineAuthenticationInfo(username, password, port)
+        auth = general.MachineAuthenticationInfo(username, password, int(port))
 
     machine = general.MachineInfo(general.Arch(arch.lower()), address, auth)
 
