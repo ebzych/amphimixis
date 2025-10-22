@@ -1,1 +1,1 @@
-from .configurator import configure, parse_config
+from .configurator import create_build, parse_config
