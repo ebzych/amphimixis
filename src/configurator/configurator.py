@@ -82,11 +82,9 @@ def create_build(
 
     project.builds.append(build)
 
-    config = build.__dict__
-
     config_name = f"{build_path}_config"
     with open(config_name, "wb") as file:
-        pickle.dump(config, file)
+        pickle.dump(build, file)
 
 
 def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
@@ -114,10 +112,10 @@ def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
             raise TypeError("Invalid password type, check config file")
 
         port = machine_info.get("port", DEFAULT_PORT)
-        if port is not DEFAULT_PORT and not isinstance(port, int):
+        if not isinstance(port, int):
             raise TypeError("Invalid port type, check config file")
 
-        auth = general.MachineAuthenticationInfo(username, password, int(port))
+        auth = general.MachineAuthenticationInfo(username, password, port)
 
     machine = general.MachineInfo(general.Arch(arch.lower()), address, auth)
 

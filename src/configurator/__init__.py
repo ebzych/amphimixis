@@ -1,1 +1,5 @@
-from .configurator import create_build, parse_config
+"""Configurator contract"""
+
+from .configurator import parse_config
+
+__all__ = ["parse_config"]
