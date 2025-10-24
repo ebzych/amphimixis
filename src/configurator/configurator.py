@@ -1,9 +1,12 @@
 """Module for configuring a new build"""
 
 from os import path, getcwd
+import logging
 import pickle
 import yaml
 import general
+
+DEFAULT_PORT = 22
 
 
 def parse_config(project: general.Project) -> None:
@@ -12,7 +15,10 @@ def parse_config(project: general.Project) -> None:
     if not path.exists(project.path):
         raise FileNotFoundError("Incorrect project path @_@, check input arguments")
 
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
     project.builds = []
+
     try:
         with open("input.yml", "r", encoding="UTF-8") as f:
             input_config = yaml.safe_load(f)
@@ -28,133 +34,102 @@ def parse_config(project: general.Project) -> None:
             project.runner = general.build_systems_dict[input_config["runner"].lower()]
 
             for build in input_config["builds"]:
-                toolchain = None
-                sysroot = None
 
-                if "toolchain" in build:
-                    if not isinstance(build["toolchain"], str):
-                        raise TypeError("Invalid toolchain type, check config file")
-                    toolchain = build["toolchain"]
+                toolchain = build.get("toolchain")
+                if toolchain is not None and not isinstance(toolchain, str):
+                    raise TypeError("Invalid toolchain type, check config file")
 
-                if "sysroot" in build:
-                    if not isinstance(build["sysroot"], str):
-                        raise TypeError("Invalid sysroot type, check config file")
-                    sysroot = build["sysroot"]
+                sysroot = build.get("toolchain")
+                if sysroot is not None and not isinstance(sysroot, str):
+                    raise TypeError("Invalid sysroot type, check config file")
 
-                configure(
+                create_build(
                     project,
                     get_by_id(input_config["platforms"], build["build_machine"]),
                     get_by_id(input_config["platforms"], build["run_machine"]),
-                    get_by_id(input_config["receipts"], build["receipt_id"]),
+                    get_by_id(input_config["recipes"], build["recipe_id"]),
                     toolchain,
                     sysroot,
                 )
 
     except FileNotFoundError as e:
-        print(f"Error opening file, check input data. {e}")
+        logger.error("Error opening file, check input data %s", e)
 
-    print("Configuration completed successfully!")
+    logger.info("Configuration completed successfully!")
 
 
-def configure(
+def create_build(
     project: general.Project,
     build_machine_info: dict[str, str],
     run_machine_info: dict[str, str],
-    receipt_info: dict[str, str],
+    recipe_info: dict[str, str],
     toolchain: str | None,
     sysroot: str | None,
 ) -> None:
-    """Function to configure a new build and save its configuration to a Pickle file"""
+    """Function to create a new build and save its configuration to a Pickle file"""
 
     build_path = generate_build_path(
-        build_machine_info["id"], run_machine_info["id"], receipt_info["id"]
+        build_machine_info["id"], run_machine_info["id"], recipe_info["id"]
     )
 
     build_machine = create_machine(build_machine_info)
     run_machine = create_machine(run_machine_info)
 
-    if "script" in receipt_info:
-        if not isinstance(receipt_info["script"], str):
-            raise TypeError("Invalid path to script type, check config file")
-        build = general.Build(
-            build_machine,
-            run_machine,
-            build_path,
-            toolchain,
-            sysroot,
-            True,
-            receipt_info["script"],
-        )
-    else:
-        build = general.Build(
-            build_machine, run_machine, build_path, toolchain, sysroot, False
-        )
+    build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
 
-    build.config_flags = receipt_info["config_flags"]
-    build.compiler_flags = receipt_info["compiler_flags"]
+    build.config_flags = recipe_info["config_flags"]
+    build.compiler_flags = recipe_info["compiler_flags"]
 
     project.builds.append(build)
 
-    config = build.__dict__
-
     config_name = f"{build_path}_config"
     with open(config_name, "wb") as file:
-        pickle.dump(config, file)
+        pickle.dump(build, file)
 
 
 def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
     """Function to create a new machine"""
 
-    if not isinstance(machine_info["arch"], str):
+    arch = machine_info.get("arch")
+    if not isinstance(arch, str):
         raise TypeError("Invalid arch type, check config file")
 
-    if "address" in machine_info:
+    address = machine_info.get("address")
+    auth = None
+
+    if address is not None:
         if not isinstance(machine_info["address"], str):
             raise TypeError("Invalid address type, check config file")
 
-        if "username" not in machine_info or not isinstance(
-            machine_info["username"], str
-        ):
+        username = machine_info.get("username")
+        if not isinstance(username, str):
             raise TypeError(
                 "Invalid username type or username does not exist, check config file"
             )
 
-        address = machine_info["address"]
-        username = machine_info["username"]
-        password = None
-        port = 22
+        password = machine_info.get("password")
+        if password is not None and not isinstance(password, str):
+            raise TypeError("Invalid password type, check config file")
 
-        if "password" in machine_info:
-            if not isinstance(machine_info["password"], str):
-                raise TypeError("Invalid password type, check config file")
-            password = machine_info["password"]
-
-        if "port" in machine_info:
-            if not isinstance(machine_info["port"], int):
-                raise TypeError("Invalid port type, check config file")
-            port = machine_info["port"]
+        port = machine_info.get("port", DEFAULT_PORT)
+        if not isinstance(port, int):
+            raise TypeError("Invalid port type, check config file")
 
         auth = general.MachineAuthenticationInfo(username, password, port)
 
-        machine = general.MachineInfo(
-            general.Arch(machine_info["arch"].lower()), address, auth
-        )
-    else:
-        machine = general.MachineInfo(
-            general.Arch(machine_info["arch"].lower()), None, None
-        )
+    machine = general.MachineInfo(general.Arch(arch.lower()), address, auth)
 
     return machine
 
 
-def generate_build_path(build_id: str, run_id: str, receipt_id: str) -> str:
-    """Function to create path to build, depending on build, run and receipt ids"""
+def generate_build_path(build_id: str, run_id: str, recipe_id: str) -> str:
+    """Function to create path to build, depending on build, run and recipes ids"""
 
-    return path.join(getcwd(), f"{build_id}_{run_id}_{receipt_id}")
+    return path.join(getcwd(), f"{build_id}_{run_id}_{recipe_id}")
 
 
 def get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
-    """Finds platform or receipt by id"""
+    """Finds platform or recipe by id"""
 
     for item in items:
         if item["id"] == target_id:
