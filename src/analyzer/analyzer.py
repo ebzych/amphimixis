@@ -1,8 +1,9 @@
 """Module that analyzes project's repository and creates file with its information"""
 
 import glob
-import os
 import json
+import os
+
 from general import Colors
 
 _tab = 16

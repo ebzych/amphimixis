@@ -3,6 +3,7 @@
 import os
 from general import Project, Build
 from shell import Shell
+from ToolchainManager import ToolchainManager
 
 
 class Builder:
@@ -35,6 +36,9 @@ class Builder:
             f"mkdir -p {path}",
             f"cd {path}",
         )
+
+        build.toolchain = ToolchainManager.get_toolchain_from_build(build)
+        build.sysroot = ToolchainManager.get_sysroot_from_build(build)
 
         return (
             shell.run(

@@ -4,7 +4,7 @@ import select
 import subprocess
 from ctypes import ArgumentError
 
-from general.machine import MachineInfo
+from general import MachineInfo
 
 from .shell_interface import IShellHandler
 

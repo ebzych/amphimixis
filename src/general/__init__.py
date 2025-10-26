@@ -1,18 +1,18 @@
 """The common module that is used in most other modules"""
 
-from .colors import (
-    Colors,
-)
-
+from .colors import Colors
 from .general import (
-    Project,
+    Arch,
     Build,
     IBuildSystem,
+    MachineAuthenticationInfo,
+    MachineInfo,
+    Project,
 )
 
-from .build_systems_impl import build_systems_dict
-from .architecture import Arch
-from .machine import MachineAuthenticationInfo, MachineInfo
+from .build_systems.cmake import CMake
+from .build_systems.make import Make
+from .build_systems.build_systems import build_systems_dict
 
 __all__ = [
     "Project",
@@ -25,4 +25,6 @@ __all__ = [
     "Colors",
     "MachineInfo",
     "MachineAuthenticationInfo",
+    "CMake",
+    "Make",
 ]

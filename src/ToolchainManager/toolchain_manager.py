@@ -1,17 +1,17 @@
 """Class that manages and provides toolchains and sysroots"""
 
-from os import makedirs, environ
-from os.path import exists, isabs
 from abc import ABC
+from os import environ, makedirs
+from os.path import exists, isabs
+
 import yaml
+
+from general import Arch, Build, MachineInfo
 from shell import Shell
-from general.architecture import Arch
-from general.general import Build
-from general.machine import MachineInfo
 
 
 class ToolchainManager(ABC):
-    """"""
+    """Toolchain Manager"""
 
     _config_path: str
     _toolbox: list[str]

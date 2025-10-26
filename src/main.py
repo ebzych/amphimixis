@@ -1,5 +1,10 @@
 import sys
-import general, analyzer, builder, configurator, profiler
+
+import analyzer
+import builder
+import configurator
+import general
+import profiler
 
 try:
     analyzer_ = analyzer.Analyzer(sys.argv[1])
