@@ -4,7 +4,8 @@ from os import path, getcwd
 import logging
 import pickle
 import yaml
-from amphimixis import general
+from amphimixis.general import general
+from amphimixis.shell import Shell
 
 DEFAULT_PORT = 22
 
@@ -39,7 +40,7 @@ def parse_config(project: general.Project) -> None:
                 if toolchain is not None and not isinstance(toolchain, str):
                     raise TypeError("Invalid toolchain type, check config file")
 
-                sysroot = build.get("toolchain")
+                sysroot = build.get("sysroot")
                 if sysroot is not None and not isinstance(sysroot, str):
                     raise TypeError("Invalid sysroot type, check config file")
 
@@ -125,7 +126,7 @@ def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
 def generate_build_path(build_id: str, run_id: str, recipe_id: str) -> str:
     """Function to create path to build, depending on build, run and recipes ids"""
 
-    return path.join(getcwd(), f"{build_id}_{run_id}_{recipe_id}")
+    return path.normpath(path.join(getcwd(), f"{build_id}_{run_id}_{recipe_id}"))
 
 
 def get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
@@ -136,3 +137,22 @@ def get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
             return item
 
     raise LookupError("Item id didn't match any existed id, check input file")
+
+
+def _is_valid_address(address: str) -> bool:
+    """Function to check whether addtess id valid"""
+
+    try:
+        ip_address(address)
+        return True
+    except ValueError:
+        pass
+
+    if all(part.isdigit() for part in address.rstrip(".").split(".")):
+        return False
+
+    hostname_pattern = re_compile(
+        r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)"
+        r"(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$"
+    )
+    return bool(hostname_pattern.match(address))
