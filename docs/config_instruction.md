@@ -39,8 +39,8 @@ The **platforms** section describes the machines on which the project will be bu
 | Field | Type | Description |
 |:-------:|:------:|-------------|
 | id | integer | Unique id of the platform |
-| ip | string | IP-address or domain name |
-| arch | string | Architecture (e.g., x86, riscv)
+| address | string | IP-address or domain name |
+| arch | string | Architecture (e.g. x86, riscv)
 | username | string | Username of the remote machine |
 | port<sup><a href="#note3">3</a></sup>| integer | Port of the remote machine |
 | password<sup><a href="#note4">4</a></sup> | string | Password for the remote machine |
@@ -50,14 +50,14 @@ The **platforms** section describes the machines on which the project will be bu
 3. Optional, default value: "22". The `port` must be within the range 1-65535.  
 </p>
 <p id="note4">
-4. Optional.
+4. If the user has an SSH agent, then the password does not need to be provided.
 </p>
 
 
 > **<u>Note:</u>**  
-> - If the `ip` field is not specified, the local machine is assumed.  
+> - If the `address` field is not specified, the local machine is assumed.  
 > - For a local machine, `username`, `password`, and `port` do not need to be specified.  
-> - If an `ip` is specified, the machine is treated as remote, and the fields `username`, `password`, and `port` must be provided.
+> - If an `address` is specified, the machine is treated as remote, and the fields `username`, `password`, and `port` must be provided.
 
 
 ### Recipes
@@ -85,7 +85,7 @@ The **builds** section links platforms and recipes, defining which configuration
 |:-------:|:------:|-------------|
 | build_machine | integer | `platform_id` of the machine where the project will be built |
 | toolchain | string | Path to the toolchain used for building the project |
-| sysroot | string | Path to the system root directory that contains the toolchain |
+| sysroot | string | Path to the folder with system headers and libraries used by the toolchain |
 | run_machine | integer | `platform_id` of the machine where the built project will be executed|
 | recipe_id | integer | Id of the `recipe` |
 ---

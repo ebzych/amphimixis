@@ -10,22 +10,22 @@ build_system: CMake
 runner: mAkE
 platforms:
 - id: 1
-  ip: 192.168.1.1
+  address: 192.168.1.1
   arch: x86
-  username: trololo
+  username: ebzych
   port: 22
-  password: '123456'
+  password: 'ilovemarie'
 - id: 2
-  ip: 192.168.1.2
+  address: 192.168.1.2
   arch: riscv
-  username: trololo
-  password: '123456'
+  username: fojdjebu
+  password: 'iloveriscv'
   port: 22
 - id: 3
-  ip: 192.168.1.3
+  address: 192.168.1.3
   arch: x86
-  username: trololo
-  password: '123456'
+  username: enderlay
+  password: 'ilovecats'
 
 recipes:
 - id: 1
@@ -35,14 +35,13 @@ recipes:
   config_flags: "-DCMAKE_BUILD_TYPE=Debug -DYAML_CPP_BUILD_TESTS=ON "
   compiler_flags: "-O0"
 - id: 3
-  build_path: build1
   config_flags: "-DCMAKE_BUILD_TYPE=Release"
   compiler_flags: "-ftree-vectorize"
 
 builds:
 - build_machine: 1
-  toolchain: ???
-  compiler: ???
+  toolchain: /path/to/your/target/toolchain
+  sysroot: /path/to/your/target/sysroot
   run_machine: 1
   recipe_id: 1
 - build_machine: 2
