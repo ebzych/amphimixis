@@ -11,7 +11,7 @@ _TAB = 16
 class Analyzer:
     """Class that analyzes project's repository and creates file with its information"""
 
-    ci_list = ["**/ci", "**/.github/workflows/*.yml"]
+    ci_list = ["**/ci", "**/.github/workflows"]
 
     build_systems_list = {
         "**/CMakeLists.txt": "cmake",
@@ -23,9 +23,9 @@ class Analyzer:
     def __init__(self, repo_path: str):
         self.repo_path = repo_path
         self.results = {
-            "tests": False,
-            "benchmarks": False,
-            "ci": False,
+            "tests": [],
+            "benchmarks": [],
+            "ci": [],
             "build_systems": {
                 "cmake": False,
                 "autoconf": False,
@@ -35,38 +35,39 @@ class Analyzer:
             "dependencies": [],
         }
 
-    def _path_existence(self, pattern, path):
-        if path:
-            self.results[f"{pattern}"] = True
+    def _rel_path(self, paths):
+        parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
+        return [os.path.relpath(p, parent_dir) for p in paths]
 
-    def _path_output(self, pattern, path):
-        if path:
-            first_found_dir = path[0]
-            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
-            rel_path = os.path.relpath(first_found_dir, parent_dir)
-            print(
-                f"{pattern}:".ljust(_TAB) + Colors.GREEN + rel_path + Colors.NONE + "\n"
-            )
+    def _find_paths(self, pattern):
+        paths = glob.glob(os.path.join(self.repo_path, pattern), recursive=True)
+        return [p for p in paths if os.path.isdir(p)]
+
+    def _path_existence(self, key, paths):
+        if paths:
+            self.results[f"{key}"] = self._rel_path(paths)
+
+    def _path_output(self, key, paths):
+        if paths:
+            first = self._rel_path(paths)[0]
+            print(f"{key}:".ljust(_TAB) + Colors.GREEN + first + Colors.NONE + "\n")
         else:
-            print(f"{pattern}:".ljust(_TAB) + Colors.RED + "not found\n" + Colors.NONE)
+            print(f"{key}:".ljust(_TAB) + Colors.RED + "not found\n" + Colors.NONE)
 
     def _search_tests(self):
-        path = glob.glob(os.path.join(self.repo_path, "**/*test*"), recursive=True)
-        self._path_existence("tests", path)
-        self._path_output("tests", path)
+        paths = self._find_paths("**/*test*")
+        self._path_existence("tests", paths)
+        self._path_output("tests", paths)
 
     def _search_benchmarks(self):
-        path = glob.glob(os.path.join(self.repo_path, "**/*benchmark*"), recursive=True)
-        self._path_existence("benchmarks", path)
-        self._path_output("benchmarks", path)
+        paths = self._find_paths("**/*benchmark*")
+        self._path_existence("benchmarks", paths)
+        self._path_output("benchmarks", paths)
 
     def _search_ci(self):
-        path = ""
+        path = []
         for pattern in self.ci_list:
-            if not path:
-                path = glob.glob(os.path.join(self.repo_path, pattern), recursive=True)
-            else:
-                break
+            path.extend(self._find_paths(pattern))
         self._path_existence("ci", path)
         self._path_output("ci", path)
 
