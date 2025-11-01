@@ -4,7 +4,7 @@ import select
 import subprocess
 from ctypes import ArgumentError
 
-from general import MachineInfo
+from amphimixis.general import MachineInfo
 
 from .shell_interface import IShellHandler
 

@@ -4,8 +4,8 @@ import glob
 import json
 from os import path, listdir
 import sys
-import general
-from general import Colors
+from amphimixis import general
+from amphimixis.general import Colors
 
 _TAB = 16
 

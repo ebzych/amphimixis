@@ -4,7 +4,7 @@ from os import path, getcwd
 import logging
 import pickle
 import yaml
-import general
+from amphimixis import general
 
 DEFAULT_PORT = 22
 
