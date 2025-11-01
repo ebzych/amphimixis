@@ -4,7 +4,7 @@ import socket
 from ctypes import ArgumentError
 from typing import List, Self, Tuple
 
-from general import MachineInfo
+from amphimixis.general import MachineInfo
 
 from .local_shell_handler import _LocalShellHandler
 from .shell_interface import IShellHandler
