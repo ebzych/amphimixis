@@ -3,7 +3,7 @@
 import glob
 import os
 import json
-from general import Colors
+from amph.general import Colors
 
 _tab = 16
 
