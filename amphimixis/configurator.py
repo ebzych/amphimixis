@@ -73,7 +73,7 @@ def parse_config(project: general.Project) -> None:
     logger.info("Configuration completed successfully!")
 
 
-def _create_build(
+def _create_build(  # pylint: disable=R0913,R0917
     project: general.Project,
     build_machine_info: dict[str, str],
     run_machine_info: dict[str, str],
@@ -94,7 +94,8 @@ def _create_build(
         and pl_machine().lower() != run_machine.arch.name.lower()
     ):
         raise TypeError(
-            f"Invalid local machibe arch: {run_machine.arch.name.lower()}, your machine is {pl_machine().lower()}"
+            f"Invalid local machibe arch: {run_machine.arch.name.lower()},"
+            f"your machine is {pl_machine().lower()}"
         )
 
     build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
