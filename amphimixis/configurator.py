@@ -12,7 +12,7 @@ from amphimixis.shell import Shell
 
 DEFAULT_PORT = 22
 
-# fmt: off
+
 def parse_config(project: general.Project) -> None:
     """Module enter function"""
 
@@ -47,24 +47,22 @@ def parse_config(project: general.Project) -> None:
             for build in input_config["builds"]:
 
                 toolchain = build.get("toolchain")
-                if (toolchain is not None and
-                    not isinstance(toolchain, str)):
+                if toolchain is not None and not isinstance(toolchain, str):
                     raise TypeError(
                         f"Invalid toolchain: {build["toolchain"]}, check config file"
                     )
 
                 sysroot = build.get("sysroot")
-                if (sysroot is not None and
-                    not isinstance(sysroot, str)):
+                if sysroot is not None and not isinstance(sysroot, str):
                     raise TypeError(
                         f"Invalid sysroot: {build["sysroot"]}, check config file"
                     )
 
-                create_build(
+                _create_build(
                     project,
-                    get_by_id(input_config["platforms"], build["build_machine"]),
-                    get_by_id(input_config["platforms"], build["run_machine"]),
-                    get_by_id(input_config["recipes"], build["recipe_id"]),
+                    _get_by_id(input_config["platforms"], build["build_machine"]),
+                    _get_by_id(input_config["platforms"], build["run_machine"]),
+                    _get_by_id(input_config["recipes"], build["recipe_id"]),
                     toolchain,
                     sysroot,
                 )
@@ -75,7 +73,7 @@ def parse_config(project: general.Project) -> None:
     logger.info("Configuration completed successfully!")
 
 
-def create_build(
+def _create_build(
     project: general.Project,
     build_machine_info: dict[str, str],
     run_machine_info: dict[str, str],
@@ -85,12 +83,12 @@ def create_build(
 ) -> None:
     """Function to create a new build and save its configuration to a Pickle file"""
 
-    build_path = generate_build_path(
+    build_path = _generate_build_path(
         build_machine_info["id"], run_machine_info["id"], recipe_info["id"]
     )
 
-    build_machine = create_machine(build_machine_info)
-    run_machine = create_machine(run_machine_info)
+    build_machine = _create_machine(build_machine_info)
+    run_machine = _create_machine(run_machine_info)
     if (
         run_machine.address is not None
         and pl_machine().lower() != run_machine.arch.name.lower()
@@ -111,24 +109,23 @@ def create_build(
         pickle.dump(build, file)
 
 
-def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
+def _create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
     """Function to create a new machine"""
 
     arch = machine_info.get("arch")
-    if (not isinstance(arch, str) or
-        arch.lower() not in general.Arch):
+    if not isinstance(arch, str) or arch.lower() not in general.Arch:
         raise TypeError(
             f"Invalid arch in platform {machine_info["id"]}: {machine_info["arch"]}"
         )
 
     address = machine_info.get("address")
-    if (address is not None and
-        (not isinstance(address, str) or
-        not is_valid_address(address))):
+    if address is not None and (
+        not isinstance(address, str) or not _is_valid_address(address)
+    ):
         raise TypeError(
             f"Invalid address in platform {machine_info["id"]}: {machine_info["address"]}"
         )
-    
+
     auth = None
 
     if address is not None:
@@ -139,15 +136,13 @@ def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
             )
 
         password = machine_info.get("password")
-        if (password is not None and
-            not isinstance(password, str)):
+        if password is not None and not isinstance(password, str):
             raise TypeError(
                 f"Invalid password in platform {machine_info["id"]}: {machine_info["password"]}"
             )
 
         port = machine_info.get("port", DEFAULT_PORT)
-        if (not isinstance(port, int) or
-            not 1 <= port <= 65535):
+        if not isinstance(port, int) or not 1 <= port <= 65535:
             raise TypeError(
                 f"Invalid port in platform {machine_info["id"]}: {machine_info["port"]}"
             )
@@ -159,13 +154,13 @@ def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
     return machine
 
 
-def generate_build_path(build_id: str, run_id: str, recipe_id: str) -> str:
+def _generate_build_path(build_id: str, run_id: str, recipe_id: str) -> str:
     """Function to create path to build, depending on build, run and recipes ids"""
 
     return path.normpath(path.join(getcwd(), f"{build_id}_{run_id}_{recipe_id}"))
 
 
-def get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
+def _get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
     """Function to find platform or recipe by id"""
 
     for item in items:
