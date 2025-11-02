@@ -1,121 +1,129 @@
 """Module that analyzes project's repository and creates file with its information"""
 
 import glob
-import os
 import json
+from os import path, listdir
+import sys
+import general
 from general import Colors
 
-_tab = 16
+_TAB = 16
+
+ci_list = ["**/ci", "**/.github/workflows"]
+
+build_systems_list = {
+    "**/CMakeLists.txt": "cmake",
+    "**/configure.ac": "autoconf",
+    "**/*meson": "meson",
+    "**/*bazel": "bazel",
+}
 
 
-class Analyzer:
-    """Class that analyzes project's repository and creates file with its information"""
+def analyze(project: general.Project):
+    """Analyzes project and collects its information"""
 
-    ci_list = ["**/ci", "**/.github/workflows/*.yml"]
-
-    build_systems_list = {
-        "**/CMakeLists.txt": "cmake",
-        "**/configure.ac": "autoconf",
-        "**/*meson": "meson",
-        "**/*bazel": "bazel",
+    results = {
+        "tests": [],
+        "benchmarks": [],
+        "ci": [],
+        "build_systems": {
+            "cmake": False,
+            "autoconf": False,
+            "meson": False,
+            "bazel": False,
+        },
+        "dependencies": [],
     }
 
-    def __init__(self, repo_path: str):
-        self.repo_path = repo_path
-        self.basename = os.path.basename(os.path.normpath(repo_path))
-        self.results = {
-            "tests": False,
-            "benchmarks": False,
-            "ci": False,
-            "build_systems": {
-                "cmake": False,
-                "autoconf": False,
-                "meson": False,
-                "bazel": False,
-            },
-            "dependencies": [],
-        }
+    proj_path = project.path
 
-    def _search_tests(self):
-        path = glob.glob(os.path.join(self.repo_path, "**/*test*"), recursive=True)
-        if path:
-            self.results["tests"] = True
-            first_found_dir = path[0]
-            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
-            rel_path = os.path.relpath(first_found_dir, parent_dir)
-            print("tests:".ljust(_tab) + Colors.GREEN + rel_path + Colors.NONE + "\n")
-        else:
-            print("tests:".ljust(_tab) + Colors.RED + "not found\n" + Colors.NONE)
+    if not path.exists(proj_path):
+        raise FileNotFoundError(f'Directory "{proj_path}" not found')
 
-    def _search_benchmarks(self):
-        path = glob.glob(os.path.join(self.repo_path, "**/*benchmark*"), recursive=True)
-        if path:
-            self.results["benchmarks"] = True
-            first_found_dir = path[0]
-            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
-            rel_path = os.path.relpath(first_found_dir, parent_dir)
-            print(
-                "benchmarks:".ljust(_tab) + Colors.GREEN + rel_path + Colors.NONE + "\n"
-            )
-        else:
-            print("benchmarks:".ljust(_tab) + Colors.RED + "not found\n" + Colors.NONE)
+    try:
 
-    def _search_ci(self):
-        path = ""
-        for pattern in self.ci_list:
-            path = glob.glob(os.path.join(self.repo_path, pattern), recursive=True)
-        if path:
-            self.results["ci"] = True
-            first_found_dir = path[0]
-            parent_dir = os.path.dirname(os.path.normpath(self.repo_path))
-            rel_path = os.path.relpath(first_found_dir, parent_dir)
-            print("ci:".ljust(_tab) + Colors.GREEN + rel_path + Colors.NONE + "\n")
-        else:
-            print("ci:".ljust(_tab) + Colors.RED + "not found\n" + Colors.NONE)
+        print(f"Analyzing {path.basename(path.normpath(proj_path))}\n" + "\n")
 
-    def _search_build_systems(self):
-        print("build systems:")
-        for pattern, system in self.build_systems_list.items():
-            if glob.glob(os.path.join(self.repo_path, pattern), recursive=True):
-                self.results["build_systems"][system] = True
-                print("".ljust(_tab) + f"{system}")
-        if not any(self.results["build_systems"].values()):
-            print("".ljust(_tab) + Colors.RED + "not found" + Colors.NONE)
-        print()
-
-    def _search_dependencies(self):
-        dep_path = os.path.join(self.repo_path, "third_party")
-        if os.path.exists(dep_path):
-            dirs = [
-                d
-                for d in os.listdir(dep_path)
-                if os.path.isdir(os.path.join(dep_path, d))
-            ]
-            self.results["dependencies"].extend(dirs)
-        print("dependencies:")
-        if self.results["dependencies"]:
-            for dep in self.results["dependencies"]:
-                print("".ljust(_tab) + f"{dep}")
-        else:
-            print("".ljust(_tab) + "not found")
-        print()
-
-    def analyze(self):
-        """Analyzes project and collects its information"""
-
-        if not os.path.exists(self.repo_path):
-            raise FileNotFoundError(f'Directory "{self.repo_path}" not found')
-
-        print(f"Analyzing {self.basename}\n" + "\n")
-
-        self._search_tests()
-        self._search_benchmarks()
-        self._search_ci()
-        self._search_build_systems()
-        self._search_dependencies()
+        _search_tests(proj_path, results)
+        _search_benchmarks(proj_path, results)
+        _search_ci(proj_path, results)
+        _search_build_systems(proj_path, results)
+        _search_dependencies(proj_path, results)
 
         print("\nAnalyzing done\n")
 
         with open("amphimixis.log", "w", encoding="utf8") as file:
-            json.dump(self.results, file, indent=4)
+            json.dump(results, file, indent=4)
             print()
+
+    except FileNotFoundError as e:
+        print(f"{e}")
+        sys.exit(-1)
+
+
+def _rel_path(proj_path, paths):
+    parent_dir = path.dirname(path.normpath(proj_path))
+    return [path.relpath(p, parent_dir) for p in paths]
+
+
+def _find_paths(proj_path, pattern, dirs_only=True):
+    paths = glob.glob(path.join(proj_path, pattern), recursive=True)
+    return [p for p in paths if path.isdir(p)] if dirs_only else paths
+
+
+def _path_existence(proj_path, results, key, paths):
+    if paths:
+        results[f"{key}"] = _rel_path(proj_path, paths)
+
+
+def _path_output(proj_path, key, paths):
+    if paths:
+        first = _rel_path(proj_path, paths)[0]
+        print(f"{key}:".ljust(_TAB) + Colors.GREEN + first + Colors.NONE + "\n")
+    else:
+        print(f"{key}:".ljust(_TAB) + Colors.RED + "not found\n" + Colors.NONE)
+
+
+def _search_tests(proj_path, results):
+    paths = _find_paths(proj_path, "**/*test*")
+    _path_existence(proj_path, results, "tests", paths)
+    _path_output(proj_path, "tests", paths)
+
+
+def _search_benchmarks(proj_path, results):
+    paths = _find_paths(proj_path, "**/*benchmark*")
+    _path_existence(proj_path, results, "benchmarks", paths)
+    _path_output(proj_path, "benchmarks", paths)
+
+
+def _search_ci(proj_path, results):
+    paths = []
+    for pattern in ci_list:
+        paths.extend(_find_paths(proj_path, pattern))
+    _path_existence(proj_path, results, "ci", paths)
+    _path_output(proj_path, "ci", paths)
+
+
+def _search_build_systems(proj_path, results):
+    print("build systems:")
+    for pattern, system in build_systems_list.items():
+        if _find_paths(proj_path, pattern, dirs_only=False):
+            results["build_systems"][system] = True
+            print("".ljust(_TAB) + f"{system}")
+    if not any(results["build_systems"].values()):
+        print("".ljust(_TAB) + Colors.RED + "not found" + Colors.NONE)
+    print()
+
+
+def _search_dependencies(proj_path, results):
+    dep_path = path.join(proj_path, "third_party")
+    if path.exists(dep_path):
+        dirs = [d for d in listdir(dep_path) if path.isdir(path.join(dep_path, d))]
+        results["dependencies"].extend(dirs)
+    print("dependencies:")
+    if results["dependencies"]:
+        for dep in results["dependencies"]:
+            print("".ljust(_TAB) + f"{dep}")
+    else:
+        print("".ljust(_TAB) + "not found")
+    print()

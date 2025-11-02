@@ -1,20 +1,13 @@
 import sys
 import general, analyzer, builder, configurator, profiler
 
-try:
-    analyzer_ = analyzer.Analyzer(sys.argv[1])
-
-    analyzer_.analyze()
-except FileNotFoundError as e:
-    print(f"{e}")
-    exit(-1)
-
 project = general.Project(
     sys.argv[1],
     [],
     general.build_systems_dict["make"],
     general.build_systems_dict["cmake"],
 )
+analyzer.analyze(project)
 
 configurator.parse_config(project)
 
