@@ -1,6 +1,9 @@
 """Module for configuring a new build"""
 
 from os import path, getcwd
+from re import compile as re_compile
+from ipaddress import ip_address
+from platform import machine as pl_machine
 import logging
 import pickle
 import yaml
@@ -9,7 +12,7 @@ from amphimixis.shell import Shell
 
 DEFAULT_PORT = 22
 
-
+# fmt: off
 def parse_config(project: general.Project) -> None:
     """Module enter function"""
 
@@ -24,25 +27,38 @@ def parse_config(project: general.Project) -> None:
         with open("input.yml", "r", encoding="UTF-8") as f:
             input_config = yaml.safe_load(f)
 
-            if not isinstance(input_config["build_system"], str):
-                raise TypeError("Invalid build system type :(, check config file")
-            project.build_system = general.build_systems_dict[
-                input_config["build_system"].lower()
-            ]
+            build_system = input_config.get("build_system")
+            if (
+                not isinstance(build_system, str)
+                or build_system.lower() not in general.build_systems_dict
+            ):
+                raise TypeError(f"Invalid build_system: {input_config["build_system"]}")
 
-            if not isinstance(input_config["runner"], str):
-                raise TypeError("Invalid runner type ^~^, check config file")
-            project.runner = general.build_systems_dict[input_config["runner"].lower()]
+            runner = input_config.get("runner")
+            if (
+                not isinstance(runner, str)
+                or runner.lower() not in general.build_systems_dict
+            ):
+                raise TypeError(f"Invalid runner: {input_config["runner"]}")
+
+            project.build_system = general.build_systems_dict[build_system.lower()]
+            project.runner = general.build_systems_dict[runner.lower()]
 
             for build in input_config["builds"]:
 
                 toolchain = build.get("toolchain")
-                if toolchain is not None and not isinstance(toolchain, str):
-                    raise TypeError("Invalid toolchain type, check config file")
+                if (toolchain is not None and
+                    not isinstance(toolchain, str)):
+                    raise TypeError(
+                        f"Invalid toolchain: {build["toolchain"]}, check config file"
+                    )
 
                 sysroot = build.get("sysroot")
-                if sysroot is not None and not isinstance(sysroot, str):
-                    raise TypeError("Invalid sysroot type, check config file")
+                if (sysroot is not None and
+                    not isinstance(sysroot, str)):
+                    raise TypeError(
+                        f"Invalid sysroot: {build["sysroot"]}, check config file"
+                    )
 
                 create_build(
                     project,
@@ -75,6 +91,13 @@ def create_build(
 
     build_machine = create_machine(build_machine_info)
     run_machine = create_machine(run_machine_info)
+    if (
+        run_machine.address is not None
+        and pl_machine().lower() != run_machine.arch.name.lower()
+    ):
+        raise TypeError(
+            f"Invalid local machibe arch: {run_machine.arch.name.lower()}, your machine is {pl_machine().lower()}"
+        )
 
     build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
 
@@ -92,29 +115,42 @@ def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
     """Function to create a new machine"""
 
     arch = machine_info.get("arch")
-    if not isinstance(arch, str):
-        raise TypeError("Invalid arch type, check config file")
+    if (not isinstance(arch, str) or
+        arch.lower() not in general.Arch):
+        raise TypeError(
+            f"Invalid arch in platform {machine_info["id"]}: {machine_info["arch"]}"
+        )
 
     address = machine_info.get("address")
+    if (address is not None and
+        (not isinstance(address, str) or
+        not is_valid_address(address))):
+        raise TypeError(
+            f"Invalid address in platform {machine_info["id"]}: {machine_info["address"]}"
+        )
+    
     auth = None
 
     if address is not None:
-        if not isinstance(machine_info["address"], str):
-            raise TypeError("Invalid address type, check config file")
-
         username = machine_info.get("username")
         if not isinstance(username, str):
             raise TypeError(
-                "Invalid username type or username does not exist, check config file"
+                f"Invalid username in platform {machine_info["id"]}: {machine_info["username"]}"
             )
 
         password = machine_info.get("password")
-        if password is not None and not isinstance(password, str):
-            raise TypeError("Invalid password type, check config file")
+        if (password is not None and
+            not isinstance(password, str)):
+            raise TypeError(
+                f"Invalid password in platform {machine_info["id"]}: {machine_info["password"]}"
+            )
 
         port = machine_info.get("port", DEFAULT_PORT)
-        if not isinstance(port, int):
-            raise TypeError("Invalid port type, check config file")
+        if (not isinstance(port, int) or
+            not 1 <= port <= 65535):
+            raise TypeError(
+                f"Invalid port in platform {machine_info["id"]}: {machine_info["port"]}"
+            )
 
         auth = general.MachineAuthenticationInfo(username, password, port)
 
@@ -130,7 +166,7 @@ def generate_build_path(build_id: str, run_id: str, recipe_id: str) -> str:
 
 
 def get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
-    """Finds platform or recipe by id"""
+    """Function to find platform or recipe by id"""
 
     for item in items:
         if item["id"] == target_id:
