@@ -65,16 +65,16 @@ class Analyzer:
         self._path_output("benchmarks", paths)
 
     def _search_ci(self):
-        path = []
+        paths = []
         for pattern in self.ci_list:
-            path.extend(self._find_paths(pattern))
-        self._path_existence("ci", path)
-        self._path_output("ci", path)
+            paths.extend(self._find_paths(pattern))
+        self._path_existence("ci", paths)
+        self._path_output("ci", paths)
 
     def _search_build_systems(self):
         print("build systems:")
         for pattern, system in self.build_systems_list.items():
-            if glob.glob(os.path.join(self.repo_path, pattern), recursive=True):
+            if self._find_paths(pattern):
                 self.results["build_systems"][system] = True
                 print("".ljust(_TAB) + f"{system}")
         if not any(self.results["build_systems"].values()):
