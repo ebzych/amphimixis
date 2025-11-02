@@ -63,8 +63,6 @@ class Build:
     build_path: str
     toolchain: str | None
     sysroot: str | None
-    is_specified_script: bool = False
-    specified_script: str = ""
     config_flags: str = ""
     compiler_flags: str = ""
 

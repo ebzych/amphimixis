@@ -4,7 +4,7 @@ NC='\e[0m'
 COMMAND="${1}"
 
 echo -e "${BLUE}Running Black code formatter...${NC}"
-mapfile -t files < <(git ls-files 'src/*.py')
+mapfile -t files < <(git ls-files '*.py')
 "$COMMAND" run black --check "${files[@]}"
 
 

@@ -3,6 +3,16 @@
 import sys
 import amphimixis
 
+<<<<<<< HEAD
+=======
+try:
+    analyzer_ = amphimixis.analyzer.Analyzer(sys.argv[1])
+
+    analyzer_.analyze()
+except FileNotFoundError as e:
+    print(f"{e}")
+    sys.exit(-1)
+>>>>>>> 6b4344e (fix: fix ci, fix ci in builder, general, profiler, main.py)
 
 project = amphimixis.general.Project(
     sys.argv[1],
