@@ -7,14 +7,19 @@ from amphimixis.general import Project, Build
 
 
 def run_command(command: str, cwd: str = "") -> bool:
+    """Run command via subproccess.run()"""
     command_formatted = shlex.split(command)
     try:
         process = subprocess.run(
-            command_formatted, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            command_formatted,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
         )
         return process.returncode == 0
 
-    except Exception as e:
+    except ValueError as e:
         print(f'Error executing command "{command}": {e}')
         return False
 
@@ -26,10 +31,7 @@ class Builder:
     def process(project: Project) -> None:
         """The method build all builds"""
         for build in project.builds:
-            if build.is_specified_script:
-                success = Builder.build_with_specified_script(project, build)
-            else:
-                success = Builder.build_for_linux(project, build)
+            success = Builder.build_for_linux(project, build)
 
             if success:
                 print("Build passed.")
@@ -50,9 +52,3 @@ class Builder:
             if not run_command(command, build.build_path):
                 return False
         return True
-
-    @staticmethod
-    def build_with_specified_script(project: Project, build: Build) -> None:
-        """The method handle case when user specify a script for building"""
-
-        raise NotImplementedError
