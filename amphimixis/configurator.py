@@ -24,8 +24,8 @@ def parse_config(project: general.Project) -> None:
     project.builds = []
 
     try:
-        with open("input.yml", "r", encoding="UTF-8") as f:
-            input_config = yaml.safe_load(f)
+        with open("input.yml", "r", encoding="UTF-8") as file:
+            input_config = yaml.safe_load(file)
 
             build_system = input_config.get("build_system")
             if (
@@ -89,14 +89,7 @@ def _create_build(  # pylint: disable=R0913,R0917
 
     build_machine = _create_machine(build_machine_info)
     run_machine = _create_machine(run_machine_info)
-    if (
-        run_machine.address is not None
-        and pl_machine().lower() != run_machine.arch.name.lower()
-    ):
-        raise TypeError(
-            f"Invalid local machibe arch: {run_machine.arch.name.lower()},"
-            f"your machine is {pl_machine().lower()}"
-        )
+    _has_valid_arch(run_machine)
 
     build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
 
@@ -171,6 +164,30 @@ def _get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
     raise LookupError("Item id didn't match any existed id, check input file")
 
 
+def _has_valid_arch(machine: general.MachineInfo) -> None:
+    """Function to check whether run machine arch is valid"""
+
+    if machine.address is None:
+        if machine.arch.lower() not in pl_machine().lower():
+            raise TypeError(
+                f"Invalid local machibe arch: {machine.arch.name.lower()}, "
+                f"your machine is {pl_machine().lower()}"
+            )
+    else:
+        shell = Shell(machine).connect()
+        error_code, stdout, _ = shell.run("uname -m")
+        if error_code != 0:
+            raise ValueError(
+                "An error occured during reading remote machine arch, check remote machine"
+            )
+        remote_arch = stdout[0][0]
+        if machine.arch.lower() not in remote_arch.lower():
+            raise TypeError(
+                f"Invalid remote machibe arch: {machine.arch.name.lower()}, "
+                f"remote machine is {remote_arch.lower()}"
+            )
+
+
 def _is_valid_address(address: str) -> bool:
     """Function to check whether addtess id valid"""
 
@@ -178,13 +195,17 @@ def _is_valid_address(address: str) -> bool:
         ip_address(address)
         return True
     except ValueError:
-        pass
+        if all(part.isdigit() for part in address.rstrip(".").split(".")):
+            return False
 
-    if all(part.isdigit() for part in address.rstrip(".").split(".")):
-        return False
-
-    hostname_pattern = re_compile(
-        r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)"
-        r"(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$"
-    )
-    return bool(hostname_pattern.match(address))
+        # this string checks whether domain name is valid, here some rules:
+        # 1. Length <= 253
+        # 2. Separate part length <= 63
+        # 3. Contains only letters, digits and dash
+        # 4. Doesn't start or end with dash
+        # 5. May have dot at the end
+        hostname_pattern = re_compile(
+            r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)"
+            r"(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$"
+        )
+        return bool(hostname_pattern.match(address))
