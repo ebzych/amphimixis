@@ -9,9 +9,9 @@ from os import cpu_count, path, walk
 class Arch(str, Enum):
     """Supported architectures"""
 
-    X86_64 = "x86"
-    RISCV64 = "riscv"
-    ARM64 = "armm"
+    X86 = "x86"
+    RISCV = "riscv"
+    ARM = "arm"
 
 
 @dataclass
