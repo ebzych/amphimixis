@@ -6,7 +6,7 @@ from ctypes import ArgumentError
 
 from amphimixis.general import MachineInfo
 
-from .shell_interface import IShellHandler
+from amphimixis.shell.shell_interface import IShellHandler
 
 _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 

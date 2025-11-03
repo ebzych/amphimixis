@@ -1,3 +1,3 @@
 """Shell module"""
 
-from .shell import Shell
+from amphimixis.shell.shell import Shell

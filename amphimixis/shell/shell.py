@@ -6,9 +6,9 @@ from typing import List, Self, Tuple
 
 from amphimixis.general import MachineInfo
 
-from .local_shell_handler import _LocalShellHandler
-from .shell_interface import IShellHandler
-from .ssh_shell_handler import _SSHHandler
+from amphimixis.shell.local_shell_handler import _LocalShellHandler
+from amphimixis.shell.shell_interface import IShellHandler
+from amphimixis.shell.ssh_shell_handler import _SSHHandler
 
 _READING_BARRIER_FLAG = "READING_BARRIER_FLAG"
 
