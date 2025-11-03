@@ -3,7 +3,7 @@
 import os
 import subprocess
 
-from .shell_interface import IShellHandler
+from amphimixis.shell.shell_interface import IShellHandler
 
 
 class _LocalShellHandler(IShellHandler):

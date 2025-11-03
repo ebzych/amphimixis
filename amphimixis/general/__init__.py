@@ -1,10 +1,10 @@
 """The common module that is used in most other modules"""
 
-from .colors import (
+from amphimixis.general.colors import (
     Colors,
 )
 
-from .general import (
+from amphimixis.general.general import (
     Project,
     Build,
     MachineInfo,
