@@ -6,6 +6,8 @@ from amphimixis.configurator import parse_config
 from amphimixis.builder import Builder
 from amphimixis.profiler import Profiler
 from amphimixis.shell import Shell
+from amphimixis.toolchain_manager import ToolchainManager
+
 
 __all__ = [
     "general",
@@ -15,4 +17,5 @@ __all__ = [
     "Builder",
     "Profiler",
     "Shell",
+    "ToolchainManager",
 ]
