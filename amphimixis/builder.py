@@ -1,54 +1,57 @@
 """Module that builds a build based on configuration"""
 
-import subprocess
-import shlex
 import os
-from amphimixis.general import Project, Build
-
-
-def run_command(command: str, cwd: str = "") -> bool:
-    """Run command via subproccess.run()"""
-    command_formatted = shlex.split(command)
-    try:
-        process = subprocess.run(
-            command_formatted,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
-        return process.returncode == 0
-
-    except ValueError as e:
-        print(f'Error executing command "{command}": {e}')
-        return False
+from amphimixis.general.general import Project, Build
+from amphimixis.shell.shell import Shell
 
 
 class Builder:
     """The class is representing a module which builds a build based on its configuration"""
 
     @staticmethod
-    def process(project: Project) -> None:
+    def build(project: Project) -> None:
         """The method build all builds"""
         for build in project.builds:
-            success = Builder.build_for_linux(project, build)
+            print(f"Build the {os.path.basename(build.build_path)}")
 
-            if success:
-                print("Build passed.")
+            if Builder.build_for_linux(project, build):
+                print("Build passed")
             else:
-                print("Build failed.")
+                print("Build failed")
 
     @staticmethod
     def build_for_linux(project: Project, build: Build) -> bool:
         """The method build program on Linux"""
-        os.makedirs(build.build_path, exist_ok=True)
+        shell = Shell(build.build_machine).connect()
 
-        commands = [
-            project.build_system.insert_config_flags(project, build, ""),
-            project.runner.insert_runner_flags(project, build, ""),
-        ]
-
-        for command in commands:
-            if not run_command(command, build.build_path):
+        path: str  # path to build on the machine
+        if build.build_machine.address is not None:  # if building on the remote machine
+            path = (
+                "~/amphimixis/"
+                f"{Builder._normbase(project.path)}_builds/"
+                f"{Builder._normbase(build.build_path)}"
+            )
+            if not shell.copy_to_remote(
+                os.path.normpath(project.path), "~/amphimixis/"
+            ):
+                print("Error in copying source files")
                 return False
-        return True
+        else:
+            path = f"{build.build_path}"  # if building on the local machine
+
+        try:
+            return (
+                shell.run(
+                    f"mkdir -p {path}",
+                    f"cd {path}",
+                    project.build_system.insert_config_flags(project, build, ""),
+                    project.runner.insert_runner_flags(project, build, ""),
+                )[0]
+                == 0
+            )
+        except FileNotFoundError:
+            return False
+
+    @staticmethod
+    def _normbase(path: str) -> str:
+        return os.path.basename(os.path.normpath(path))
