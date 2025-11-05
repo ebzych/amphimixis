@@ -3,15 +3,59 @@
 import sys
 import argparse
 from amphimixis import *
+import textwrap
+
+
+class CustomFormatterClass(
+    argparse.RawDescriptionHelpFormatter,
+):
+
+    def format_help(self) -> str:
+
+        YELLOW = "\033[93m"
+        CYAN = "\033[96m"
+        GRAY = "\033[90m"
+        RESET = "\033[0m"
+
+        banner = textwrap.dedent(
+            f"""
+            {GRAY}*****************************************************************{RESET}
+
+                 {YELLOW}✰  Amphimixis — build automation and profiling tool  ✰{RESET}
+
+            {GRAY}*****************************************************************{RESET}
+        """
+        )
+
+        help_text = super().format_help()
+
+        examples = textwrap.dedent(
+            """
+            Examples:
+
+              amixis /path/to/folder/with/project
+                  → Main mode. Runs all core modules: analyzer, configurator,
+                    builder, and profiler.
+                
+              amixis --analyzer /path/to/folder/with/project
+                  → Runs only the project analyzer module.
+
+              amixis --builder /path/to/folder/with/project
+                  → Runs both the analyzer and builder modules.
+
+              amixis --analyzer --builder --profiler /path/to/folder/with/project
+                  → Runs the analyzer, builder, and profiler modules.
+        """
+        )
+
+        return f"{banner}\n{help_text}\n{examples}"
 
 
 def main():
 
     parser = argparse.ArgumentParser(
         prog="amixis",
-        description="amphimixis — build automation and profiling tool "
-        "for Linux projects across various architectures.",
-        formatter_class=argparse.MetavarTypeHelpFormatter,
+        formatter_class=CustomFormatterClass,
         usage=argparse.SUPPRESS,
         add_help=True,
     )
@@ -25,21 +69,25 @@ def main():
     )
 
     parser.add_argument(
+        "-a",
         "--analyzer",
         action="store_true",
         help="run only the project analyzer.",
     )
     parser.add_argument(
+        "-c",
         "--configurator",
         action="store_true",
         help="run only the project configurator.",
     )
     parser.add_argument(
+        "-b",
         "--builder",
         action="store_true",
         help="run only the build module.",
     )
     parser.add_argument(
+        "-p",
         "--profiler",
         action="store_true",
         help="run only the performance profiler",
@@ -80,7 +128,10 @@ def main():
             parse_config(project)
 
         if args.builder:
-            parse_config(project)
+
+            if not args.configurator:
+                parse_config(project)
+
             Builder.process(project)
 
         if args.profiler:
