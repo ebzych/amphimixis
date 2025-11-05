@@ -3,6 +3,7 @@
 import sys
 from amphimixis import (
     general,
+    build_systems_dict,
     analyzer,
     configurator,
     builder,
@@ -13,15 +14,15 @@ from amphimixis import (
 project = general.Project(
     sys.argv[1],
     [],
-    general.build_systems_dict["make"],
-    general.build_systems_dict["cmake"],
+    build_systems_dict["make"],
+    build_systems_dict["cmake"],
 )
 
 analyzer.analyze(project)
 
 configurator.parse_config(project)
 
-builder.Builder.process(project)
+builder.Builder.build(project)
 
 profiler_ = profiler.Profiler(project.builds[0])
 
