@@ -123,7 +123,7 @@ def main():
 
             parse_config(project)
 
-            Builder.process(project)
+            Builder.build(project)
 
             profiler_ = Profiler(project.builds[0])
 
@@ -142,7 +142,7 @@ def main():
             if not args.configurator:
                 parse_config(project)
 
-            Builder.process(project)
+            Builder.build(project)
 
         if args.profiler:
 
