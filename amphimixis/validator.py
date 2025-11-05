@@ -5,6 +5,7 @@ from re import compile as re_compile
 import yaml
 
 from amphimixis.general import general
+from amphimixis.build_systems import build_systems_dict
 
 DEFAULT_PORT = 22
 
@@ -20,15 +21,12 @@ def validate(file_name: str) -> None:
             build_system = file_dict.get("build_system")
             if (
                 not isinstance(build_system, str)
-                or build_system.lower() not in general.build_systems_dict
+                or build_system.lower() not in build_systems_dict
             ):
                 raise TypeError(f"Invalid build_system: {build_system}")
 
             runner = file_dict.get("runner")
-            if (
-                not isinstance(runner, str)
-                or runner.lower() not in general.build_systems_dict
-            ):
+            if not isinstance(runner, str) or runner.lower() not in build_systems_dict:
                 raise TypeError(f"Invalid runner: {runner}")
 
             # validate platforms

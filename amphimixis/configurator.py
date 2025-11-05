@@ -6,6 +6,7 @@ import logging
 import pickle
 import yaml
 from amphimixis.general import general
+from amphimixis.build_systems import build_systems_dict
 from amphimixis.shell import Shell
 from amphimixis.validator import validate
 
@@ -32,8 +33,8 @@ def parse_config(project: general.Project) -> None:
             build_system = input_config.get("build_system")
             runner = input_config.get("runner")
 
-            project.build_system = general.build_systems_dict[build_system.lower()]
-            project.runner = general.build_systems_dict[runner.lower()]
+            project.build_system = build_systems_dict[build_system.lower()]
+            project.runner = build_systems_dict[runner.lower()]
 
             for build in input_config["builds"]:
 
