@@ -95,11 +95,14 @@ class Shell:
 
         return (error_code, stdout, stderr)
 
-    def copy_to_remote(self, source: str, destination: str) -> None:
+    def copy_to_remote(self, source: str, destination: str) -> bool:
         """Copy a file or folder from the host machine to remote machine
+        Absolute paths are needed
 
         :var str source: absolute path to a file or folder on the host machine
         :var str destination: absolute path to copy a file or folder to on the target machine
+
+        :return: True if successful copied else False
         """
 
-        self._shell.copy_to_remote(source, destination)
+        return self._shell.copy_to_remote(source, destination)
