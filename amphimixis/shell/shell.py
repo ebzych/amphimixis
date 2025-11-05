@@ -97,6 +97,7 @@ class Shell:
 
     def copy_to_remote(self, source: str, destination: str) -> None:
         """Copy a file or folder from the host machine to remote machine
+        Absolute paths are needed
 
         :var str source: absolute path to a file or folder on the host machine
         :var str destination: absolute path to copy a file or folder to on the target machine
