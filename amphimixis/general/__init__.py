@@ -5,14 +5,16 @@ from amphimixis.general.colors import (
 )
 
 from amphimixis.general.general import (
-    Project,
     Build,
-    MachineInfo,
     IBuildSystem,
     MachineAuthenticationInfo,
-    Arch,
-    build_systems_dict,
+    MachineInfo,
+    Project,
 )
+
+from amphimixis.general.build_systems.cmake import CMake
+from amphimixis.general.build_systems.make import Make
+from amphimixis.general.build_systems.build_systems import build_systems_dict
 
 __all__ = [
     "Project",
@@ -20,7 +22,10 @@ __all__ = [
     "MachineInfo",
     "IBuildSystem",
     "MachineAuthenticationInfo",
-    "Arch",
     "build_systems_dict",
     "Colors",
+    "MachineInfo",
+    "MachineAuthenticationInfo",
+    "CMake",
+    "Make",
 ]

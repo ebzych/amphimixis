@@ -8,6 +8,7 @@ import logging
 import pickle
 import yaml
 from amphimixis.general import general
+from amphimixis.general.build_systems import build_systems_dict
 from amphimixis.shell import Shell
 
 DEFAULT_PORT = 22
@@ -30,19 +31,16 @@ def parse_config(project: general.Project) -> None:
             build_system = input_config.get("build_system")
             if (
                 not isinstance(build_system, str)
-                or build_system.lower() not in general.build_systems_dict
+                or build_system.lower() not in build_systems_dict
             ):
                 raise TypeError(f"Invalid build_system: {input_config["build_system"]}")
 
             runner = input_config.get("runner")
-            if (
-                not isinstance(runner, str)
-                or runner.lower() not in general.build_systems_dict
-            ):
+            if not isinstance(runner, str) or runner.lower() not in build_systems_dict:
                 raise TypeError(f"Invalid runner: {input_config["runner"]}")
 
-            project.build_system = general.build_systems_dict[build_system.lower()]
-            project.runner = general.build_systems_dict[runner.lower()]
+            project.build_system = build_systems_dict[build_system.lower()]
+            project.runner = build_systems_dict[runner.lower()]
 
             for build in input_config["builds"]:
 
