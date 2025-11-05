@@ -5,7 +5,14 @@
 import sys
 import argparse
 import textwrap
-from amphimixis import general, analyze, parse_config, Builder, Profiler
+from amphimixis import (
+    general,
+    build_systems_dict,
+    analyze,
+    parse_config,
+    Builder,
+    Profiler,
+)
 
 YELLOW = "\033[93m"
 GRAY = "\033[90m"
@@ -105,8 +112,8 @@ def main():
     project = general.Project(
         args.path,
         [],
-        general.build_systems_dict["make"],
-        general.build_systems_dict["cmake"],
+        build_systems_dict["make"],
+        build_systems_dict["cmake"],
     )
 
     try:
