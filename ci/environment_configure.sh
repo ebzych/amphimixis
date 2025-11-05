@@ -1,22 +1,19 @@
 #!/bin/bash
 
-PREFIX=""
-TOOL=""
+RED='\e[31m'
+BLUE='\e[34m'
+NC='\e[0m'
 
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-if command_exists "uv"; then
-    TOOL="uv"
-elif command_exists "poetry"; then
-    TOOL="poetry"
-else
+if ! command_exists "uv"; then
     if command_exists "curl"; then
-        echo -e "${BLUE}Installing uv with curl:${NC}"
+        echo -e "${BLUE}Installing uv with curl...${NC}"
         curl -LsSf https://astral.sh/uv/install.sh | sh
     elif  command_exists "wget"; then
-        echo -e "${BLUE}Installing uv with wget:${NC}"
+        echo -e "${BLUE}Installing uv with wget...${NC}"
         wget -qO- https://astral.sh/uv/install.sh | sh
     else
          echo "Please install curl for check CI:"
@@ -24,16 +21,11 @@ else
          exit 1
     fi
 
-    PREFIX="$HOME/.local/bin"
-    TOOL="uv"
 fi
 
-if [ -n "$PREFIX" ]; then
-    COMMAND="$PREFIX/$TOOL"
-else
-    COMMAND="$TOOL"
+if ! command_exists "uv"; then
+    echo -e "${RED}Error: UV installation failed - command 'uv' not found${NC}"
+    exit 1
 fi
 
-$COMMAND sync
-
-echo "$COMMAND"
+uv sync
