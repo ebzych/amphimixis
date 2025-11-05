@@ -10,12 +10,14 @@ from amphimixis.general.general import (
     MachineAuthenticationInfo,
     MachineInfo,
     Project,
+    Arch,
 )
 
 __all__ = [
     "Project",
     "Build",
     "MachineInfo",
+    "Arch",
     "IBuildSystem",
     "MachineAuthenticationInfo",
     "Colors",
