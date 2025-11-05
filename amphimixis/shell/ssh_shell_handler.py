@@ -80,19 +80,33 @@ class _SSHHandler(IShellHandler):
         line = line_bytes.decode("UTF-8")
         return line
 
-    def copy_to_remote(self, source: str, destination: str) -> None:
+    def copy_to_remote(self, source: str, destination: str) -> bool:
         if self.machine.auth is None:
             raise ArgumentError("Authentication data is not provided")
 
-        subprocess.check_call(
+        print("Copying files...")
+
+        error_code = subprocess.call(
             [
-                "scp",
-                "-r",
-                "-o",
-                f"ConnectTimeout={self.connect_timeout}",
-                "-P",
+                "rsync",
+                "--checksum",
+                "--archive",
+                "--recursive",
+                "--mkpath",
+                "--copy-links",
+                "--hard-links",
+                "--compress",
+                "--log-file=./amphimixis.log",
+                "--port",
                 str(object=self.machine.auth.port),
                 source,
                 f"{self.machine.auth.username}@{self.machine.address}:{destination}",
             ]
         )
+
+        if error_code != 0:
+            print("Sources copying error.")
+            return False
+
+        print("Successful copied.")
+        return True

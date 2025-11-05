@@ -55,5 +55,28 @@ class _LocalShellHandler(IShellHandler):
             raise BrokenPipeError("Can't read from process' stderr")
         return self.shell.stderr.readline().decode()
 
-    def copy_to_remote(self, source: str, destination: str) -> None:
-        subprocess.check_call(["cp", "-a", source, destination])
+    def copy_to_remote(self, source: str, destination: str) -> bool:
+        print("Copying files...")
+
+        error_code = subprocess.call(
+            [
+                "rsync",
+                "--checksum",
+                "--archive",
+                "--recursive",
+                "--mkpath",
+                "--copy-links",
+                "--hard-links",
+                "--compress",
+                "--log-file=./amphimixis.log",
+                source,
+                destination,
+            ]
+        )
+
+        if error_code != 0:
+            print("Sources copying error.")
+            return False
+
+        print("Successful copied.")
+        return True
