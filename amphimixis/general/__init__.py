@@ -10,6 +10,7 @@ from amphimixis.general.general import (
     MachineAuthenticationInfo,
     MachineInfo,
     Project,
+    Arch,
 )
 
 from amphimixis.general.build_systems.cmake import CMake
@@ -20,6 +21,7 @@ __all__ = [
     "Project",
     "Build",
     "MachineInfo",
+    "Arch",
     "IBuildSystem",
     "MachineAuthenticationInfo",
     "build_systems_dict",
