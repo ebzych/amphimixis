@@ -1,6 +1,7 @@
 """Core module that contains director with main API and modules that he uses"""
 
 from amphimixis import general
+from amphimixis.build_systems import build_systems_dict
 from amphimixis.analyzer import analyze
 from amphimixis.configurator import parse_config
 from amphimixis.builder import Builder
@@ -10,6 +11,7 @@ from amphimixis.validator import validate
 
 __all__ = [
     "general",
+    "build_systems_dict",
     "analyze",
     "parse_config",
     "Builder",
