@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 
+"""Amphimixis CLI tool for build automation and profiling."""
+
 import sys
 import argparse
-from amphimixis import *
 import textwrap
+from amphimixis import general, analyze, parse_config, Builder, Profiler
+
+YELLOW = "\033[93m"
+GRAY = "\033[90m"
+RESET = "\033[0m"
 
 
 class CustomFormatterClass(
     argparse.RawDescriptionHelpFormatter,
 ):
+    """Custom formatter class for argparse to enhance help output."""
 
     def format_help(self) -> str:
-
-        YELLOW = "\033[93m"
-        CYAN = "\033[96m"
-        GRAY = "\033[90m"
-        RESET = "\033[0m"
+        """Format help message with custom banner and examples."""
 
         banner = textwrap.dedent(
             f"""
@@ -34,17 +37,15 @@ class CustomFormatterClass(
             Examples:
 
               amixis /path/to/folder/with/project
-                  → Main mode. Runs all core modules: analyzer, configurator,
-                    builder, and profiler.
+                  → Main mode. Performs full project analysis, generates configuration files,
+                  runs the build process, and performs profiling.
                 
               amixis --analyzer /path/to/folder/with/project
-                  → Runs only the project analyzer module.
+                  → Performs project analysis. Detects existing CI, tests, benchmarks, etc.
 
               amixis --builder /path/to/folder/with/project
-                  → Runs both the analyzer and builder modules.
-
-              amixis --analyzer --builder --profiler /path/to/folder/with/project
-                  → Runs the analyzer, builder, and profiler modules.
+                  → Builds the project, implicitly calling --configurator to generate 
+                  configuration files.
         """
         )
 
@@ -52,6 +53,7 @@ class CustomFormatterClass(
 
 
 def main():
+    """Main function for the Amphimixis CLI tool."""
 
     parser = argparse.ArgumentParser(
         prog="amixis",
@@ -65,32 +67,33 @@ def main():
         type=str,
         nargs="?",
         metavar="path",
-        help="path to the project folder.",
+        help="path to the project folder to process (required in main mode).",
     )
 
     parser.add_argument(
         "-a",
         "--analyzer",
         action="store_true",
-        help="run only the project analyzer.",
+        help="analyzes the project to detect existing CI systems, tests, build systems, etc.",
     )
     parser.add_argument(
         "-c",
         "--configurator",
         action="store_true",
-        help="run only the project configurator.",
+        help="generates configuration files for various builds.",
     )
     parser.add_argument(
         "-b",
         "--builder",
         action="store_true",
-        help="run only the build module.",
+        help="builds the project according to the generated configuration files.",
     )
     parser.add_argument(
         "-p",
         "--profiler",
         action="store_true",
-        help="run only the performance profiler",
+        help="profiles the performance of different builds, collects execution statistics, "
+        "and compares traces.",
     )
 
     args = parser.parse_args()
@@ -142,7 +145,7 @@ def main():
 
             print(profiler_.stats)
 
-    except Exception as e:
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f"Error: {e}")
         sys.exit(1)
 
