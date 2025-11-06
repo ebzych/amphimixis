@@ -1,4 +1,5 @@
-"""Containing the dictionary with name strings of build systems and associated IBuildSystem implementations"""
+"""Containing the dictionary with name strings of "
+"build systems and associated IBuildSystem implementations"""
 
 from amphimixis.build_systems.cmake import CMake
 from amphimixis.build_systems.make import Make
