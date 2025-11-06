@@ -3,3 +3,9 @@
 from amphimixis.general.build_systems.build_systems import build_systems_dict
 from amphimixis.general.build_systems.cmake import CMake
 from amphimixis.general.build_systems.make import Make
+
+__all__ = [
+    "build_systems_dict",
+    "CMake",
+    "Make",
+]

@@ -112,30 +112,30 @@ class ToolchainManager(ABC):
 
     @staticmethod
     def add_toolchain(machine_name: str, path: str, arch: Arch) -> None:
-        """"""
+        """Add toolchain to toolbox"""
 
         raise NotImplementedError
 
     @staticmethod
     def add_sysroot(name_machine: str, path: str, arch: Arch) -> None:
-        """"""
+        """Add sysroot to toolbox"""
 
         raise NotImplementedError
 
     @staticmethod
     def install_to_sysroot(path_to_sysroot: str, *packages: str) -> int:
-        """"""
+        """Install package to sysroot"""
 
         raise NotImplementedError
 
     @staticmethod
     def remove_toolchain(name: str) -> None:
-        """"""
+        """Remove toolchain from toolbox"""
 
         raise NotImplementedError
 
     @staticmethod
     def remove_sysroot(name: str) -> None:
-        """"""
+        """Remove sysroot from toolbox"""
 
         raise NotImplementedError
