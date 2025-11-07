@@ -9,8 +9,10 @@ shellcheck ci/*.sh
 
 ./ci/environment_configure.sh
 
+CI_PATH=$(dirname "$0")
+
 echo -e "${BLUE}Run CI:${NC}"
-./ci/black.sh
-./ci/mypy.sh
-./ci/pylint.sh
-./ci/ruff.sh
+"${CI_PATH}"/black.sh
+"${CI_PATH}"/mypy.sh
+"${CI_PATH}"/pylint.sh
+"${CI_PATH}"/ruff.sh
