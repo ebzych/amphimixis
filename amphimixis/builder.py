@@ -1,8 +1,11 @@
 """Module that builds a build based on configuration"""
 
 import os
+from amphimixis import logger
 from amphimixis.general.general import Project, Build
 from amphimixis.shell.shell import Shell
+
+_logger = logger.setup_logger("BUILDER")
 
 
 class Builder:
@@ -11,13 +14,14 @@ class Builder:
     @staticmethod
     def build(project: Project) -> None:
         """The method build all builds"""
+
         for build in project.builds:
-            print(f"Build the {os.path.basename(build.build_path)}")
+            _logger.info("Build the %s", os.path.basename(build.build_path))
 
             if Builder.build_for_linux(project, build):
-                print("Build passed")
+                _logger.info("Build passed")
             else:
-                print("Build failed")
+                _logger.info("Build failed")
 
     @staticmethod
     def build_for_linux(project: Project, build: Build) -> bool:
@@ -34,21 +38,47 @@ class Builder:
             if not shell.copy_to_remote(
                 os.path.normpath(project.path), "~/amphimixis/"
             ):
-                print("Error in copying source files")
+                _logger.error("Error in copying source files")
                 return False
         else:
             path = f"{build.build_path}"  # if building on the local machine
 
         try:
-            return (
-                shell.run(
-                    f"mkdir -p {path}",
-                    f"cd {path}",
-                    project.build_system.insert_config_flags(project, build, ""),
-                    project.runner.insert_runner_flags(project, build, ""),
-                )[0]
-                == 0
+            configuration_prompt = project.build_system.insert_config_flags(
+                project, build, ""
             )
+            _logger.info("Configuration with: %s", configuration_prompt)
+
+            runner_prompt = project.runner.insert_runner_flags(project, build, "")
+            _logger.info("Run building with: %s", runner_prompt)
+
+            err, stdout, stderr = shell.run(
+                f"mkdir -p {path}",
+                f"cd {path}",
+                configuration_prompt,
+                runner_prompt,
+            )
+            if len(stderr) >= 1 and len(stderr[0]) != 0:
+                _logger.error(
+                    "Error in creating directory on current machine: %s",
+                    "".join(stderr[0]),
+                )
+
+            if len(stderr) >= 2 and len(stderr[1]) != 0:
+                _logger.error(
+                    "Error in changing current working directory on current machine: %s",
+                    "".join(stderr[1]),
+                )
+
+            if len(stdout) >= 3:
+                _logger.info("Configuration output:\n%s", "".join(stdout[2]))
+                _logger.info("Configuration stderr:\n%s", "".join(stderr[2]))
+
+            if len(stdout) >= 4:
+                _logger.info("Building output:\n%s", "".join(stdout[3]))
+                _logger.info("Building stderr:\n%s", "".join(stderr[3]))
+
+            return err == 0
         except FileNotFoundError:
             return False
 

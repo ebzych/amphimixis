@@ -3,6 +3,9 @@
 import os
 import queue
 from amphimixis.general.general import Build, IBuildSystem, Project
+from amphimixis import logger
+
+_logger = logger.setup_logger("CMAKE")
 
 
 class CMake(IBuildSystem):
@@ -44,7 +47,7 @@ class CMake(IBuildSystem):
                 len(os.path.normpath(project.path)) :
             ]
         except FileNotFoundError:
-            print("Can't find CMakeLists.txt")
+            _logger.error("CMakeLists.txt not found")
 
         command = "cmake " + cmake_lists_path + " "
         command += build.config_flags
