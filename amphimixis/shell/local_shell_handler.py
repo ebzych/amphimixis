@@ -1,6 +1,7 @@
 """Local shell handler implementation."""
 
 import os
+import logging
 import subprocess
 
 from amphimixis.shell.shell_interface import IShellHandler
@@ -56,7 +57,7 @@ class _LocalShellHandler(IShellHandler):
         return self.shell.stderr.readline().decode()
 
     def copy_to_remote(self, source: str, destination: str) -> int:
-        print("Copying files...")
+        logging.info("Copying files")
 
         error_code = subprocess.call(
             [
@@ -75,8 +76,8 @@ class _LocalShellHandler(IShellHandler):
         )
 
         if error_code != 0:
-            print("Sources copying error.")
+            logging.error("Sources copying error")
             return -1
 
-        print("Successful copied.")
+        logging.info("Successful copied")
         return 0

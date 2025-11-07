@@ -1,5 +1,6 @@
 """SSH shell handler implementation."""
 
+import logging
 import select
 import subprocess
 from ctypes import ArgumentError
@@ -87,7 +88,7 @@ class _SSHHandler(IShellHandler):
         # disable pylint warnings about dublicating code
         # in ssh_shell_handler and local_shell_handler modules
         # pylint: disable=R0801
-        print("Copying files...")
+        logging.info("Copying files")
 
         error_code = subprocess.call(
             [
@@ -108,8 +109,8 @@ class _SSHHandler(IShellHandler):
         )
 
         if error_code != 0:
-            print("Sources copying error.")
+            logging.error("Sources copying error")
             return -1
 
-        print("Successful copied.")
+        logging.info("Successful copied")
         return 0

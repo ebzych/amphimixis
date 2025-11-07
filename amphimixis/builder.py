@@ -1,9 +1,19 @@
 """Module that builds a build based on configuration"""
 
 import os
+import logging
 from amphimixis.general.general import Project, Build
 from amphimixis.shell.shell import Shell
 from amphimixis.toolchain_manager import ToolchainManager
+
+logging.basicConfig(
+    level=logging.INFO,
+    filename="amphimixis.log",
+    encoding="utf-8",
+    filemode="a",
+    format="%(levelname)s:%(name)s:%(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 class Builder:
@@ -12,13 +22,14 @@ class Builder:
     @staticmethod
     def build(project: Project) -> None:
         """The method build all builds"""
+
         for build in project.builds:
-            print(f"Build the {os.path.basename(build.build_path)}")
+            logger.info("Build the %s", os.path.basename(build.build_path))
 
             if Builder.build_for_linux(project, build):
-                print("Build passed")
+                logger.info("Build passed")
             else:
-                print("Build failed")
+                logger.info("Build failed")
 
     @staticmethod
     def build_for_linux(project: Project, build: Build) -> bool:
@@ -37,17 +48,31 @@ class Builder:
             path = f"{build.build_path}"  # if building on the local machine
 
         build.toolchain = ToolchainManager.get_toolchain_from_build(build)
+        logger.info("Use %s", build.toolchain)
         build.sysroot = ToolchainManager.get_sysroot_from_build(build)
+        logger.info("Use %s", build.sysroot)
 
-        return (
-            shell.run(
-                f"mkdir -p {path}",
-                f"cd {path}",
-                project.build_system.insert_config_flags(project, build, ""),
-                project.runner.insert_runner_flags(project, build, ""),
-            )[0]
-            == 0
+        configuration_prompt = project.build_system.insert_config_flags(
+            project, build, ""
         )
+        logger.info("Configuration with: %s", configuration_prompt)
+
+        runner_prompt = project.runner.insert_runner_flags(project, build, "")
+        logger.info("Run building with: %s", runner_prompt)
+
+        err, stdout, stderr = shell.run(
+            f"mkdir -p {path}",
+            f"cd {path}",
+            configuration_prompt,
+            runner_prompt,
+        )
+        logger.info("Configuration output:\n%s", "".join(stdout[2]))
+        logger.info("Configuration stderr:\n%s", "".join(stderr[2]))
+
+        logger.info("Building output:\n%s", "".join(stdout[3]))
+        logger.info("Building stderr:\n%s", "".join(stderr[3]))
+
+        return err == 0
 
     @staticmethod
     def _normbase(path: str) -> str:
