@@ -4,9 +4,11 @@ import select
 import subprocess
 from ctypes import ArgumentError
 
+import amphimixis.logger
 from amphimixis.general import MachineInfo
-
 from amphimixis.shell.shell_interface import IShellHandler
+
+logging = amphimixis.logger.setup_logger("REMOTE_SHELL")
 
 _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 
@@ -87,7 +89,7 @@ class _SSHHandler(IShellHandler):
         # disable pylint warnings about dublicating code
         # in ssh_shell_handler and local_shell_handler modules
         # pylint: disable=R0801
-        print("Copying files...")
+        logging.info("Copying files")
 
         error_code = subprocess.call(
             [
@@ -108,8 +110,12 @@ class _SSHHandler(IShellHandler):
         )
 
         if error_code != 0:
-            print("Sources copying error.")
+            logging.error(
+                "Error %s -> %s", source, f"{self.machine.address}:{destination}"
+            )
             return False
 
-        print("Successful copied.")
+        logging.info(
+            "Success %s -> %s", source, f"{self.machine.address}:{destination}"
+        )
         return True
