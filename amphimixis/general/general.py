@@ -44,6 +44,14 @@ class MachineInfo:
     address: str | None
     auth: MachineAuthenticationInfo | None
 
+    @property
+    def __dictstr__(self) -> dict:
+        return {
+            "arch": self.arch.value,
+            "address": self.address,
+            "auth": self.auth.__dict__,
+        }
+
 
 # pylint: disable=too-many-instance-attributes
 @dataclass
