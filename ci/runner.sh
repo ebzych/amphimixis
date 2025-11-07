@@ -3,13 +3,12 @@ set -e
 
 BLUE='\e[34m'
 NC='\e[0m'
+CI_PATH=$(dirname "$0")
 
 echo "Running shellcheck..."
-shellcheck ci/*.sh
+shellcheck "${CI_PATH}"/*.sh
 
-./ci/environment_configure.sh
-
-CI_PATH=$(dirname "$0")
+"${CI_PATH}"/environment_configure.sh
 
 echo -e "${BLUE}Run CI:${NC}"
 "${CI_PATH}"/black.sh
