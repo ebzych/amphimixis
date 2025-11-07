@@ -1,6 +1,5 @@
 """Class that manages and provides toolchains and sysroots"""
 
-from abc import ABC
 from os import environ, makedirs
 from os.path import exists, isabs
 
@@ -10,33 +9,39 @@ from amphimixis.general.general import Arch, Build, MachineInfo
 from amphimixis.shell.shell import Shell
 
 
-class ToolchainManager(ABC):
+class ToolchainManager:
     """Toolchain Manager"""
 
-    _config_path: str
-    _toolbox: list[str]
+    CONFIG_DIR_PATH = f"{environ["HOME"]}/.config/amphimixis"
 
     @staticmethod
-    def _parse_config_file() -> None:
+    def parse_config_file() -> dict:
         """Search ~/.config/amphimixis/toolbox.yml and parse in __toolbox list or create it"""
 
-        makedirs(f"{environ["HOME"]}/.config/amphimixis", exist_ok=True)
-        if exists(f"{environ["HOME"]}/.config/amphimixis/toolbox.yml"):
+        template: dict[str, dict] = {
+            "platforms": {},
+            "toolchains": {},
+            "sysroots": {},
+        }
+        makedirs(ToolchainManager.CONFIG_DIR_PATH, exist_ok=True)
+        if exists(f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml"):
             with open(
-                f"{environ["HOME"]}/.config/amphimixis/toolbox.yml",
+                f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
                 "r",
                 encoding="utf-8",
-            ) as f:
-                ToolchainManager._toolbox = yaml.safe_load(f)
-                f.close()
-        else:
-            with open(
-                f"{environ["HOME"]}/.config/amphimixis/toolbox.yml",
-                "w",
-                encoding="utf-8",
-            ) as f:
-                template = {"platforms": None, "toolchains": None, "sysroots": None}
-                yaml.safe_dump(template, f)
+            ) as f_toolbox:
+
+                if dict(_toolbox := yaml.safe_load(f_toolbox)).keys() == set(
+                    ["platforms", "toolchains", "sysroots"]
+                ):
+                    return _toolbox
+        with open(
+            f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
+            "w",
+            encoding="utf-8",
+        ) as f_toolbox:
+            yaml.safe_dump(template, f_toolbox)
+            return template
 
     @staticmethod
     def _get_toolchain_by_name(name: str) -> tuple[MachineInfo, str]:
@@ -111,13 +116,35 @@ class ToolchainManager(ABC):
         return sysroot_path
 
     @staticmethod
-    def add_toolchain(machine_name: str, path: str, arch: Arch) -> None:
+    def add_toolchain(
+        toolchain_name: str,
+        machine_or_name: MachineInfo | str,
+        path: str,
+        target_arch: Arch,
+    ) -> None:
         """Add toolchain to toolbox"""
+        _toolbox = ToolchainManager.parse_config_file()
+        # temporary pylint disable
+        # pylint: disable=no-else-raise
+        if isinstance(machine_or_name, str):
+            raise NotImplementedError
+        else:
+            toolchain_data = {
+                "platform": machine_or_name.__dictstr__,
+                "path": path,
+                "target_arch": target_arch.value,
+            }
 
-        raise NotImplementedError
+            _toolbox["toolchains"][toolchain_name] = toolchain_data
+            with open(
+                f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
+                "w",
+                encoding="utf-8",
+            ) as f_toolbox:
+                yaml.safe_dump(_toolbox, f_toolbox)
 
     @staticmethod
-    def add_sysroot(name_machine: str, path: str, arch: Arch) -> None:
+    def add_sysroot(machine_or_name: MachineInfo | str, path: str, arch: Arch) -> None:
         """Add sysroot to toolbox"""
 
         raise NotImplementedError
