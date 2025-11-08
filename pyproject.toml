@@ -9,6 +9,10 @@ dependencies = [
     "pyyaml"
 ]
 
+[tool.setuptools]
+packages = ["amphimixis", "amphimixis.general", "amphimixis.shell"]
+py-modules = ["amphimixis_cli"]
+
 [dependency-groups]
 dev = [
     "ruff",
@@ -18,3 +22,9 @@ dev = [
     "types-paramiko",
     "types-pyyaml",
 ]
+
+[tool.uv]
+package = true
+
+[project.scripts]
+amixis = "amphimixis_cli:main"
