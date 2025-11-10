@@ -6,6 +6,16 @@ import subprocess
 
 from amphimixis.shell.shell_interface import IShellHandler
 
+# pylint: disable=duplicate-code
+logging.basicConfig(
+    level=logging.INFO,
+    filename="amphimixis.log",
+    encoding="utf-8",
+    filemode="a",
+    format="%(levelname)s:%(name)s:%(message)s",
+)
+logger = logging.getLogger(__name__)
+
 
 class _LocalShellHandler(IShellHandler):
     def __init__(self) -> None:
