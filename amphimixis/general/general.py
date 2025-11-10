@@ -115,3 +115,40 @@ class IBuildSystem(ABC):
     @abstractmethod
     def insert_sysroot(build: Build) -> str:
         """Return flag that specify sysroot in build system call"""
+
+
+# pylint: disable=too-many-instance-attributes
+@dataclass
+class Toolchain:
+    """Class that generalized idea of toolchain"""
+
+    # SYSROOT
+    sysroot: str
+
+    # TOOLS: postfix "_t" means "tool"
+    ar_t: str
+    as_t: str
+    ld_t: str
+    nm_t: str
+    objcopy_t: str
+    objdump_t: str
+    ranlib_t: str
+    readelf_t: str
+    strip_t: str
+
+    # COMPILERS: with default flags
+    c_compiler: str
+    cxx_compiler: str
+    csharp_compiler: str
+    cuda_compiler: str
+    objc_compiler: str
+    objcxx_compiler: str
+    fortran_compiler: str
+    hip_compiler: str
+    ispc_compiler: str
+    swift_compiler: str
+    asm_compiler: str
+    asm_nasm_compiler: str
+    asm_marmasm_compiler: str
+    asm_masm_compiler: str
+    asm_att_compiler: str
