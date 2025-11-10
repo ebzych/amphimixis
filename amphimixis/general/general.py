@@ -1,11 +1,12 @@
 """The common module that is used in most other modules"""
 
 from abc import ABC, abstractmethod
+from curses.ascii import isalpha
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class Arch(str, Enum):
+class Arch(StrEnum):
     """Supported architectures"""
 
     X86 = "x86"
@@ -113,3 +114,132 @@ class IBuildSystem(ABC):
     @abstractmethod
     def get_runner_prompt(project: Project, build: Build) -> str:
         """Generate runner prompt"""
+
+
+class CompilerFlagsAttrs(StrEnum):
+    """Enumeration for getting access to flags of concrete compiler"""
+
+    C_FLAGS = "c_flags"
+    CXX_FLAGS = "cxx_flags"
+    CSHARP_FLAGS = "csharp_flags"
+    CUDA_FLAGS = "cuda_flags"
+    OBJC_FLAGS = "objc_flags"
+    OBJCXX_FLAGS = "objcxx_flags"
+    FORTRAN_FLAGS = "fortran_flags"
+    HIP_FLAGS = "hip_flags"
+    ISPC_FLAGS = "ispc_flags"
+    SWIFT_FLAGS = "swift_flags"
+    ASM_FLAGS = "asm_flags"
+    ASM_NASM_FLAGS = "asm_nasm_flags"
+    ASM_MARMASM_FLAGS = "asm_marmasm_flags"
+    ASM_MASM_FLAGS = "asm_masm_flags"
+    ASM_ATT_FLAGS = "asm_att_flags"
+
+
+class ToolchainAttrs(StrEnum):
+    """Constants for getting access to attributes from toolchain dictionary"""
+
+    SYSROOT = "sysroot"
+
+    # TOOLS: postfix "_t" means "tool"
+    AR_T = "ar"
+    AS_T = "as"
+    LD_T = "ld"
+    NM_T = "nm"
+    OBJCOPY_T = "objcopy"
+    OBJDUMP_T = "objdump"
+    RANLIB_T = "ranlib"
+    READELF_T = "readelf"
+    STRIP_T = "strip"
+
+    # COMPILERS
+    C_COMPILER = "c_compiler"
+    CXX_COMPILER = "cxx_compiler"
+    CSHARP_COMPILER = "csharp_compiler"
+    CUDA_COMPILER = "cuda_compiler"
+    OBJC_COMPILER = "objc_compiler"
+    OBJCXX_COMPILER = "objcxx_compiler"
+    FORTRAN_COMPILER = "fortran_compiler"
+    HIP_COMPILER = "hip_compiler"
+    ISPC_COMPILER = "ispc_compiler"
+    SWIFT_COMPILER = "swift_compiler"
+    ASM_COMPILER = "asm_compiler"
+    ASM_NASM_COMPILER = "asm_nasm_compiler"
+    ASM_MARMASM_COMPILER = "asm_marmasm_compiler"
+    ASM_MASM_COMPILER = "asm_masm_compiler"
+    ASM_ATT_COMPILER = "asm_att_compiler"
+
+
+class Toolchain:
+    """Class that generalized idea of toolchain"""
+
+    def __init__(self, name: str | None = None, sysroot: str | None = None):
+        # attr -> [ /path/to/any | compiler_defualt_flags ]
+        self.__attrs: dict[str, str] = {}
+        self.__name = name
+        self.sysroot = sysroot
+
+    @property
+    def name(self) -> str | None:
+        """Name of toolchain getter"""
+        return self.__name
+
+    @name.setter
+    def name(self, new_name: str) -> bool:
+        """Name of toolchain setter"""
+        if all(isalpha(ch) for ch in new_name):
+            __name = new_name
+            return True
+        return False
+
+    @sysroot.setter
+    def sysroot(self, new_path: None | str) -> None:
+        """Sysroot of toolchain setter"""
+        if new_path is None or isabs(new_path):
+            self.__sysroot = new_path
+        else:
+            raise ValueError(
+                f"Setting sysroot to toolchain error: path '{new_path}' is not absolute"
+            )
+
+    def get(self, attr: ToolchainAttrs | CompilerFlagsAttrs) -> str | None:
+        """Getter of toolchain attributes"""
+        return self.__tools.get(attr)
+
+    def set(self, attr: ToolchainAttrs | CompilerFlagsAttrs, new_value: str) -> None:
+        """Setter of toolchain attributes
+
+        :param ToolchainAttrs | CompilerFlagsAttrs attr: Tool / compiler / flags
+            attribute of toolchain
+        :param str new_value: absolute path to tool / compiler or flags of compiler
+        """
+        if isinstance(attr, ToolchainAttrs) and not isabs(new_value):
+            raise ValueError(
+                f"Setting {attr.value} to toolchain error: path '{new_value}' is not absolute"
+            )
+        self.__attrs[attr.value] = new_value
+
+    @property
+    def data(self) -> dict[str, str]:
+        """Return dictionary with all tools"""
+        return self.__attrs
+
+
+class CompilerFlags:
+    """Storing flags of compilers"""
+
+    def __init__(self) -> None:
+        self.__attrs: dict[CompilerFlagsAttrs, str] = {}  # attr -> compiler_flags
+
+    def get(self, attr: CompilerFlagsAttrs) -> str | None:
+        """Getter of compiler flags"""
+        return self.__attrs.get(attr)
+
+    def set(self, attr: CompilerFlagsAttrs, new_value: str) -> None:
+        """Setter of compiler flags"""
+        self.__attrs[attr] = new_value
+
+    @property
+    def data(self) -> dict[CompilerFlagsAttrs, str]:
+        """Return dictionary with all tools"""
+        return self.__attrs
