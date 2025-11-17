@@ -29,15 +29,8 @@ class CMake(IBuildSystem):
         raise FileNotFoundError("Can't find CMakeLists.txt")
 
     @staticmethod
-    def insert_config_flags(project: Project, build: Build, command: str) -> str:
-        """Method insert flags in 'command' in line with call of build system
-        or return string with command which run build system with inserted flags
-        If 'command' is empty then return string in the format '${BuildSystem} ${config_flags}'
-        else return string 'command' with 'config_flags' inserted"""
-
-        if command != "":
-            raise NotImplementedError
-
+    def get_build_system_prompt(project: Project, build: Build) -> str:
+        """Generate build system prompt with all specified flags"""
         if build.build_machine.address is None:
             cmake_lists_path = os.path.normpath(project.path)
         else:
@@ -56,11 +49,8 @@ class CMake(IBuildSystem):
         return command
 
     @staticmethod
-    def insert_runner_flags(project: Project, build: Build, command: str) -> str:
-        """Method insert flags in 'command' in line with call of runner
-        or return string with command which run runner with inserted flags
-        If 'command' is empty then return string in the format '${BuildSystem} ${runner_flags}'
-        else return string 'command' with 'runner_flags' inserted"""
+    def get_runner_prompt(project: Project, build: Build) -> str:
+        """Generate runner prompt"""
 
         raise NotImplementedError
 

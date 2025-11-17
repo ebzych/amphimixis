@@ -44,12 +44,12 @@ class Builder:
             path = f"{build.build_path}"  # if building on the local machine
 
         try:
-            configuration_prompt = project.build_system.insert_config_flags(
-                project, build, ""
+            configuration_prompt = project.build_system.get_build_system_prompt(
+                project, build
             )
             _logger.info("Configuration with: %s", configuration_prompt)
 
-            runner_prompt = project.runner.insert_runner_flags(project, build, "")
+            runner_prompt = project.runner.get_runner_prompt(project, build)
             _logger.info("Run building with: %s", runner_prompt)
 
             err, stdout, stderr = shell.run(
