@@ -1,0 +1,142 @@
+"""Module for validating an existing input file"""
+
+from typing import Any
+from ipaddress import ip_address
+from re import compile as re_compile
+from amphimixis.general import general
+
+DEFAULT_PORT = 22
+
+
+def validate(file: Any) -> None:
+    """Module enter funtcion"""
+
+    build_system = file.get("build_system")
+    if (
+        not isinstance(build_system, str)
+        or build_system.lower() not in general.build_systems_dict
+    ):
+        raise TypeError(f"Invalid build_system: {build_system}")
+
+    runner = file.get("runner")
+    if not isinstance(runner, str) or runner.lower() not in general.build_systems_dict:
+        raise TypeError(f"Invalid runner: {runner}")
+
+    # validate platforms
+    platforms = file.get("platforms")
+    if platforms is None:
+        raise KeyError("Platforms not found")
+
+    for platform in platforms:
+        __is_valid_platform(platform)
+
+    # validate recipes
+    recipes = file.get("recipes")
+    if recipes is None:
+        raise KeyError("Recipes not found")
+
+    for recipe in recipes:
+        _is_valid_recipe(recipe)
+
+    # validate builds
+    builds = file.get("builds")
+    if builds is None:
+        raise KeyError("Builds not found")
+
+    for build in builds:
+        _is_valid_build(build)
+
+
+def __is_valid_platform(platform: dict[str, str]):
+    """Function to check whether plafrom is valid"""
+
+    pl_id = platform.get("id")
+    if not isinstance(pl_id, int):
+        raise TypeError(f"Invalid id in platform: {pl_id}")
+
+    arch = platform.get("arch")
+    if not isinstance(arch, str) or arch.lower() not in general.Arch:
+        raise TypeError(f"Invalid arch in platform {pl_id}: {arch}")
+
+    address = platform.get("address")
+    if address is not None and (
+        not isinstance(address, str) or not _is_valid_address(address)
+    ):
+        raise TypeError(f"Invalid address in platform {pl_id}: {address}")
+
+    username = platform.get("username")
+    if (
+        address is None and (username is not None and not isinstance(username, str))
+    ) or (address is not None and not isinstance(username, str)):
+        raise TypeError(f"Invalid username in platform {pl_id}: {username}")
+
+    password = platform.get("password")
+    if password is not None and not isinstance(password, str):
+        raise TypeError(f"Invalid password in platform {pl_id}: {password}")
+
+    port = platform.get("port", DEFAULT_PORT)
+    if not isinstance(port, int) or not 1 <= port <= 65535:
+        raise TypeError(f"Invalid port in platform {pl_id}: {port}")
+
+
+def _is_valid_recipe(recipe: dict[str, str]):
+    """Function to check whether recipe is valid"""
+
+    re_id = recipe.get("id")
+    if not isinstance(re_id, int):
+        raise TypeError(f"Invalid id in recipe: {re_id}")
+
+    config_flags = recipe.get("config_flags")
+    if not isinstance(config_flags, str):
+        raise TypeError(f"Invalid config_flags in recipe {re_id}: {config_flags}")
+
+    compiler_flags = recipe.get("compiler_flags")
+    if not isinstance(compiler_flags, str):
+        raise TypeError(f"Invalid compiler_flags in recipe {re_id}: {compiler_flags}")
+
+
+def _is_valid_build(build: dict[str, str]):
+    """Function to check whether build is valid"""
+
+    build_machine = build.get("build_machine")
+    if not isinstance(build_machine, int):
+        raise TypeError(f"Invalid build_machine in build: {build_machine}")
+
+    run_machine = build.get("run_machine")
+    if not isinstance(run_machine, int):
+        raise TypeError(f"Invalid run_machine in build: {run_machine}")
+
+    recipe_id = build.get("recipe_id")
+    if not isinstance(recipe_id, int):
+        raise TypeError(f"Invalid recipe_id in build: {recipe_id}")
+
+    toolchain = build.get("toolchain")
+    if toolchain is not None and not isinstance(toolchain, str):
+        raise TypeError(f"Invalid toolchain in build: {toolchain}")
+
+    sysroot = build.get("sysroot")
+    if sysroot is not None and not isinstance(sysroot, str):
+        raise TypeError(f"Invalid sysroot in build: {sysroot}")
+
+
+def _is_valid_address(address: str) -> bool:
+    """Function to check whether addtess id valid"""
+
+    try:
+        ip_address(address)
+        return True
+    except ValueError:
+        if all(part.isdigit() for part in address.rstrip(".").split(".")):
+            return False
+
+        # this string checks whether domain name is valid, here some rules:
+        # 1. Length <= 253
+        # 2. Separate part length <= 63
+        # 3. Contains only letters, digits and dash
+        # 4. Doesn't start or end with dash
+        # 5. May have dot at the end
+        hostname_pattern = re_compile(
+            r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)"
+            r"(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$"
+        )
+        return bool(hostname_pattern.match(address))
