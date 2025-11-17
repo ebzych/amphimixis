@@ -10,6 +10,7 @@ from amphimixis.shell import Shell
 from amphimixis.validator import validate
 
 DEFAULT_PORT = 22
+INPUT_FILE_NAME = "input.yml"
 
 
 def parse_config(project: general.Project) -> None:
@@ -22,11 +23,11 @@ def parse_config(project: general.Project) -> None:
     logger = logging.getLogger(__name__)
     project.builds = []
 
-    try:
-        with open("input.yml", "r", encoding="UTF-8") as file:
-            input_config = yaml.safe_load(file)
+    validate(INPUT_FILE_NAME)
 
-            validate(input_config)
+    try:
+        with open(INPUT_FILE_NAME, "r", encoding="UTF-8") as file:
+            input_config = yaml.safe_load(file)
 
             build_system = input_config.get("build_system")
             runner = input_config.get("runner")
