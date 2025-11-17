@@ -8,6 +8,12 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+if ! command_exists "mdl"; then
+    echo "${RED}Please install mdl:${NC}"
+    echo "sudo apt install ruby-mdl"
+    exit 1
+fi
+
 if ! command_exists "uv"; then
     if command_exists "curl"; then
         echo -e "${BLUE}Installing uv with curl...${NC}"
