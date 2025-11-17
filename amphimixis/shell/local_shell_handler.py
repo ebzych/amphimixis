@@ -3,7 +3,10 @@
 import os
 import subprocess
 
+import amphimixis.logger
 from amphimixis.shell.shell_interface import IShellHandler
+
+logging = amphimixis.logger.setup_logger("LOCAL_SHELL")
 
 
 class _LocalShellHandler(IShellHandler):
@@ -56,4 +59,29 @@ class _LocalShellHandler(IShellHandler):
         return self.shell.stderr.readline().decode()
 
     def copy_to_remote(self, source: str, destination: str) -> None:
-        subprocess.check_call(["cp", "-a", source, destination])
+        subprocess.check_call(args=["cp", "-a", source, destination])
+
+    def copy_to_host(self, source: str, destination: str) -> bool:
+        logging.info("Copying %s -> %s", source, destination)
+        error_code = subprocess.call(
+            [
+                "rsync",
+                "--checksum",
+                "--archive",
+                "--recursive",
+                "--mkpath",
+                "--copy-links",
+                "--hard-links",
+                "--compress",
+                "--log-file=./amphimixis.log",
+                source,
+                destination,
+            ]
+        )
+
+        if error_code != 0:
+            logging.error("Error %s -> %s", source, destination)
+            return False
+
+        logging.info("Success %s -> %s", source, destination)
+        return True

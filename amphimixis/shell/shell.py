@@ -5,7 +5,6 @@ from ctypes import ArgumentError
 from typing import List, Self, Tuple
 
 from amphimixis.general import MachineInfo
-
 from amphimixis.shell.local_shell_handler import _LocalShellHandler
 from amphimixis.shell.shell_interface import IShellHandler
 from amphimixis.shell.ssh_shell_handler import _SSHHandler
@@ -103,3 +102,12 @@ class Shell:
         """
 
         self._shell.copy_to_remote(source, destination)
+
+    def copy_from_remote(self, source: str, destination: str) -> bool:
+        """Copy a file or folder from the remote machine to remote machine
+
+        :var str source: absolute path to a file or folder on the host machine
+        :var str destination: absolute path to copy a file or folder to on the target machine
+        """
+
+        return self._shell.copy_to_host(source, destination)

@@ -4,11 +4,13 @@ import select
 import subprocess
 from ctypes import ArgumentError
 
+import amphimixis.logger
 from amphimixis.general import MachineInfo
-
 from amphimixis.shell.shell_interface import IShellHandler
 
 _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
+
+logging = amphimixis.logger.setup_logger("REMOTE_SHELL")
 
 
 class _SSHHandler(IShellHandler):
@@ -96,3 +98,33 @@ class _SSHHandler(IShellHandler):
                 f"{self.machine.auth.username}@{self.machine.address}:{destination}",
             ]
         )
+
+    def copy_to_host(self, source: str, destination: str) -> bool:
+        if self.machine.auth is None:
+            raise ArgumentError("Authentication data is not provided")
+
+        logging.info("Copying %s -> %s", source, destination)
+        error_code = subprocess.call(
+            [
+                "rsync",
+                "--checksum",
+                "--archive",
+                "--recursive",
+                "--mkpath",
+                "--copy-links",
+                "--hard-links",
+                "--compress",
+                "--log-file=./amphimixis.log",
+                "--port",
+                str(object=self.machine.auth.port),
+                f"{self.machine.auth.username}@{self.machine.address}:{source}",
+                destination,
+            ]
+        )
+
+        if error_code != 0:
+            logging.error("Error %s -> %s", source, destination)
+            return False
+
+        logging.info("Success %s -> %s", source, destination)
+        return True

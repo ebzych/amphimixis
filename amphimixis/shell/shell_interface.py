@@ -38,3 +38,11 @@ class IShellHandler(ABC):
         :var str source: absolute path to a file or folder on the host machine
         :var str destination: absolute path to copy a file or folder to on the target machine
         """
+
+    @abstractmethod
+    def copy_to_host(self, source: str, destination: str) -> bool:
+        """Copy a file or folder from the remote machine
+
+        :var str source: absolute path to a file or folder on the host machine
+        :var str destination: absolute path to copy a file or folder to on the target machine
+        """
