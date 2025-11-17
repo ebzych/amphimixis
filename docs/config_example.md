@@ -31,7 +31,7 @@ recipes:
 - id: 1
   config_flags: "-DCMAKE_BUILD_TYPE=Release -DYAML_CPP_BUILD_TESTS=ON"
   compiler_flags: "-ftree-vectorize"
-- id: 2 
+- id: 2
   config_flags: "-DCMAKE_BUILD_TYPE=Debug -DYAML_CPP_BUILD_TESTS=ON "
   compiler_flags: "-O0"
 - id: 3
