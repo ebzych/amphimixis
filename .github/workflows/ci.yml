@@ -17,5 +17,5 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Run CI
       run: |
-        apt install ruby-mdl
+        sudo apt install ruby-mdl
         ci/runner.sh       
