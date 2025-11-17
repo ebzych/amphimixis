@@ -1,14 +1,13 @@
 """Module for configuring a new build"""
 
 from os import path, getcwd
-from re import compile as re_compile
-from ipaddress import ip_address
-from platform import machine as pl_machine
+from platform import machine as local_arch
 import logging
 import pickle
 import yaml
 from amphimixis.general import general
 from amphimixis.shell import Shell
+from amphimixis.validator import validate
 
 DEFAULT_PORT = 22
 
@@ -27,19 +26,10 @@ def parse_config(project: general.Project) -> None:
         with open("input.yml", "r", encoding="UTF-8") as file:
             input_config = yaml.safe_load(file)
 
-            build_system = input_config.get("build_system")
-            if (
-                not isinstance(build_system, str)
-                or build_system.lower() not in general.build_systems_dict
-            ):
-                raise TypeError(f"Invalid build_system: {input_config["build_system"]}")
+            validate(input_config)
 
+            build_system = input_config.get("build_system")
             runner = input_config.get("runner")
-            if (
-                not isinstance(runner, str)
-                or runner.lower() not in general.build_systems_dict
-            ):
-                raise TypeError(f"Invalid runner: {input_config["runner"]}")
 
             project.build_system = general.build_systems_dict[build_system.lower()]
             project.runner = general.build_systems_dict[runner.lower()]
@@ -47,16 +37,7 @@ def parse_config(project: general.Project) -> None:
             for build in input_config["builds"]:
 
                 toolchain = build.get("toolchain")
-                if toolchain is not None and not isinstance(toolchain, str):
-                    raise TypeError(
-                        f"Invalid toolchain: {build["toolchain"]}, check config file"
-                    )
-
                 sysroot = build.get("sysroot")
-                if sysroot is not None and not isinstance(sysroot, str):
-                    raise TypeError(
-                        f"Invalid sysroot: {build["sysroot"]}, check config file"
-                    )
 
                 _create_build(
                     project,
@@ -106,40 +87,14 @@ def _create_build(  # pylint: disable=R0913,R0917
 def _create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
     """Function to create a new machine"""
 
-    arch = machine_info.get("arch")
-    if not isinstance(arch, str) or arch.lower() not in general.Arch:
-        raise TypeError(
-            f"Invalid arch in platform {machine_info["id"]}: {machine_info["arch"]}"
-        )
-
+    arch = str(machine_info.get("arch"))
     address = machine_info.get("address")
-    if address is not None and (
-        not isinstance(address, str) or not _is_valid_address(address)
-    ):
-        raise TypeError(
-            f"Invalid address in platform {machine_info["id"]}: {machine_info["address"]}"
-        )
-
     auth = None
 
     if address is not None:
-        username = machine_info.get("username")
-        if not isinstance(username, str):
-            raise TypeError(
-                f"Invalid username in platform {machine_info["id"]}: {machine_info["username"]}"
-            )
-
+        username = str(machine_info.get("username"))
         password = machine_info.get("password")
-        if password is not None and not isinstance(password, str):
-            raise TypeError(
-                f"Invalid password in platform {machine_info["id"]}: {machine_info["password"]}"
-            )
-
-        port = machine_info.get("port", DEFAULT_PORT)
-        if not isinstance(port, int) or not 1 <= port <= 65535:
-            raise TypeError(
-                f"Invalid port in platform {machine_info["id"]}: {machine_info["port"]}"
-            )
+        port = int(machine_info.get("port", DEFAULT_PORT))
 
         auth = general.MachineAuthenticationInfo(username, password, port)
 
@@ -168,10 +123,10 @@ def _has_valid_arch(machine: general.MachineInfo) -> None:
     """Function to check whether run machine arch is valid"""
 
     if machine.address is None:
-        if machine.arch.lower() not in pl_machine().lower():
+        if machine.arch.lower() not in local_arch().lower():
             raise TypeError(
                 f"Invalid local machibe arch: {machine.arch.name.lower()}, "
-                f"your machine is {pl_machine().lower()}"
+                f"your machine is {local_arch().lower()}"
             )
     else:
         shell = Shell(machine).connect()
@@ -186,26 +141,3 @@ def _has_valid_arch(machine: general.MachineInfo) -> None:
                 f"Invalid remote machibe arch: {machine.arch.name.lower()}, "
                 f"remote machine is {remote_arch.lower()}"
             )
-
-
-def _is_valid_address(address: str) -> bool:
-    """Function to check whether addtess id valid"""
-
-    try:
-        ip_address(address)
-        return True
-    except ValueError:
-        if all(part.isdigit() for part in address.rstrip(".").split(".")):
-            return False
-
-        # this string checks whether domain name is valid, here some rules:
-        # 1. Length <= 253
-        # 2. Separate part length <= 63
-        # 3. Contains only letters, digits and dash
-        # 4. Doesn't start or end with dash
-        # 5. May have dot at the end
-        hostname_pattern = re_compile(
-            r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)"
-            r"(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$"
-        )
-        return bool(hostname_pattern.match(address))
