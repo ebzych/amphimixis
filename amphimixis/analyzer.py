@@ -3,11 +3,9 @@
 import glob
 from os import path, listdir
 import yaml
-from amphimixis import general
-import logger
+from amphimixis import general, logger
 
-logger.setup_logger()
-log = logger.get_logger("ANALYZER")
+log = logger.setup_logger("ANALYZER")
 
 ci_list = ["**/ci", "**/.github/workflows"]
 
