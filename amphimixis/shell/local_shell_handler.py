@@ -62,6 +62,9 @@ class _LocalShellHandler(IShellHandler):
         subprocess.check_call(args=["cp", "-a", source, destination])
 
     def copy_to_host(self, source: str, destination: str) -> bool:
+        # disable pylint warnings about dublicating code
+        # in ssh_shell_handler and local_shell_handler modules
+        # pylint: disable=R0801
         logging.info("Copying %s -> %s", source, destination)
         error_code = subprocess.call(
             [
