@@ -4,11 +4,8 @@ import select
 import subprocess
 from ctypes import ArgumentError
 
-import amphimixis.logger
 from amphimixis.general import MachineInfo
 from amphimixis.shell.shell_interface import IShellHandler
-
-logging = amphimixis.logger.setup_logger("REMOTE_SHELL")
 
 _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 
@@ -81,41 +78,3 @@ class _SSHHandler(IShellHandler):
         line_bytes = self.ssh.stderr.readline()
         line = line_bytes.decode("UTF-8")
         return line
-
-    def copy_to_remote(self, source: str, destination: str) -> bool:
-        if self.machine.auth is None:
-            raise ArgumentError("Authentication data is not provided")
-
-        # disable pylint warnings about dublicating code
-        # in ssh_shell_handler and local_shell_handler modules
-        # pylint: disable=R0801
-        logging.info("Copying files")
-
-        error_code = subprocess.call(
-            [
-                "rsync",
-                "--checksum",
-                "--archive",
-                "--recursive",
-                "--mkpath",
-                "--copy-links",
-                "--hard-links",
-                "--compress",
-                "--log-file=./amphimixis.log",
-                "--port",
-                str(object=self.machine.auth.port),
-                source,
-                f"{self.machine.auth.username}@{self.machine.address}:{destination}",
-            ]
-        )
-
-        if error_code != 0:
-            logging.error(
-                "Error %s -> %s", source, f"{self.machine.address}:{destination}"
-            )
-            return False
-
-        logging.info(
-            "Success %s -> %s", source, f"{self.machine.address}:{destination}"
-        )
-        return True
