@@ -1,50 +1,62 @@
 """Module for validating an existing input file"""
 
-from typing import Any
 from ipaddress import ip_address
 from re import compile as re_compile
+import yaml
+
 from amphimixis.general import general
 
 DEFAULT_PORT = 22
 
 
-def validate(file: Any) -> None:
+def validate(file_name: str) -> None:
     """Module enter funtcion"""
 
-    build_system = file.get("build_system")
-    if (
-        not isinstance(build_system, str)
-        or build_system.lower() not in general.build_systems_dict
-    ):
-        raise TypeError(f"Invalid build_system: {build_system}")
+    try:
+        with open(file_name, "r", encoding="UTF-8") as file:
 
-    runner = file.get("runner")
-    if not isinstance(runner, str) or runner.lower() not in general.build_systems_dict:
-        raise TypeError(f"Invalid runner: {runner}")
+            file_dict = yaml.safe_load(file)
 
-    # validate platforms
-    platforms = file.get("platforms")
-    if platforms is None:
-        raise KeyError("Platforms not found")
+            build_system = file_dict.get("build_system")
+            if (
+                not isinstance(build_system, str)
+                or build_system.lower() not in general.build_systems_dict
+            ):
+                raise TypeError(f"Invalid build_system: {build_system}")
 
-    for platform in platforms:
-        __is_valid_platform(platform)
+            runner = file_dict.get("runner")
+            if (
+                not isinstance(runner, str)
+                or runner.lower() not in general.build_systems_dict
+            ):
+                raise TypeError(f"Invalid runner: {runner}")
 
-    # validate recipes
-    recipes = file.get("recipes")
-    if recipes is None:
-        raise KeyError("Recipes not found")
+            # validate platforms
+            platforms = file_dict.get("platforms")
+            if platforms is None:
+                raise KeyError("Platforms not found")
 
-    for recipe in recipes:
-        _is_valid_recipe(recipe)
+            for platform in platforms:
+                __is_valid_platform(platform)
 
-    # validate builds
-    builds = file.get("builds")
-    if builds is None:
-        raise KeyError("Builds not found")
+            # validate recipes
+            recipes = file_dict.get("recipes")
+            if recipes is None:
+                raise KeyError("Recipes not found")
 
-    for build in builds:
-        _is_valid_build(build)
+            for recipe in recipes:
+                _is_valid_recipe(recipe)
+
+            # validate builds
+            builds = file_dict.get("builds")
+            if builds is None:
+                raise KeyError("Builds not found")
+
+            for build in builds:
+                _is_valid_build(build)
+
+    except FileNotFoundError:
+        print("File not found")
 
 
 def __is_valid_platform(platform: dict[str, str]):
