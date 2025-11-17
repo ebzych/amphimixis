@@ -60,8 +60,8 @@ class Shell:
         :rtype: Tuple[int, List[List[str]], List[List[str]]]
         :return: A tuple of three :\n
             - :int: error code of the last executed command
-            - :List[List[str]]: lines from stdout of each command
-            - :List[List[str]]: lines from stderr of each command
+            - :List[List[str]]: List[str] is lines of the stdout of an executed command.
+            - :List[List[str]]: List[str] is lines of the stderr of an executed command.
         """
 
         stdout: List[List[str]] = []
