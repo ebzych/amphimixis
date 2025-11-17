@@ -12,6 +12,8 @@ logging = amphimixis.logger.setup_logger("REMOTE_SHELL")
 
 _CLEAR_OUTPUT_FLAG = b"CLEAR_OUTPUT_FLAG\n"
 
+logging = amphimixis.logger.setup_logger("REMOTE_SHELL")
+
 
 class _SSHHandler(IShellHandler):
 
@@ -106,6 +108,40 @@ class _SSHHandler(IShellHandler):
                 str(object=self.machine.auth.port),
                 source,
                 f"{self.machine.auth.username}@{self.machine.address}:{destination}",
+            ]
+        )
+
+        if error_code != 0:
+            logging.error(
+                "Error %s -> %s", source, f"{self.machine.address}:{destination}"
+            )
+            return False
+
+        logging.info(
+            "Success %s -> %s", source, f"{self.machine.address}:{destination}"
+        )
+        return True
+
+    def copy_to_host(self, source: str, destination: str) -> bool:
+        if self.machine.auth is None:
+            raise ArgumentError("Authentication data is not provided")
+
+        logging.info("Copying %s -> %s", source, destination)
+        error_code = subprocess.call(
+            [
+                "rsync",
+                "--checksum",
+                "--archive",
+                "--recursive",
+                "--mkpath",
+                "--copy-links",
+                "--hard-links",
+                "--compress",
+                "--log-file=./amphimixis.log",
+                "--port",
+                str(object=self.machine.auth.port),
+                f"{self.machine.auth.username}@{self.machine.address}:{source}",
+                destination,
             ]
         )
 

@@ -83,3 +83,6 @@ class _LocalShellHandler(IShellHandler):
 
         logging.info("Success %s -> %s", source, destination)
         return True
+
+    def copy_to_host(self, source: str, destination: str) -> bool:
+        return self.copy_to_remote(source, destination)
