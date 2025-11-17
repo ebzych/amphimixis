@@ -15,3 +15,4 @@ echo -e "${BLUE}Run CI:${NC}"
 "${CI_PATH}"/mypy.sh
 "${CI_PATH}"/pylint.sh
 "${CI_PATH}"/ruff.sh
+"${CI_PATH}"/mdl.sh
