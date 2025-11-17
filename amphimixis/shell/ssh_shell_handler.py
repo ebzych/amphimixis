@@ -91,7 +91,9 @@ class _SSHHandler(IShellHandler):
         # disable pylint warnings about dublicating code
         # in ssh_shell_handler and local_shell_handler modules
         # pylint: disable=R0801
-        logging.info("Copying files")
+        logging.info(
+            "Copying files %s -> %s", source, f"{self.machine.address}:{destination}"
+        )
 
         error_code = subprocess.call(
             [
@@ -126,6 +128,9 @@ class _SSHHandler(IShellHandler):
         if self.machine.auth is None:
             raise ArgumentError("Authentication data is not provided")
 
+        # disable pylint warnings about dublicating code
+        # in ssh_shell_handler and local_shell_handler modules
+        # pylint: disable=R0801
         logging.info("Copying %s -> %s", source, destination)
         error_code = subprocess.call(
             [

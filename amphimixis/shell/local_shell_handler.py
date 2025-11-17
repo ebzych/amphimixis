@@ -59,7 +59,10 @@ class _LocalShellHandler(IShellHandler):
         return self.shell.stderr.readline().decode()
 
     def copy_to_remote(self, source: str, destination: str) -> bool:
-        logging.info("Copying files")
+        # disable pylint warnings about dublicating code
+        # in ssh_shell_handler and local_shell_handler modules
+        # pylint: disable=R0801
+        logging.info("Copying %s -> %s", source, destination)
 
         error_code = subprocess.call(
             [
