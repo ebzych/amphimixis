@@ -2,17 +2,11 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
-import sys
 import argparse
+import sys
 import textwrap
-from amphimixis import (
-    general,
-    build_systems_dict,
-    analyze,
-    parse_config,
-    Builder,
-    Profiler,
-)
+
+from amphimixis import Builder, Profiler, analyze, general, parse_config, validate
 
 YELLOW = "\033[93m"
 GRAY = "\033[90m"
@@ -46,14 +40,17 @@ class CustomFormatterClass(
               amixis /path/to/folder/with/project
                   → Main mode. Performs full project analysis, generates configuration files,
                   runs the build process, and performs profiling.
-                
-              amixis --analyzer /path/to/folder/with/project
+
+              amixis --analyze /path/to/folder/with/project
                   → Performs project analysis. Detects existing CI, tests, benchmarks, etc.
 
-              amixis --builder /path/to/folder/with/project
-                  → Builds the project, implicitly calling --configurator to generate 
+              amixis --build /path/to/folder/with/project
+                  → Builds the project, implicitly calling --configure to generate.
                   configuration files.
-        """
+
+              amixis --validate file_name
+                  → checks the config file correctness.
+            """
         )
 
         return f"{banner}\n{help_text}\n{examples}"
@@ -78,32 +75,44 @@ def main():
     )
 
     parser.add_argument(
+        "-v",
+        "--validate",
+        type=str,
+        metavar="file_name",
+        help="checks the correctness of the configuration file.",
+    )
+
+    parser.add_argument(
         "-a",
-        "--analyzer",
+        "--analyze",
         action="store_true",
         help="analyzes the project to detect existing CI systems, tests, build systems, etc.",
     )
     parser.add_argument(
         "-c",
-        "--configurator",
+        "--configure",
         action="store_true",
         help="generates configuration files for various builds.",
     )
     parser.add_argument(
         "-b",
-        "--builder",
+        "--build",
         action="store_true",
         help="builds the project according to the generated configuration files.",
     )
     parser.add_argument(
         "-p",
-        "--profiler",
+        "--profile",
         action="store_true",
         help="profiles the performance of different builds, collects execution statistics, "
         "and compares traces.",
     )
 
     args = parser.parse_args()
+
+    if args.validate:
+        validate(args.validate)
+        sys.exit(0)
 
     if not args.path:
         print("Error: please provide path to the project directory.")
@@ -117,7 +126,7 @@ def main():
     )
 
     try:
-        if not any([args.analyzer, args.configurator, args.builder, args.profiler]):
+        if not any([args.analyze, args.configure, args.build, args.profile]):
 
             analyze(project)
 
@@ -131,26 +140,28 @@ def main():
 
             print(profiler_.stats)
 
-        if args.analyzer:
+        if args.analyze:
             analyze(project)
 
-        if args.configurator:
+        if args.configure:
             parse_config(project)
 
-        if args.builder:
+        if args.build:
 
-            if not args.configurator:
+            if not args.configure:
                 parse_config(project)
 
             Builder.build(project)
 
-        if args.profiler:
+        if args.profile:
 
             profiler_ = Profiler(project.builds[0])
 
             profiler_.execution_time()
 
             print(profiler_.stats)
+
+        sys.exit(0)
 
     except (FileNotFoundError, ValueError, RuntimeError) as e:
         print(f"Error: {e}")
