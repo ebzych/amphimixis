@@ -15,6 +15,21 @@ class Stats(Enum):
     PERF_STAT = 4
 
 
+_commands_args: dict[str, dict[str, str]] = {
+    "stat": {
+        "cmd": "perf stat",
+        "opt": "-ddd -x,",
+        "cpu_affinity": "taskset -c 0",
+    },
+    "record": {"cmd": "perf record", "cpu_affinity": "taskset -c 0"},
+    "time": {
+        "cmd": "/bin/time",
+        "format": '-f"%e\\n%U\\n%S"',
+        "cpu_affinity": "taskset -c 0",
+    },
+}
+
+
 class Profiler:
     """Class for profiling an executable within a project."""
 
@@ -34,7 +49,7 @@ class Profiler:
             self.logger.error(" ".join(stderr[0]))
             return False
 
-        command = f'/bin/time -f"%e\n%U\n%S" taskset -c 0 sh -c "./{self.executable}"'
+        command = self._command("time", stderr_clear=False)
         self.logger.info(
             "Measure execution time %s\n\tCommand: %s", self.executable, command
         )
@@ -80,7 +95,7 @@ class Profiler:
             self.logger.error(" ".join(stderr[0]))
             return False
 
-        command = f"perf stat {options} -ddd -x, taskset -c 0 sh -c './{self.executable} 2>/dev/null'"
+        command = self._command("stat", options)
         self.logger.info("Collecting perfomance counters with:\n\t%s", command)
         error, _, stderr = self.shell.run(command)
 
@@ -101,6 +116,35 @@ class Profiler:
     def save_stats(self):
         """Save collected statistics to a file."""
         raise NotImplementedError
+
+    def _command(
+        self,
+        module: str,
+        options: str = "",
+        stdout_clear: bool = False,
+        stderr_clear: bool = True,
+    ) -> str:
+        if module not in _commands_args:
+            return ""
+
+        command: list[str] = []
+        command.append(_commands_args[module]["cmd"])
+        if options:
+            command.append(options)
+        for arg in _commands_args[module]:
+            if arg != "cmd":
+                command.append(_commands_args[module][arg])
+
+        command.append(f"sh -c './{self.executable}")
+        if stdout_clear:
+            command.append("1>/dev/null")
+
+        if stderr_clear:
+            command.append("2>/dev/null")
+
+        command.append("'")
+
+        return " ".join(command)
 
 
 if __name__ == "__main__":
