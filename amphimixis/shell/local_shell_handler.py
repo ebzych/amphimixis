@@ -1,6 +1,5 @@
 """Local shell handler implementation."""
 
-import os
 import subprocess
 
 import amphimixis.logger
@@ -11,13 +10,9 @@ logging = amphimixis.logger.setup_logger("LOCAL_SHELL")
 
 class _LocalShellHandler(IShellHandler):
     def __init__(self) -> None:
-        default_shell = os.getenv("SHELL")
-        if default_shell is None:
-            raise TypeError("Can't get default shell path")
-
         # pylint: disable=consider-using-with
         self.shell = subprocess.Popen(
-            [default_shell],
+            ["bash"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
