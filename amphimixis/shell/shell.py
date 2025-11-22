@@ -126,7 +126,7 @@ class Shell:
         """
 
         if self.machine.auth is None:
-            _source = destination
+            _source = source
         else:
             _source = f"{self.machine.auth.username}@{self.machine.address}:{source}"
 
