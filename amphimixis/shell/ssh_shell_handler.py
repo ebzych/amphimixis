@@ -18,16 +18,20 @@ class _SSHHandler(IShellHandler):
 
         self.connect_timeout = connect_timeout
         self.machine = machine
+        password = machine.auth.password
         # pylint: disable=consider-using-with
         self.ssh = subprocess.Popen(
             [
+                "sshpass",
+                "-p",
+                # if password is None or empty string, using ssh-agent is considered
+                password if password else "nopasswd",
                 "ssh",
+                f"{machine.auth.username}@{machine.address}",
                 "-q",
                 "-o",
                 f"ConnectTimeout={connect_timeout}",
-                "-p",
-                str(machine.auth.port),
-                f"{machine.auth.username}@{machine.address}",
+                f"-p{str(machine.auth.port)}",
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,

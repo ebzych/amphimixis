@@ -135,12 +135,18 @@ class Shell:
     def _copy(self, source: str, destination: str) -> bool:
         if self.machine.auth is None:
             port = -1  # should be OK with local copying
+            password = "nopasswd"
         else:
             port = self.machine.auth.port
+            # if None or empty string, ssh-agent is supposed
+            password = self.machine.auth.password or "nopasswd"
 
         self.logger.info("Copying %s -> %s", source, destination)
         error_code = subprocess.call(
             [
+                "sshpass",
+                "-p",
+                password,
                 "rsync",
                 "--checksum",
                 "--archive",
