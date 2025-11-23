@@ -164,12 +164,8 @@ class Shell:
         )
 
         if error_code != 0:
-            self.logger.error(
-                "Error %s -> %s", source, f"{self.machine.address}:{destination}"
-            )
+            self.logger.error("Error %s -> %s", source, destination)
             return False
 
-        self.logger.info(
-            "Success %s -> %s", source, f"{self.machine.address}:{destination}"
-        )
+        self.logger.info("Success %s -> %s", source, destination)
         return True
