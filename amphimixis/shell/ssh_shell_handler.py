@@ -41,15 +41,20 @@ class _SSHHandler(IShellHandler):
         if self.ssh.stdin is None or self.ssh.stdout is None or self.ssh.stderr is None:
             raise BrokenPipeError()
 
+        # printing some text so select() won't block forever
         self.ssh.stdin.write(b"echo ")
         self.ssh.stdin.write(_CLEAR_OUTPUT_FLAG)
         self.ssh.stdin.flush()
 
+        # wait until ssh is connect or failed
         r, _, _ = select.select([self.ssh.stdout], [], [], connect_timeout)
 
+        # if connected -> poll() is None, if ssh failed -> poll() is some number
+        # if r is empty -> timeout exceeded
         if not r or self.ssh.poll() is not None:
             raise ConnectionError("can't connect to ssh")
 
+        # clearing ssh banners
         for i in self.ssh.stdout:
             if i == _CLEAR_OUTPUT_FLAG:
                 break
