@@ -71,7 +71,7 @@ def _log_results(proj_path, results, key, paths):
         log.info("%s not found", key)
 
 
-def _file_output(results, file_name="ishtar_secret.yml"):
+def _file_output(results, file_name="amphimixis.analyzed"):
     with open(
         file_name,
         "w",
