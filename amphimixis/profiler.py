@@ -72,10 +72,12 @@ class Profiler:
     def test_executable(self) -> bool:
         """Checks if executable runs and returns no errors"""
 
-        error, stdout, stderr = self.shell.run(f"cd {self.build.build_path}", f"./{self.executable}")
+        error, stdout, stderr = self.shell.run(f"cd {self.build.build_path}")
         if error != 0:
-            error_message = "STDERR: " + "".join(stderr[0])
-            error_message += "STDOUT: " + "".join(stdout[0])
+            error_message = "STDERR: " + "".join(line for cmd in stdout for line in cmd)
+            error_message += "STDOUT: " + "".join(
+                line for cmd in stderr for line in cmd
+            )
             self.logger.error(error_message)
 
         self.stats.update(
