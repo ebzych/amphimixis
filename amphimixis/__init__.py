@@ -8,6 +8,7 @@ from amphimixis.general import general
 from amphimixis.profiler import Profiler
 from amphimixis.profiler import Stats as ProfilerStats
 from amphimixis.shell import Shell
+from amphimixis.toolchain_manager import ToolchainManager
 from amphimixis.validator import validate
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "Profiler",
     "ProfilerStats",
     "Shell",
+    "ToolchainManager",
     "validate",
 ]
