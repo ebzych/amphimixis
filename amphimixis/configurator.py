@@ -26,7 +26,9 @@ def parse_config(project: general.Project, config_file_path: str) -> None:
 
     project.builds = []
 
-    validate(config_file_path)
+    if not validate(config_file_path):
+        _logger.error("Incorrect input file")
+        raise SyntaxError()
 
     try:
         with open(config_file_path, "r", encoding="UTF-8") as file:
