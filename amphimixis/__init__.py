@@ -5,6 +5,7 @@ from amphimixis.build_systems import build_systems_dict
 from amphimixis.builder import Builder
 from amphimixis.configurator import parse_config
 from amphimixis.general import general
+from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.profiler import Profiler
 from amphimixis.shell import Shell
 from amphimixis.validator import validate
@@ -17,5 +18,6 @@ __all__ = [
     "Builder",
     "Profiler",
     "Shell",
+    "LaboratoryAssistant",
     "validate",
 ]
