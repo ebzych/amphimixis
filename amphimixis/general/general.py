@@ -1,9 +1,9 @@
 """The common module that is used in most other modules"""
 
 from abc import ABC, abstractmethod
-from curses.ascii import isalpha
 from dataclasses import dataclass
 from enum import StrEnum
+from os.path import isabs
 
 
 class Arch(StrEnum):
@@ -29,6 +29,14 @@ class MachineAuthenticationInfo:
     password: str | None
     port: int
 
+    @property
+    def __dictstr__(self) -> dict[str, str]:
+        ret = {"username": self.username}
+        if self.password is not None:
+            ret["password"] = self.password
+        ret["port"] = str(self.port)
+        return ret
+
 
 @dataclass
 class MachineInfo:
@@ -45,75 +53,14 @@ class MachineInfo:
     address: str | None
     auth: MachineAuthenticationInfo | None
 
-
-# pylint: disable=too-many-instance-attributes
-@dataclass
-class Build:
-    """Class with information about one build of project
-
-    :var MachineInfo build_machine: Information about the machine to build at.
-    :var MachineInfo build_machine: Information about the machine to profile at.
-    :var str build_name: Unique name of the build.
-    :var list[str] executables: List of relative to `build path` paths to executables.
-    :var str compiler_flags: Compiler flags for the build.
-    """
-
-    build_machine: MachineInfo
-    run_machine: MachineInfo
-    build_name: str
-    executables: list[str]
-    toolchain: str | None
-    sysroot: str | None
-    config_flags: str = ""
-    compiler_flags: str = ""
-
-
-@dataclass
-class Project:
-    """Class with information about project and his builds
-
-    :var str path: Path to project for research.
-    :var type[IBuildSystem] build_system: High-level build system interface.
-    :var type[IBuildSystem] runner: Low-level build system interface.
-    :var list[Build] builds: List of project configurations to be build.
-    """
-
-    path: str
-    builds: list[Build]
-    build_system: "type[IBuildSystem]"
-    runner: "type[IBuildSystem]"
-
-
-# pylint: disable=too-few-public-methods
-class IUI(ABC):
-    """Interface for User Interface (UI) classes"""
-
-    @abstractmethod
-    def print(self, message: str) -> None:
-        """Print message to user
-
-        :param str message: Message to print to the user"""
-
-
-class NullUI(IUI):
-    """A UI implementation that does nothing (used to suppress output)"""
-
-    def print(self, message: str) -> None:
-        pass
-
-
-class IBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system"""
-
-    @staticmethod
-    @abstractmethod
-    def get_build_system_prompt(project: Project, build: Build) -> str:
-        """Generate build system prompt with all specified flags"""
-
-    @staticmethod
-    @abstractmethod
-    def get_runner_prompt(project: Project, build: Build) -> str:
-        """Generate runner prompt"""
+    @property
+    def __dictstr__(self) -> dict:
+        ret: dict[str, str | dict] = {"arch": self.arch.value}
+        if self.address is not None:
+            ret["address"] = self.address
+        if self.auth is not None:
+            ret["auth"] = self.auth.__dictstr__
+        return ret
 
 
 class CompilerFlagsAttrs(StrEnum):
@@ -138,8 +85,6 @@ class CompilerFlagsAttrs(StrEnum):
 
 class ToolchainAttrs(StrEnum):
     """Constants for getting access to attributes from toolchain dictionary"""
-
-    SYSROOT = "sysroot"
 
     # TOOLS: postfix "_t" means "tool"
     AR_T = "ar"
@@ -184,13 +129,10 @@ class Toolchain:
         """Name of toolchain getter"""
         return self.__name
 
-    @name.setter
-    def name(self, new_name: str) -> bool:
-        """Name of toolchain setter"""
-        if all(isalpha(ch) for ch in new_name):
-            __name = new_name
-            return True
-        return False
+    @property
+    def sysroot(self) -> str | None:
+        """Sysroot of toolchain getter"""
+        return self.__sysroot
 
     @sysroot.setter
     def sysroot(self, new_path: None | str) -> None:
@@ -204,7 +146,7 @@ class Toolchain:
 
     def get(self, attr: ToolchainAttrs | CompilerFlagsAttrs) -> str | None:
         """Getter of toolchain attributes"""
-        return self.__tools.get(attr)
+        return self.__attrs.get(attr.value)
 
     def set(self, attr: ToolchainAttrs | CompilerFlagsAttrs, new_value: str) -> None:
         """Setter of toolchain attributes
@@ -243,3 +185,75 @@ class CompilerFlags:
     def data(self) -> dict[CompilerFlagsAttrs, str]:
         """Return dictionary with all tools"""
         return self.__attrs
+
+
+# pylint: disable = too-many-instance-attributes
+@dataclass
+class Build:
+    """Class with information about one build of project
+
+    :var MachineInfo build_machine: Information about the machine to build at
+    :var MachineInfo run_machine: Information about the machine to profile at
+    :var str build_name: Unique name of the build
+    :var Toolchain | None toolchain: Toolchain used to building
+    :var str | None sysroot: Path to sysroot or name of sysroot used to building
+    :var list[str] executables: List of relative to `build path` paths to executables
+    :var str compiler_flags: Compiler flags for the build
+    """
+
+    build_machine: MachineInfo
+    run_machine: MachineInfo
+    build_name: str
+    executables: list[str]
+    toolchain: Toolchain | str | None
+    sysroot: str | None
+    config_flags: str = ""
+    compiler_flags: str = ""
+
+
+@dataclass
+class Project:
+    """Class with information about project and his builds
+
+    :var str path: Path to project for research.
+    :var type[IBuildSystem] build_system: High-level build system interface.
+    :var type[IBuildSystem] runner: Low-level build system interface.
+    :var list[Build] builds: List of project configurations to be build.
+    """
+
+    path: str
+    builds: list[Build]
+    build_system: "type[IBuildSystem]"
+    runner: "type[IBuildSystem]"
+
+
+class IBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system"""
+
+    @staticmethod
+    @abstractmethod
+    def get_build_system_prompt(project: Project, build: Build) -> str:
+        """Generate build system prompt with all specified flags"""
+
+    @staticmethod
+    @abstractmethod
+    def get_runner_prompt(project: Project, build: Build) -> str:
+        """Generate runner prompt"""
+
+
+# pylint: disable=too-few-public-methods
+class IUI(ABC):
+    """Interface for User Interface (UI) classes"""
+
+    @abstractmethod
+    def print(self, message: str) -> None:
+        """Print message to user
+
+        :param str message: Message to print to the user"""
+
+
+class NullUI(IUI):
+    """A UI implementation that does nothing (used to suppress output)"""
+
+    def print(self, message: str) -> None:
+        pass

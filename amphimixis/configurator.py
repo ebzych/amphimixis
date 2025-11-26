@@ -9,6 +9,7 @@ import yaml
 from amphimixis.build_systems import build_systems_dict
 from amphimixis.general import general
 from amphimixis.general.constants import ANALYZED_FILE_NAME
+from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
 from amphimixis.shell import Shell
 from amphimixis.validator import validate
@@ -124,8 +125,11 @@ def _create_build(  # pylint: disable=R0913,R0917
         sysroot,
     )
 
-    build.config_flags = recipe_info["config_flags"]
-    build.compiler_flags = recipe_info["compiler_flags"]
+    if isinstance(build.toolchain, str):
+        build.toolchain = LaboratoryAssistant.construct_toolchain_from_build(build)
+
+    if isinstance(build.toolchain, general.Toolchain):
+        build.sysroot = build.toolchain.sysroot
 
     project.builds.append(build)
 

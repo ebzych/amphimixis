@@ -92,7 +92,7 @@ class CustomFormatterClass(
         return f"{banner}\n{help_text}\n{examples}"
 
 
-# pylint: disable=too-many-branches
+# pylint: disable=too-many-branches,too-many-statements
 def main():
     """Main function for the Amphimixis CLI tool."""
 
@@ -158,13 +158,15 @@ def main():
         config_file = default_config_path
 
     if args.validate:
-        validate(args.validate)
-        print(f"{args.validate} is correct!!")
-        sys.exit(0)
+        if validate(args.validate):
+            print(f"{args.validate} is correct!!")
+            return 0
+        print(f"{args.validate} is incorrect!!")
+        return 1
 
     if not args.path:
         print("Error: please provide path to the project directory.")
-        sys.exit(1)
+        return 1
 
     project = general.Project(
         str(Path(args.path).expanduser().resolve()),
@@ -176,7 +178,11 @@ def main():
     try:
         if not any([args.analyze, args.build, args.profile]):
             analyze(project)
-            parse_config(project, config_file_path=str(config_file))
+
+            if not parse_config(project, config_file_path=str(config_file)):
+                print("Incorrect config file! please check logs")
+                return 1
+
             Builder.build(project)
 
             for build in project.builds:
@@ -204,12 +210,12 @@ def main():
                 else:
                     print("Executables not found")
 
-        sys.exit(0)
+        return 0
 
     except (FileNotFoundError, ValueError, RuntimeError, LookupError, TypeError) as e:
         print(f"Error: {e}")
-        sys.exit(1)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
