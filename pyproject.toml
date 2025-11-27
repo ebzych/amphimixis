@@ -17,6 +17,7 @@ include = ["amphimixis*"]
 
 [dependency-groups]
 dev = [
+    "pytest",
     "ruff",
     "black",
     "mypy",
