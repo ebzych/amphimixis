@@ -23,9 +23,16 @@ RESET = "\033[0m"
 
 
 class CustomFormatterClass(
-    argparse.RawDescriptionHelpFormatter,
+    argparse.RawTextHelpFormatter,
 ):
     """Custom formatter class for argparse to enhance help output."""
+
+    def __init__(self, prog):
+        super().__init__(prog, max_help_position=35)
+
+    def _format_action(self, action):
+        parts = super()._format_action(action)
+        return parts + "\n"
 
     def format_help(self) -> str:
         """Format help message with custom banner and examples."""
@@ -48,21 +55,30 @@ class CustomFormatterClass(
 
               amixis /path/to/folder/with/project
                   → Main mode. Performs full project analysis, generates configuration files,
-                  runs the build process, and performs profiling.
+                    runs the build process, and performs profiling.
 
               amixis --analyze /path/to/folder/with/project
                   → Performs project analysis. Detects existing CI, tests, benchmarks, etc.
 
               amixis --build /path/to/folder/with/project
                   → Builds the project, implicitly calling --configure to generate.
-                  configuration files.
-                  
+                    configuration files.
+
               amixis --configure=config_file /path/to/folder/with/project
-                    → Generates configuration files for various builds based on the provided
-                    config file. If no config file is specified, defaults to 'input.yml', is used by default, which must be located in the working directory.
+                  → Generates configuration files for various builds based on the provided
+                    config file. If no config file is specified, 
+                    defaults to 'input.yml', is used by default, 
+                    which must be located in the working directory.
+
+              amixis --config=config_file /path/to/folder/with/project
+                  → Specifies a custom configuration file to be used for the configuration process;
+                    runs all steps including analysis, configuration, building, and profiling.
+                    If no config file is specified, defaults to 'input.yml', 
+                    which must be located in the working directory.
 
               amixis --validate file_name
                   → Checks the config file correctness.
+
             """
         )
 
@@ -91,24 +107,25 @@ def main():
         "-v",
         "--validate",
         type=str,
-        metavar="file_name",
+        metavar="FILE",
         default=None,
-        help="checks the correctness of the configuration file.",
-    )
-
-    parser.add_argument(
-        "-a",
-        "--analyze",
-        action="store_true",
-        help="analyzes the project to detect existing CI systems, tests, build systems, etc.",
+        help="check correctness of the configuration file.",
     )
 
     parser.add_argument(
         "--config",
         nargs="?",
         const=str(default_config_path),
-        metavar="config_file",
-        help="specified path to configuration file; if not provided, defaults to 'input.yml'.",
+        metavar="CONFIG",
+        help="use a specific config file (default: input.yml)\n"
+        "for all steps: analysis, configuration, building, and profiling.",
+    )
+
+    parser.add_argument(
+        "-a",
+        "--analyze",
+        action="store_true",
+        help="analyze the project and detect existing CI/tests, build systems, etc.",
     )
 
     parser.add_argument(
@@ -116,24 +133,22 @@ def main():
         "--configure",
         nargs="?",
         const=str(default_config_path),
-        metavar="config_file",
-        help="generates configuration files for various builds; allows to specify config file;"
-        "if not provided, defaults to 'input.yml'.",
+        metavar="CONFIG",
+        help="generate configuration files (default: input.yml)",
     )
 
     parser.add_argument(
         "-b",
         "--build",
         action="store_true",
-        help="builds the project according to the generated configuration files.",
+        help="build the project according to the generated configuration files.",
     )
 
     parser.add_argument(
         "-p",
         "--profile",
         action="store_true",
-        help="profiles the performance of different builds, collects execution statistics, "
-        "and compares traces.",
+        help="profile the performance of builds and compare execution traces",
     )
 
     args = parser.parse_args()
