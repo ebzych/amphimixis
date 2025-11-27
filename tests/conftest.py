@@ -1,19 +1,23 @@
-import pytest
-import subprocess
+"""Helper functions for tests"""
+
 import os
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture
 def clone_repo():
+    """The fixture for cloning a repository from GitHub to a temporary directory"""
     repo_paths = []
 
     def _clone_repo(repo_url):
         repo_path = tempfile.mkdtemp(prefix="temp_dir")
         command = ["git", "clone", repo_url, repo_path]
-        subprocess.run(command)
+        subprocess.run(command, check=True)
         repo_paths.append(repo_path)
         return Path(repo_path)
 
@@ -26,6 +30,7 @@ def clone_repo():
 
 @pytest.fixture
 def create_working_space():
+    """The ficture for creating a temporary working directory"""
     working_dirs = []
 
     def _create_temp_file():
@@ -35,6 +40,6 @@ def create_working_space():
 
     yield _create_temp_file
 
-    for dir in working_dirs:
-        if os.path.exists(dir):
-            shutil.rmtree(dir, ignore_errors=True)
+    for dir_ in working_dirs:
+        if os.path.exists(dir_):
+            shutil.rmtree(dir_, ignore_errors=True)
