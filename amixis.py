@@ -172,7 +172,7 @@ def main():
         sys.exit(1)
 
     project = general.Project(
-        args.path,
+        str(Path(args.path).expanduser().resolve()),
         [],
         build_systems_dict["make"],
         build_systems_dict["cmake"],
