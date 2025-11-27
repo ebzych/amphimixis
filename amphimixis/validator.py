@@ -2,19 +2,20 @@
 
 from ipaddress import ip_address
 from re import compile as re_compile
+
 import yaml
 
-from amphimixis.general import general
 from amphimixis.build_systems import build_systems_dict
+from amphimixis.general import general
 
 DEFAULT_PORT = 22
 
 
-def validate(file_name: str) -> None:
+def validate(config_file_path: str) -> None:
     """Module enter funtcion"""
 
     try:
-        with open(file_name, "r", encoding="UTF-8") as file:
+        with open(config_file_path, "r", encoding="UTF-8") as file:
 
             file_dict = yaml.safe_load(file)
 
@@ -130,7 +131,7 @@ def _is_valid_build(build: dict[str, str]):
 
 
 def _is_valid_address(address: str) -> bool:
-    """Function to check whether addtess id valid"""
+    """Function to check whether address is valid"""
 
     try:
         ip_address(address)
