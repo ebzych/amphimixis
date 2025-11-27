@@ -9,9 +9,9 @@ Amphimixis is a tool that automates project builds and helps to analyze applicat
 
 !!!Amphimixis in the pre-pre-pre-pre-pre-alpha version!!!
 
-+ [Installation](docs/installation.md)
-+ [Config instruction](docs/config_instruction.md)
-+ [Quick start](docs/quick_start.md)
+- [Installation](docs/installation.md)
+- [Config instruction](docs/config_instruction.md)
+- [Quick start](docs/quick_start.md)
 
 Amphimixis can:
 

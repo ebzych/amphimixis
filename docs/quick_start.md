@@ -1,4 +1,4 @@
-# Quick start 
+# Quick start
 
 This guide will help you quickly start using **Amphimixis**.
 
@@ -6,12 +6,12 @@ After [installing](./installation.md) Amphimixis and preparing a configuration f
 
 ## Prepare the working directory
 
-Amphimixis should be run **from a clean working directory** where all configuration files and build artifacts will be stored. 
+Amphimixis should be run **from a clean working directory** where all configuration files and build artifacts will be stored.
 Before running Amphimixis, make sure that the directory contains a valid `input.yml` configuration file created following the [instructions](./config_instruction.md).
 
 ## Run Amphimixis
 
-To start using Amphimixis, execute the `amixis.py` file (which contains the CLI logic) **from your working directory**, and pass the path to your project as an argument. 
+To start using Amphimixis, execute the `amixis.py` file (which contains the CLI logic) **from your working directory**, and pass the path to your project as an argument.
 
 ### Basic usage
 
@@ -64,4 +64,3 @@ You can specify a **custom configuration file** (different from `input.yml`) by 
 ```bash
 ../amphimixis/amixis.py --config=./my_input.yml /path/to/project
 ```
-
