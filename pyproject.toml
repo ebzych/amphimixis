@@ -10,8 +10,10 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = { find = {} }
 py-modules = ["amixis"]
+
+[tool.setuptools.packages.find]
+include = ["amphimixis*"]
 
 [dependency-groups]
 dev = [
