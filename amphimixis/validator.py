@@ -151,7 +151,13 @@ def _is_valid_build(build: dict[str, str]):
 
 
 def _is_valid_address(address: str) -> bool:
-    """Function to check whether address is valid"""
+    """Function to check whether address is valid
+
+    :rtype: bool
+    :return: Outcome value :\n
+         True if address is valid
+         False if address is invalid
+    """
 
     try:
         ip_address(address)
