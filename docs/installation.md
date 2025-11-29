@@ -5,7 +5,7 @@ This guide explains how to install **Amphimixis**.
 ## Clone the repository
 
 ```bash
-git clone git@github.com:ebzych/amphimixis.git
+git clone https://github.com/ebzych/amphimixis.git
 cd amphimixis
 ```
 
