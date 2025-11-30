@@ -23,7 +23,9 @@ pip install dist/*.whl
 **Amphimixis** requires a clean working directory to store configuration files and build artifacts.
 
 Before running the tool, ensure your directory contains a valid `input.yml` configuration file.
+
 - See the [configuration instructions](./config_instruction.md).
+
 - Refer to the [input.yml example](./input.yml).
 
 ## Run Amphimixis
