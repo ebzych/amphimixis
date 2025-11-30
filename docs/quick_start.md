@@ -2,24 +2,41 @@
 
 This guide will help you quickly start using **Amphimixis**.
 
-After [installing](./installation.md) Amphimixis and preparing a configuration file according to the [instructions](./config_instruction.md), you can easily start using it to automate builds and profile your projects.
+## Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/ebzych/amphimixis.git
+cd amphimixis
+```
+
+### 2. Build and install
+
+```bash
+uv build
+pip install dist/*.whl
+```
 
 ## Prepare the working directory
 
-Amphimixis should be run **from a clean working directory** where all configuration files and build artifacts will be stored.
-Before running Amphimixis, make sure that the directory contains a valid `input.yml` configuration file created following the [instructions](./config_instruction.md).
+**Amphimixis** requires a clean working directory to store configuration files and build artifacts.
+
+Before running the tool, ensure your directory contains a valid `input.yml` configuration file.
+- See the [configuration instructions](./config_instruction.md).
+- Refer to the [input.yml example](./input.yml).
 
 ## Run Amphimixis
 
-To start using Amphimixis, execute the `amixis.py` file (which contains the CLI logic) **from your working directory**, and pass the path to your project as an argument.
+Run `amixis` from your **working directory** by passing the project path as an argument.
 
 ### Basic usage
 
 ```bash
-../amphimixis/amixis.py /path/to/project
+amixis /path/to/project
 ```
 
-This command will perform the full workflow for the specified project directory. Amphimixis will:
+This command will perform the full workflow for the specified project directory:
 
 - Analyze the project to detect CI systems, tests and etc.
 
@@ -29,38 +46,32 @@ This command will perform the full workflow for the specified project directory.
 
 - Profile the performance of the builds and collect execution statistics.
 
+____
+
 All of the steps listed above can also be performed individually. Below are examples for each operation.
 
-#### Analyze only
+#### Analyze project
 
 ```bash
-../amphimixis/amixis.py --analyze /path/to/project
-```
-
-#### Generate configuration files
-
-```bash
-../amphimixis/amixis.py --configure /path/to/project
+amixis --analyze /path/to/project
 ```
 
 #### Build project
 
 ```bash
-../amphimixis/amixis.py --build /path/to/project
+amixis --build /path/to/project
 ```
-
-> **💡:** This command builds the project according to the configuration files. It implicitly runs `--configure` if the configuration files do not yet exist, ensuring the build completes successfully.
 
 #### Profile project
 
 ```bash
-../amphimixis/amixis.py --profile /path/to/project
+amixis --profile /path/to/project
 ```
 
 #### Use a custom configuration file
 
-You can specify a **custom configuration file** (different from `input.yml`) by passing path to the file with the `--config` argument:
+To use a configuration file other than the default `input.yml`, use the `--config` flag:
 
 ```bash
-../amphimixis/amixis.py --config=./my_input.yml /path/to/project
+amixis --config=./my_input.yml /path/to/project
 ```
