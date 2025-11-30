@@ -12,7 +12,11 @@ from amphimixis.shell.shell import Shell
 class ToolchainManager:
     """Toolchain Manager"""
 
-    CONFIG_DIR_PATH = f"{environ["HOME"]}/.config/amphimixis"
+    CONFIG_DIR_PATH = (
+        f"{environ["HOME"]}/.config/amphimixis"
+        if environ.get("XDG_CONFIG_HOME") is None
+        else f"{environ.get("XDG_CONFIG_HOME")}/amphimixis"
+    )
 
     @staticmethod
     def parse_config_file() -> dict:
