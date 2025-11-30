@@ -2,7 +2,7 @@
 
 This guide explains how to create and configure your project’s build file.
 
-See an example configuration file [here](./config_example.md).
+See an example configuration file [here](./input.yml).
 
 ## General structure
 
