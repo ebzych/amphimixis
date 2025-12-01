@@ -5,7 +5,7 @@ from os.path import exists, isabs
 
 import yaml
 
-from amphimixis.general.general import Arch, Build, MachineInfo
+from amphimixis.general.general import Arch, Build, MachineInfo, Toolchain
 from amphimixis.shell.shell import Shell
 
 
@@ -34,7 +34,6 @@ class ToolchainManager:
                 "r",
                 encoding="utf-8",
             ) as f_toolbox:
-
                 if dict(_toolbox := yaml.safe_load(f_toolbox)).keys() == set(
                     ["platforms", "toolchains", "sysroots"]
                 ):
@@ -108,21 +107,59 @@ class ToolchainManager:
         return sysroot_path
 
     @staticmethod
+    def find_platform(platform_name: str) -> bool:
+        """Find platform in amphimixis global config (toolbox) by name"""
+        raise NotImplementedError
+
+    @staticmethod
+    def find_platform_by_address(address: str) -> str:
+        """Find platform in amphimixis global config (toolbox) by address
+
+        :rtype: str
+        :return: platform name if platform exists else empty string"""
+        raise NotImplementedError
+
+    @staticmethod
+    def add_platform(name: str, machine: MachineInfo) -> bool:
+        """Add platform to amphimixis global config (toolbox)"""
+        raise NotImplementedError
+
+    @staticmethod
+    def find_toolchain(toolchain_name: str) -> str:
+        """Find toolchain in amphimixis global config (toolbox) by name
+
+        :rtype: str
+        :return: platform name if platform exists else empty string"""
+        raise NotImplementedError
+
+    @staticmethod
     def add_toolchain(
         toolchain_name: str,
         machine_or_name: MachineInfo | str,
         path: str,
         target_arch: Arch,
-    ) -> None:
-        """Add toolchain to toolbox"""
+    ) -> bool:
+        """Add toolchain to amphimixis global config (toolbox)"""
         _toolbox = ToolchainManager.parse_config_file()
         # temporary pylint disable
         # pylint: disable=no-else-raise
         if isinstance(machine_or_name, str):
             raise NotImplementedError
         else:
+            toolchain_data: dict[str, str] = {}
+
+            if machine_or_name.address is not None:  # else: localhost
+                platform_name: str
+                if not (
+                    platform_name := ToolchainManager.find_platform_by_address(
+                        machine_or_name.address
+                    )
+                ):
+                    platform_name = machine_or_name.address.strip(".")
+                    ToolchainManager.add_platform(platform_name, machine_or_name)
+                toolchain_data["platform"] = platform_name
+
             toolchain_data = {
-                "platform": machine_or_name.__dictstr__,
                 "path": path,
                 "target_arch": target_arch.value,
             }
@@ -134,3 +171,4 @@ class ToolchainManager:
                 encoding="utf-8",
             ) as f_toolbox:
                 yaml.safe_dump(_toolbox, f_toolbox)
+        return True

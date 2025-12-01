@@ -8,9 +8,11 @@ from amphimixis import ToolchainManager
 from amphimixis.general import Arch, MachineAuthenticationInfo, MachineInfo
 
 
-def test_adding_not_existing_toolchain_in_toolbox_file() -> None:
+def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_info() -> (
+    None
+):
     """
-    Test: Adding non-existing toolchain to the toolbox
+    Test: Adding non-existing toolchain to the toolbox with specifying machine info
     Expected: Toolchain appeared in the toolbox
     """
     ToolchainManager.CONFIG_DIR_PATH = "/tmp/amphimixis"
@@ -39,6 +41,12 @@ def test_adding_not_existing_toolchain_in_toolbox_file() -> None:
         path_to_toolchain,
         target_arch,
     )
+
+    platform_name = ToolchainManager.find_platform_by_address(
+        str(build_machine.address)
+    )
+
+    toolchain_data["platform"] = platform_name
 
     # 3) reload from file
     with open(

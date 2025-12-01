@@ -29,6 +29,14 @@ class MachineAuthenticationInfo:
     password: str | None
     port: int
 
+    @property
+    def __dictstr__(self) -> dict[str, str]:
+        ret = {"username": self.username}
+        if self.password is not None:
+            ret["password"] = self.password
+        ret["port"] = str(self.port)
+        return ret
+
 
 @dataclass
 class MachineInfo:
@@ -47,11 +55,12 @@ class MachineInfo:
 
     @property
     def __dictstr__(self) -> dict:
-        return {
-            "arch": self.arch.value,
-            "address": self.address,
-            "auth": self.auth.__dict__,
-        }
+        ret: dict[str, str | dict] = {"arch": self.arch.value}
+        if self.address is not None:
+            ret["address"] = self.address
+        if self.auth is not None:
+            ret["auth"] = self.auth.__dictstr__
+        return ret
 
 
 # pylint: disable=too-many-instance-attributes
