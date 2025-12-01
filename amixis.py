@@ -119,7 +119,7 @@ def main():
         "-a",
         "--analyze",
         action="store_true",
-        help="analyze the project and detect existing CI/tests, build systems, etc.",
+        help="analyze the project and detect existing CI, tests, build systems, etc.",
     )
 
     parser.add_argument(
