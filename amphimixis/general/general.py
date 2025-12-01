@@ -61,6 +61,7 @@ class Build:
     executables: list[str]
     toolchain: str | None
     sysroot: str | None
+    build_id: str = ""
     config_flags: str = ""
     compiler_flags: str = ""
 
