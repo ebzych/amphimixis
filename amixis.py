@@ -64,19 +64,13 @@ class CustomFormatterClass(
                   → Builds the project, implicitly calling --configure to generate.
                     configuration files.
 
-              amixis --configure=config_file /path/to/folder/with/project
-                  → Generates configuration files for various builds based on the provided
-                    config file. If no config file is specified, 
-                    defaults to 'input.yml', is used by default, 
-                    which must be located in the working directory.
-
               amixis --config=config_file /path/to/folder/with/project
                   → Specifies a custom configuration file to be used for the configuration process;
                     runs all steps including analysis, configuration, building, and profiling.
                     If no config file is specified, defaults to 'input.yml', 
                     which must be located in the working directory.
 
-              amixis --validate file_name
+              amixis --validate=file_name
                   → Checks the config file correctness.
 
             """
@@ -129,15 +123,6 @@ def main():
     )
 
     parser.add_argument(
-        "-c",
-        "--configure",
-        nargs="?",
-        const=str(default_config_path),
-        metavar="CONFIG",
-        help="generate configuration files (default: input.yml)",
-    )
-
-    parser.add_argument(
         "-b",
         "--build",
         action="store_true",
@@ -153,11 +138,6 @@ def main():
 
     args = parser.parse_args()
 
-    if args.configure is not None:
-        config_file = Path(args.configure).expanduser().resolve()
-    else:
-        config_file = default_config_path
-
     if args.config is not None:
         config_file = Path(args.config).expanduser().resolve()
     else:
@@ -165,6 +145,7 @@ def main():
 
     if args.validate:
         validate(args.validate)
+        print(f"{args.validate} is correct!!")
         sys.exit(0)
 
     if not args.path:
@@ -179,7 +160,7 @@ def main():
     )
 
     try:
-        if not any([args.analyze, args.configure, args.build, args.profile]):
+        if not any([args.analyze, args.build, args.profile]):
             analyze(project)
             parse_config(project, config_file_path=str(config_file))
             Builder.build(project)
@@ -190,12 +171,8 @@ def main():
         if args.analyze:
             analyze(project)
 
-        if args.configure is not None:
-            parse_config(project, config_file_path=str(config_file))
-
         if args.build:
-            if not args.configure is not None:
-                parse_config(project, config_file_path=str(config_file))
+            parse_config(project, config_file_path=str(config_file))
 
             Builder.build(project)
 
