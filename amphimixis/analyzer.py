@@ -96,6 +96,7 @@ def _search_ci(proj_path, results):
     paths = []
     for pattern in ci_list:
         paths.extend(_find_paths(proj_path, pattern))
+
     _log_results(proj_path, results, "ci", paths)
 
 
@@ -109,17 +110,18 @@ def _search_build_systems(proj_path, results):
                 log.info(" %s", system)
                 found = True
                 break
+
     if not found:
         log.info(" not found")
 
 
 def _search_dependencies(proj_path, results):
     log.info("dependencies:")
-
     dep_path = path.join(proj_path, "third_party")
     if path.exists(dep_path):
         dirs = [d for d in listdir(dep_path) if path.isdir(path.join(dep_path, d))]
         results["dependencies"].extend(dirs)
+
     if results["dependencies"]:
         for dep in results["dependencies"]:
             log.info(" %s", dep)
@@ -131,6 +133,7 @@ def _search_dependencies(proj_path, results):
                 index_of_find_package = line.find("find_package(")
                 if index_of_find_package == -1:
                     continue
+
                 after_find_package = line[
                     index_of_find_package + len("find_package(") :
                 ]
@@ -138,6 +141,7 @@ def _search_dependencies(proj_path, results):
                 for character in after_find_package:
                     if character in (" ", ")"):
                         break
+
                     package += character
 
                 if package not in results["dependencies"]:
