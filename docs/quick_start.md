@@ -15,7 +15,7 @@ cd amphimixis
 
 ```bash
 uv build
-pip install dist/*.whl
+pip install dist/*.whl --break-system-packages
 ```
 
 ## Prepare the working directory
@@ -41,8 +41,6 @@ amixis /path/to/project
 This command will perform the full workflow for the specified project directory:
 
 - Analyze the project to detect CI systems, tests and etc.
-
-- Generate configuration files based on `input.yml` (or a custom config if provided).
 
 - Build the project according to the generated configuration files.
 
