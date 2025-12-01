@@ -136,7 +136,7 @@ def _search_dependencies(proj_path, results):
                 ]
                 package = ""
                 for character in after_find_package:
-                    if character == " " or character == ")":
+                    if character in (" ", ")"):
                         break
                     package += character
 
