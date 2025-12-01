@@ -1,5 +1,7 @@
 """Module for profiling executables within a project."""
 
+import os
+import pickle
 from enum import Enum
 
 from amphimixis import general, logger, shell
@@ -40,6 +42,7 @@ class Profiler:
         self.executable = executable
         self.shell = shell.Shell(self.machine).connect()
         self.stats: dict[Stats, str] = {}
+        self.record_filename = _generate_record_filename(build.build_id)
 
     def execution_time(self) -> bool:
         """Measure execution time: real, user, kernel"""
@@ -53,6 +56,7 @@ class Profiler:
         self.logger.info(
             "Measure execution time %s\n\tCommand: %s", self.executable, command
         )
+
         error, stdout, stderr = self.shell.run(command)
         if error != 0:
             error_message = "STDERR: " + "".join(stderr[0])
@@ -67,6 +71,7 @@ class Profiler:
                 Stats.KERNEL_TIME: stderr[0][-1],
             }
         )
+
         return True
 
     def test_executable(self) -> bool:
@@ -113,13 +118,53 @@ class Profiler:
 
         return True
 
-    def perf_record_collect(self):
+    def perf_record_collect(self, options: str = "") -> bool:
         """Collect performance records using 'perf record'."""
-        raise NotImplementedError
+
+        error, _, stderr = self.shell.run(
+            f"cd {self.build.build_path}",
+        )
+
+        if error != 0:
+            self.logger.error("".join(stderr[0]))
+            return False
+
+        options += f"-o {self.record_filename}"
+        command = self._command("record", options)
+        error, _, stderr = self.shell.run(command)
+
+        if error != 0:
+            self.logger.error(
+                "Executable returned %d code\n%s", error, "".join(stderr[0])
+            )
+            return False
+
+        error, stdout, stderr = self.shell.run("pwd")
+
+        if error != 0:
+            self.logger.error("".join(stderr[0]))
+            return False
+
+        remote_workdir = stdout[0][0].strip()
+        if not self.shell.copy_to_host(
+            os.path.join(remote_workdir, self.record_filename),
+            os.path.join(os.getcwd(), self.record_filename),
+        ):
+            self.logger.error("Can't copy perf.data file")
+            return False
+
+        return True
 
     def save_stats(self):
         """Save collected statistics to a file."""
-        raise NotImplementedError
+
+        pickle.dump(
+            self.stats,
+            os.path.join(os.getcwd(), self._get_stats_filename()),
+        )
+
+    def _get_stats_filename(self) -> str:
+        return f"{self.build.build_id}.stats"
 
     def _command(
         self,
@@ -149,6 +194,10 @@ class Profiler:
         command.append("'")
 
         return " ".join(command)
+
+
+def _generate_record_filename(_id: str) -> str:
+    return f"{_id}.data"
 
 
 if __name__ == "__main__":
