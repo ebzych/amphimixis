@@ -1,8 +1,10 @@
 """Module that analyzes project's repository and creates file with its information"""
 
 import glob
-from os import path, listdir
+from os import listdir, path
+
 import yaml
+
 from amphimixis import general, logger
 
 log = logger.setup_logger("ANALYZER")
@@ -113,6 +115,7 @@ def _search_build_systems(proj_path, results):
 
 def _search_dependencies(proj_path, results):
     log.info("dependencies:")
+
     dep_path = path.join(proj_path, "third_party")
     if path.exists(dep_path):
         dirs = [d for d in listdir(dep_path) if path.isdir(path.join(dep_path, d))]
@@ -120,5 +123,26 @@ def _search_dependencies(proj_path, results):
     if results["dependencies"]:
         for dep in results["dependencies"]:
             log.info(" %s", dep)
-    else:
-        log.info(" not found")
+
+    if results["build_systems"]["cmake"] is True:
+        file_path = path.join(proj_path, "CMakeLists.txt")
+        with open(file_path, "r", encoding="utf8") as file:
+            for line in file:
+                index_of_find_package = line.find("find_package(")
+                if index_of_find_package == -1:
+                    continue
+                after_find_package = line[
+                    index_of_find_package + len("find_package(") :
+                ]
+                package = ""
+                for character in after_find_package:
+                    if character in (" ", ")"):
+                        break
+                    package += character
+
+                if package not in results["dependencies"]:
+                    results["dependencies"].append(package)
+                    log.info(" %s", package)
+
+    if not results["dependencies"]:
+        log.info("not found")
