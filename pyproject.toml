@@ -1,13 +1,19 @@
 [project]
 name = "amphimixis"
 version = "0.1.0"
-description = "Build automation and profiling tool for Linux projects across varios architectures."
+description = "Build automation and profiling tool for Linux projects across various architectures."
 readme = "README.md"
 requires-python = ">=3.13"
 
 dependencies = [
     "pyyaml"
 ]
+
+[tool.setuptools]
+py-modules = ["amixis"]
+
+[tool.setuptools.packages.find]
+include = ["amphimixis*"]
 
 [dependency-groups]
 dev = [
@@ -18,3 +24,9 @@ dev = [
     "types-paramiko",
     "types-pyyaml",
 ]
+
+[tool.uv]
+package = true
+
+[project.scripts]
+amixis = "amixis:main"
