@@ -17,18 +17,24 @@ DEFAULT_PORT = 22
 _logger = setup_logger("configurator")
 
 
-def parse_config(project: general.Project, config_file_path: str) -> None:
-    """Module enter function"""
+def parse_config(project: general.Project, config_file_path: str) -> bool:
+    """Main function to configure builds
+
+    :rtype: bool
+    :return: Outcome value :\n
+         True if configuration succeeded
+         False if configuration failed
+    """
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
-        raise FileNotFoundError()
+        return False
 
     project.builds = []
 
     if not validate(config_file_path):
         _logger.error("Incorrect input file")
-        raise SyntaxError()
+        return False
 
     try:
         with open(config_file_path, "r", encoding="UTF-8") as file:
@@ -45,19 +51,39 @@ def parse_config(project: general.Project, config_file_path: str) -> None:
                 toolchain = build.get("toolchain")
                 sysroot = build.get("sysroot")
 
-                _create_build(
-                    project,
-                    _get_by_id(input_config["platforms"], build["build_machine"]),
-                    _get_by_id(input_config["platforms"], build["run_machine"]),
-                    _get_by_id(input_config["recipes"], build["recipe_id"]),
-                    toolchain,
-                    sysroot,
+                build_machine_info = _get_by_id(
+                    input_config["platforms"], build["build_machine"]
                 )
 
-    except FileNotFoundError as e:
-        _logger.error("Error opening file, check input data %s", e)
+                run_machine_info = _get_by_id(
+                    input_config["platforms"], build["run_machine"]
+                )
+
+                recipe_info = _get_by_id(input_config["recipes"], build["recipe_id"])
+
+                if (
+                    build_machine_info == {}
+                    or run_machine_info == {}
+                    or recipe_info == {}
+                ):
+                    return False
+
+                if not _create_build(
+                    project,
+                    build_machine_info,
+                    run_machine_info,
+                    recipe_info,
+                    toolchain,
+                    sysroot,
+                ):
+                    return False
+
+    except FileNotFoundError:
+        _logger.error("Error opening file, check input data")
+        return False
 
     _logger.info("Configuration completed successfully!")
+    return True
 
 
 def _create_build(  # pylint: disable=R0913,R0917
@@ -67,7 +93,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     recipe_info: dict[str, str],
     toolchain: str | None,
     sysroot: str | None,
-) -> None:
+) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
 
     build_path = _generate_build_path(
@@ -76,7 +102,8 @@ def _create_build(  # pylint: disable=R0913,R0917
 
     build_machine = _create_machine(build_machine_info)
     run_machine = _create_machine(run_machine_info)
-    _has_valid_arch(run_machine)
+    if not _has_valid_arch(run_machine):
+        return False
 
     build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
 
@@ -88,6 +115,8 @@ def _create_build(  # pylint: disable=R0913,R0917
     config_name = f"{build_path}_config"
     with open(config_name, "wb") as file:
         pickle.dump(build, file)
+
+    return True
 
 
 def _create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
@@ -123,10 +152,10 @@ def _get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
             return item
 
     _logger.error("Item id didn't match any existed id, check input file")
-    raise LookupError()
+    return {}
 
 
-def _has_valid_arch(machine: general.MachineInfo) -> None:
+def _has_valid_arch(machine: general.MachineInfo) -> bool:
     """Function to check whether run machine arch is valid"""
 
     if machine.address is None:
@@ -136,7 +165,7 @@ def _has_valid_arch(machine: general.MachineInfo) -> None:
                 machine.arch.name.lower(),
                 local_arch().lower(),
             )
-            raise TypeError()
+            return False
 
     else:
         shell = Shell(machine).connect()
@@ -145,7 +174,7 @@ def _has_valid_arch(machine: general.MachineInfo) -> None:
             _logger.error(
                 "An error occured during reading remote machine arch, check remote machine"
             )
-            raise ValueError()
+            return False
 
         remote_arch = stdout[0][0]
         if machine.arch.lower() not in remote_arch.lower():
@@ -154,4 +183,6 @@ def _has_valid_arch(machine: general.MachineInfo) -> None:
                 machine.arch.name.lower(),
                 remote_arch.lower(),
             )
-            raise TypeError()
+            return False
+
+    return True
