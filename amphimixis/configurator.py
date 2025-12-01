@@ -1,20 +1,21 @@
 """Module for configuring a new build"""
 
-from os import path, getcwd
-from platform import machine as local_arch
 import logging
 import pickle
+from os import getcwd, path
+from platform import machine as local_arch
+
 import yaml
-from amphimixis.general import general
+
 from amphimixis.build_systems import build_systems_dict
+from amphimixis.general import general
 from amphimixis.shell import Shell
 from amphimixis.validator import validate
 
 DEFAULT_PORT = 22
-INPUT_FILE_NAME = "input.yml"
 
 
-def parse_config(project: general.Project) -> None:
+def parse_config(project: general.Project, config_file_path: str) -> None:
     """Module enter function"""
 
     if not path.exists(project.path):
@@ -24,10 +25,10 @@ def parse_config(project: general.Project) -> None:
     logger = logging.getLogger(__name__)
     project.builds = []
 
-    validate(INPUT_FILE_NAME)
+    validate(config_file_path)
 
     try:
-        with open(INPUT_FILE_NAME, "r", encoding="UTF-8") as file:
+        with open(config_file_path, "r", encoding="UTF-8") as file:
             input_config = yaml.safe_load(file)
 
             build_system = input_config.get("build_system")
