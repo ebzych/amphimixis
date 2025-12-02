@@ -15,7 +15,7 @@ ci_list = ["**/ci", "**/.github/workflows"]
 build_systems_list = {
     "cmake": ["**/CMakeLists.txt"],
     "meson": ["**/*meson*"],
-    "bazel": ["**/*bazel*", "**/BUILD"],
+    "bazel": ["**/*bazel*", "**/BUILD", "**/WORKSPACE"],
     "make": ["**/Makefile", "**/makefile"],
     "SCons": ["**SCons*"],
     "autotools": ["**/configure.ac", "**/configure.in"],
@@ -106,7 +106,9 @@ def _search_build_systems(proj_path, results):
     found = False
     for system, patterns in build_systems_list.items():
         for pat in patterns:
-            if _find_paths(proj_path, pat, dirs_only=False):
+            matched_paths = _find_paths(proj_path, pat, dirs_only=False)
+            matched_files = [p for p in matched_paths if path.isfile(p)]
+            if matched_files:
                 results["build_systems"][system] = True
                 log.info("  %s", system)
                 found = True
@@ -139,7 +141,7 @@ def _search_dependencies(proj_path, results):
             text = file.read()
 
         text = re.sub(r"#.*", "", text)
-        pattern = r"find_package\s*\(\s*(\w+)"
+        pattern = r"find_package\s*\(\s*([\w+-]+)"
         packages = re.findall(pattern, text, flags=re.IGNORECASE)
         for package in packages:
             if package not in results["dependencies"]:
