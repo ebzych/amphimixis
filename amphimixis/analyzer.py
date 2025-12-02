@@ -1,6 +1,7 @@
 """Module that analyzes project's repository and creates file with its information"""
 
 import glob
+import re
 from os import listdir, path
 
 import yaml
@@ -70,7 +71,7 @@ def _log_results(proj_path, results, key, paths):
         results[key] = rel_paths[0]
         log.info("found %s: %s", key, rel_paths[0])
     else:
-        log.info("%s not found", key)
+        log.info("%s: not found", key)
 
 
 def _file_output(results, file_name="amphimixis.analyzed"):
@@ -107,46 +108,44 @@ def _search_build_systems(proj_path, results):
         for pat in patterns:
             if _find_paths(proj_path, pat, dirs_only=False):
                 results["build_systems"][system] = True
-                log.info(" %s", system)
+                log.info("  %s", system)
                 found = True
                 break
 
     if not found:
-        log.info(" not found")
+        log.info("  not found")
 
 
 def _search_dependencies(proj_path, results):
     log.info("dependencies:")
+
+    # third party dependencies
     dep_path = path.join(proj_path, "third_party")
     if path.exists(dep_path):
         dirs = [d for d in listdir(dep_path) if path.isdir(path.join(dep_path, d))]
-        results["dependencies"].extend(dirs)
+        for d in dirs:
+            if d not in results["dependencies"]:
+                results["dependencies"].append(d)
+                log.info("  %s", d)
 
-    if results["dependencies"]:
-        for dep in results["dependencies"]:
-            log.info(" %s", dep)
-
+    # cmake dependencies
     if results["build_systems"]["cmake"] is True:
         file_path = path.join(proj_path, "CMakeLists.txt")
+        if not path.isfile(file_path):
+            log.info("  no CMakeLists.txt in project root")
+            return
+
         with open(file_path, "r", encoding="utf8") as file:
-            for line in file:
-                index_of_find_package = line.find("find_package(")
-                if index_of_find_package == -1:
-                    continue
+            text = file.read()
 
-                after_find_package = line[
-                    index_of_find_package + len("find_package(") :
-                ]
-                package = ""
-                for character in after_find_package:
-                    if character in (" ", ")"):
-                        break
+        text = re.sub(r"#.*", "", text)
+        pattern = r"find_package\s*\(\s*(\w+)"
+        packages = re.findall(pattern, text, flags=re.IGNORECASE)
+        for package in packages:
+            if package not in results["dependencies"]:
+                results["dependencies"].append(package)
+                log.info("  %s", package)
 
-                    package += character
-
-                if package not in results["dependencies"]:
-                    results["dependencies"].append(package)
-                    log.info(" %s", package)
-
+    # no dependencies
     if not results["dependencies"]:
-        log.info("not found")
+        log.info("  not found")
