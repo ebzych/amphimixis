@@ -5,8 +5,21 @@ from os.path import exists, isabs
 
 import yaml
 
-from amphimixis.general.general import Arch, Build, MachineInfo, Toolchain
+from amphimixis import logger
+from amphimixis.general.general import (
+    Arch,
+    Build,
+    MachineAuthenticationInfo,
+    MachineInfo,
+    Toolchain,
+)
 from amphimixis.shell.shell import Shell
+
+_logger = logger.setup_logger("TOOLCHAIN_MANAGER")
+
+_PLATFORMS = "platforms"
+_SYSROOTS = "sysroots"
+_TOOLCHAINS = "toolchains"
 
 
 class ToolchainManager:
@@ -23,9 +36,9 @@ class ToolchainManager:
         """Search ~/.config/amphimixis/toolbox.yml and parse in __toolbox list or create it"""
 
         template: dict[str, dict] = {
-            "platforms": {},
-            "toolchains": {},
-            "sysroots": {},
+            _PLATFORMS: {},
+            _TOOLCHAINS: {},
+            _SYSROOTS: {},
         }
         makedirs(ToolchainManager.CONFIG_DIR_PATH, exist_ok=True)
         if exists(f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml"):
@@ -35,7 +48,7 @@ class ToolchainManager:
                 encoding="utf-8",
             ) as f_toolbox:
                 if dict(_toolbox := yaml.safe_load(f_toolbox)).keys() == set(
-                    ["platforms", "toolchains", "sysroots"]
+                    [_PLATFORMS, _TOOLCHAINS, _SYSROOTS]
                 ):
                     return _toolbox
         with open(
@@ -107,9 +120,31 @@ class ToolchainManager:
         return sysroot_path
 
     @staticmethod
-    def find_platform(platform_name: str) -> bool:
-        """Find platform in amphimixis global config (toolbox) by name"""
-        raise NotImplementedError
+    def find_platform(platform_name: str) -> MachineInfo | None:
+        """Find platform in amphimixis global config (toolbox) by name
+
+        :rtype: MachineInfo | None
+        :return: info about machine if found else None"""
+        _toolbox = ToolchainManager.parse_config_file()
+        if platform_name in _toolbox[_PLATFORMS]:
+            machine = _toolbox[_PLATFORMS][platform_name]
+            auth: MachineAuthenticationInfo
+            if "auth" in machine:
+                auth = MachineAuthenticationInfo(
+                    machine["auth"]["username"],
+                    (
+                        machine["auth"]["password"]
+                        if "password" in machine["auth"]
+                        else None
+                    ),
+                    machine["auth"]["port"],
+                )
+            return MachineInfo(
+                Arch(machine["arch"]),
+                machine["address"] if "address" in machine else None,
+                auth,
+            )
+        return None
 
     @staticmethod
     def find_platform_by_address(address: str) -> str:
@@ -117,12 +152,28 @@ class ToolchainManager:
 
         :rtype: str
         :return: platform name if platform exists else empty string"""
-        raise NotImplementedError
+        _toolbox = ToolchainManager.parse_config_file()
+        for name, machine in _toolbox["platforms"].items():
+            if machine["address"] == address:
+                return name
+        return ""
 
     @staticmethod
     def add_platform(name: str, machine: MachineInfo) -> bool:
         """Add platform to amphimixis global config (toolbox)"""
-        raise NotImplementedError
+        _toolbox = ToolchainManager.parse_config_file()
+        _toolbox[_PLATFORMS][name] = machine.__dictstr__
+        try:
+            with open(
+                f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
+                "w",
+                encoding="utf-8",
+            ) as f_toolbox:
+                yaml.safe_dump(_toolbox, f_toolbox)
+            return True
+        except FileExistsError:
+            _logger.error("Error with writing to config file")
+            return False
 
     @staticmethod
     def find_toolchain(toolchain_name: str) -> str:
@@ -140,35 +191,35 @@ class ToolchainManager:
         target_arch: Arch,
     ) -> bool:
         """Add toolchain to amphimixis global config (toolbox)"""
-        _toolbox = ToolchainManager.parse_config_file()
         # temporary pylint disable
         # pylint: disable=no-else-raise
+        toolchain_data: dict[str, str] = {}
+        platform_name: str
         if isinstance(machine_or_name, str):
-            raise NotImplementedError
+            if ToolchainManager.find_platform(machine_or_name) is not None:
+                toolchain_data["platform"] = machine_or_name
+            else:
+                return False
         else:
-            toolchain_data: dict[str, str] = {}
-
             if machine_or_name.address is not None:  # else: localhost
-                platform_name: str
                 if not (
                     platform_name := ToolchainManager.find_platform_by_address(
                         machine_or_name.address
                     )
                 ):
-                    platform_name = machine_or_name.address.strip(".")
+                    platform_name = "".join(machine_or_name.address.split(sep="."))
                     ToolchainManager.add_platform(platform_name, machine_or_name)
                 toolchain_data["platform"] = platform_name
 
-            toolchain_data = {
-                "path": path,
-                "target_arch": target_arch.value,
-            }
+        toolchain_data["path"] = path
+        toolchain_data["target_arch"] = target_arch.value
 
-            _toolbox["toolchains"][toolchain_name] = toolchain_data
-            with open(
-                f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
-                "w",
-                encoding="utf-8",
-            ) as f_toolbox:
-                yaml.safe_dump(_toolbox, f_toolbox)
+        _toolbox = ToolchainManager.parse_config_file()
+        _toolbox[_TOOLCHAINS][toolchain_name] = toolchain_data
+        with open(
+            f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
+            "w",
+            encoding="utf-8",
+        ) as f_toolbox:
+            yaml.safe_dump(_toolbox, f_toolbox)
         return True
