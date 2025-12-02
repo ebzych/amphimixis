@@ -6,9 +6,10 @@ from os import listdir, path
 
 import yaml
 
-from amphimixis import general, logger
+from amphimixis.general import general
+from amphimixis.logger import setup_logger
 
-log = logger.setup_logger("ANALYZER")
+_logger = setup_logger("analyzer")
 
 ci_list = ["**/ci", "**/.github/workflows"]
 
@@ -35,24 +36,28 @@ def analyze(project: general.Project):
     }
 
     proj_path = project.path
-
     if not path.exists(proj_path):
-        log.error("Directory '%s' not found", proj_path)
-        raise FileNotFoundError(f'Directory "{proj_path}" not found')
+        _logger.error("Directory '%s' not found", proj_path)
+        return False
 
-    log.info("Analyzing %s", path.basename(path.normpath(proj_path)))
+    try:
+        _logger.info("Analyzing %s", path.basename(path.normpath(proj_path)))
 
-    _search_tests(proj_path, results)
-    _search_benchmarks(proj_path, results)
-    _search_ci(proj_path, results)
-    _search_build_systems(proj_path, results)
-    _search_dependencies(proj_path, results)
+        _search_tests(proj_path, results)
+        _search_benchmarks(proj_path, results)
+        _search_ci(proj_path, results)
+        _search_build_systems(proj_path, results)
+        _search_dependencies(proj_path, results)
 
-    _file_output(results["build_systems"])
+        _file_output(results["build_systems"])
 
-    log.info("Analyzing done")
+    except FileNotFoundError:
+        _logger.error("Directory '%s' not found", proj_path)
+        return False
 
-    return results
+    _logger.info("Analyzing done")
+
+    return True
 
 
 def _rel_path(proj_path, paths):
@@ -65,13 +70,13 @@ def _find_paths(proj_path, pattern, dirs_only=True):
     return [p for p in paths if path.isdir(p)] if dirs_only else paths
 
 
-def _log_results(proj_path, results, key, paths):
+def _logger_results(proj_path, results, key, paths):
     rel_paths = _rel_path(proj_path, paths) if paths else []
     if rel_paths:
         results[key] = rel_paths[0]
-        log.info("found %s: %s", key, rel_paths[0])
+        _logger.info("found %s: %s", key, rel_paths[0])
     else:
-        log.info("%s: not found", key)
+        _logger.info("%s: not found", key)
 
 
 def _file_output(results, file_name="amphimixis.analyzed"):
@@ -85,12 +90,12 @@ def _file_output(results, file_name="amphimixis.analyzed"):
 
 def _search_tests(proj_path, results):
     paths = _find_paths(proj_path, "**/*test*")
-    _log_results(proj_path, results, "tests", paths)
+    _logger_results(proj_path, results, "tests", paths)
 
 
 def _search_benchmarks(proj_path, results):
     paths = _find_paths(proj_path, "**/*bench*")
-    _log_results(proj_path, results, "benchmarks", paths)
+    _logger_results(proj_path, results, "benchmarks", paths)
 
 
 def _search_ci(proj_path, results):
@@ -98,11 +103,11 @@ def _search_ci(proj_path, results):
     for pattern in ci_list:
         paths.extend(_find_paths(proj_path, pattern))
 
-    _log_results(proj_path, results, "ci", paths)
+    _logger_results(proj_path, results, "ci", paths)
 
 
 def _search_build_systems(proj_path, results):
-    log.info("build systems:")
+    _logger.info("build systems:")
     found = False
     for system, patterns in build_systems_list.items():
         for pat in patterns:
@@ -110,16 +115,16 @@ def _search_build_systems(proj_path, results):
             matched_files = [p for p in matched_paths if path.isfile(p)]
             if matched_files:
                 results["build_systems"][system] = True
-                log.info("  %s", system)
+                _logger.info("  %s", system)
                 found = True
                 break
 
     if not found:
-        log.info("  not found")
+        _logger.info("  not found")
 
 
 def _search_dependencies(proj_path, results):
-    log.info("dependencies:")
+    _logger.info("dependencies:")
 
     # third party dependencies
     dep_path = path.join(proj_path, "third_party")
@@ -128,13 +133,13 @@ def _search_dependencies(proj_path, results):
         for d in dirs:
             if d not in results["dependencies"]:
                 results["dependencies"].append(d)
-                log.info("  %s", d)
+                _logger.info("  %s", d)
 
     # cmake dependencies
     if results["build_systems"]["cmake"] is True:
         file_path = path.join(proj_path, "CMakeLists.txt")
         if not path.isfile(file_path):
-            log.info("  no CMakeLists.txt in project root")
+            _logger.info("  no CMakeLists.txt in project root")
             return
 
         with open(file_path, "r", encoding="utf8") as file:
@@ -146,8 +151,8 @@ def _search_dependencies(proj_path, results):
         for package in packages:
             if package not in results["dependencies"]:
                 results["dependencies"].append(package)
-                log.info("  %s", package)
+                _logger.info("  %s", package)
 
     # no dependencies
     if not results["dependencies"]:
-        log.info("  not found")
+        _logger.info("  not found")
