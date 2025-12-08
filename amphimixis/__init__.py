@@ -6,7 +6,6 @@ from amphimixis.builder import Builder
 from amphimixis.configurator import parse_config
 from amphimixis.general import general
 from amphimixis.profiler import Profiler
-from amphimixis.profiler import Stats as ProfilerStats
 from amphimixis.shell import Shell
 from amphimixis.validator import validate
 
@@ -17,7 +16,6 @@ __all__ = [
     "parse_config",
     "Builder",
     "Profiler",
-    "ProfilerStats",
     "Shell",
     "validate",
 ]

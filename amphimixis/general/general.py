@@ -73,7 +73,7 @@ class Project:
     :var str path: Path to project for research.
     :var type[IBuildSystem] build_system: High-level build system interface.
     :var type[IBuildSystem] runner: Low-level build system interface.
-    :var list[Build]: List of project configurations to be build.
+    :var list[Build] builds: List of project configurations to be build.
     """
 
     path: str
