@@ -13,10 +13,12 @@ from amphimixis.shell import Shell
 from amphimixis.validator import validate
 
 DEFAULT_PORT = 22
+ANALYZED_FILE = "amphimixis.analyzed"
 
 _logger = setup_logger("configurator")
 
 
+# pylint: disable=R0911
 def parse_config(project: general.Project, config_file_path: str) -> bool:
     """Main function to configure builds
 
@@ -41,6 +43,12 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
             input_config = yaml.safe_load(file)
 
             build_system = input_config.get("build_system")
+            if build_system is None:
+                build_system = _get_analyzed_build_system()
+                if build_system is None:
+                    _logger.error("Did not find any proper build_system")
+                    return False
+
             runner = input_config.get("runner")
 
             project.build_system = build_systems_dict[build_system.lower()]
@@ -50,6 +58,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
 
                 toolchain = build.get("toolchain")
                 sysroot = build.get("sysroot")
+                executables = build.get("executables")
 
                 build_machine_info = _get_by_id(
                     input_config["platforms"], build["build_machine"]
@@ -75,6 +84,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
                     recipe_info,
                     toolchain,
                     sysroot,
+                    executables,
                 ):
                     return False
 
@@ -93,6 +103,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     recipe_info: dict[str, str],
     toolchain: str | None,
     sysroot: str | None,
+    executables: list[str] | None,
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
 
@@ -105,7 +116,9 @@ def _create_build(  # pylint: disable=R0913,R0917
     if not _has_valid_arch(run_machine):
         return False
 
-    build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
+    build = general.Build(
+        build_machine, run_machine, build_path, toolchain, sysroot, executables
+    )
 
     build.config_flags = recipe_info["config_flags"]
     build.compiler_flags = recipe_info["compiler_flags"]
@@ -186,3 +199,25 @@ def _has_valid_arch(machine: general.MachineInfo) -> bool:
             return False
 
     return True
+
+
+def _get_analyzed_build_system() -> str | None:
+    """Function to get build system from analyzed project
+
+    :rtype: str | None
+    :return: Outcome value :\n
+         Build system name if it was found
+         None if build system was not found or
+         analysis was not completed
+    """
+
+    try:
+        with open(ANALYZED_FILE, "r", encoding="UTF-8") as file:
+            for i in file:
+                build_system = i.split(":")
+                if build_system[1].strip().lower() == "true":
+                    return build_system[0].strip().lower()
+            return None
+
+    except FileNotFoundError:
+        return None
