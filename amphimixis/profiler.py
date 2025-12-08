@@ -35,16 +35,38 @@ _commands_args: dict[str, dict[str, str]] = {
 class Profiler:
     """Class for profiling an executable within a project."""
 
-    def __init__(self, build: general.Build, executable: str = ""):
+    def __init__(self, build: general.Build):
         self.logger = logger.setup_logger("PROFILER")
         self.machine = build.run_machine
         self.build = build
-        self.executable = executable
         self.shell = shell.Shell(self.machine).connect()
         self.stats: dict[Stats, str] = {}
         self.record_filename = _generate_record_filename(build.build_id)
 
-    def execution_time(self) -> bool:
+    def profile_all(
+        self,
+        test_executable: bool = True,
+        execution_time: bool = True,
+        stat_collect: bool = True,
+        record_collect: bool = True,
+    ):
+        """Run profiler on every executable"""
+
+        for executable in self.build.executables:
+            if test_executable:
+                if not self.test_executable(executable):
+                    continue
+
+            if execution_time:
+                self.execution_time(executable)
+
+            if stat_collect:
+                self.perf_stat_collect(executable)
+
+            if record_collect:
+                self.perf_record_collect(executable)
+
+    def execution_time(self, executable: str) -> bool:
         """Measure execution time: real, user, kernel"""
 
         error, _, stderr = self.shell.run(f"cd {self.build.build_path}")
@@ -52,9 +74,9 @@ class Profiler:
             self.logger.error("".join(stderr[0]))
             return False
 
-        command = self._command("time", stderr_clear=False)
+        command = self._command(executable, "time", stderr_clear=False)
         self.logger.info(
-            "Measure execution time %s\n\tCommand: %s", self.executable, command
+            "Measure execution time %s\n\tCommand: %s", executable, command
         )
 
         error, stdout, stderr = self.shell.run(command)
@@ -74,11 +96,11 @@ class Profiler:
 
         return True
 
-    def test_executable(self) -> bool:
+    def test_executable(self, executable: str) -> bool:
         """Checks if executable runs and returns no errors"""
 
         error, stdout, stderr = self.shell.run(
-            f"cd {self.build.build_path}", f"./{self.executable}"
+            f"cd {self.build.build_path}", f"./{executable}"
         )
         if error != 0:
             error_message = "STDERR: " + "".join(line for cmd in stdout for line in cmd)
@@ -93,7 +115,7 @@ class Profiler:
 
         return error == 0
 
-    def perf_stat_collect(self, options: str = "") -> bool:
+    def perf_stat_collect(self, executable: str, options: str = "") -> bool:
         """Collect performance statistics using 'perf stat'."""
 
         error, _, stderr = self.shell.run(
@@ -104,7 +126,7 @@ class Profiler:
             self.logger.error("".join(stderr[0]))
             return False
 
-        command = self._command("stat", options)
+        command = self._command(executable, "stat", options)
         self.logger.info("Collecting perfomance counters with:\n\t%s", command)
         error, _, stderr = self.shell.run(command)
 
@@ -118,7 +140,7 @@ class Profiler:
 
         return True
 
-    def perf_record_collect(self, options: str = "") -> bool:
+    def perf_record_collect(self, executable: str, options: str = "") -> bool:
         """Collect performance records using 'perf record'."""
 
         error, _, stderr = self.shell.run(
@@ -130,7 +152,7 @@ class Profiler:
             return False
 
         options += f"-o {self.record_filename}"
-        command = self._command("record", options)
+        command = self._command(executable, "record", options)
         error, _, stderr = self.shell.run(command)
 
         if error != 0:
@@ -166,8 +188,10 @@ class Profiler:
     def _get_stats_filename(self) -> str:
         return f"{self.build.build_id}.stats"
 
+    # pylint: disable=too-many-positional-arguments,too-many-arguments
     def _command(
         self,
+        executable: str,
         module: str,
         options: str = "",
         stdout_clear: bool = False,
@@ -184,7 +208,7 @@ class Profiler:
             if arg != "cmd":
                 command.append(_commands_args[module][arg])
 
-        command.append(f"sh -c './{self.executable}")
+        command.append(f"sh -c './{executable}")
         if stdout_clear:
             command.append("1>/dev/null")
 

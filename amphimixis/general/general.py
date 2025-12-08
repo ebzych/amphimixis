@@ -60,6 +60,7 @@ class Build:
     build_path: str
     toolchain: str | None
     sysroot: str | None
+    executables: list[str]
     build_id: str = ""
     config_flags: str = ""
     compiler_flags: str = ""
@@ -72,7 +73,7 @@ class Project:
     :var str path: Path to project for research.
     :var type[IBuildSystem] build_system: High-level build system interface.
     :var type[IBuildSystem] runner: Low-level build system interface.
-    :var list[Build]: List of project configurations to be build.
+    :var list[Build] builds: List of project configurations to be build.
     """
 
     path: str

@@ -165,7 +165,7 @@ def main():
             parse_config(project, config_file_path=str(config_file))
             Builder.build(project)
             profiler_ = Profiler(project.builds[0])
-            profiler_.execution_time()
+            profiler_.profile_all()
             print(profiler_.stats)
 
         if args.analyze:
@@ -178,7 +178,7 @@ def main():
 
         if args.profile:
             profiler_ = Profiler(project.builds[0])
-            profiler_.execution_time()
+            profiler_.profile_all()
             print(profiler_.stats)
 
         sys.exit(0)

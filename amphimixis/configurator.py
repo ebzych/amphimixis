@@ -105,7 +105,9 @@ def _create_build(  # pylint: disable=R0913,R0917
     if not _has_valid_arch(run_machine):
         return False
 
-    build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
+    build = general.Build(
+        build_machine, run_machine, build_path, toolchain, sysroot, []
+    )
 
     build.config_flags = recipe_info["config_flags"]
     build.compiler_flags = recipe_info["compiler_flags"]
