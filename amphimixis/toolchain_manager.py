@@ -21,6 +21,8 @@ _PLATFORMS = "platforms"
 _SYSROOTS = "sysroots"
 _TOOLCHAINS = "toolchains"
 
+_STD_INDENT = 4
+
 
 class ToolchainManager:
     """Toolchain Manager"""
@@ -185,21 +187,23 @@ class ToolchainManager:
 
     @staticmethod
     def add_toolchain(
-        toolchain_name: str,
+        toolchain: Toolchain,
         machine_or_name: MachineInfo | str,
-        path: str,
         target_arch: Arch,
     ) -> bool:
         """Add toolchain to amphimixis global config (toolbox)"""
         # temporary pylint disable
         # pylint: disable=no-else-raise
-        toolchain_data: dict[str, str] = {}
+
+        if not toolchain.data:
+            return False
+
+        toolchain_data: dict[str, str | dict[str, str]] = {}
         platform_name: str
         if isinstance(machine_or_name, str):
-            if ToolchainManager.find_platform(machine_or_name) is not None:
-                toolchain_data["platform"] = machine_or_name
-            else:
+            if ToolchainManager.find_platform(machine_or_name) is None:
                 return False
+            toolchain_data["platform"] = machine_or_name
         else:
             if machine_or_name.address is not None:  # else: localhost
                 if not (
@@ -211,15 +215,17 @@ class ToolchainManager:
                     ToolchainManager.add_platform(platform_name, machine_or_name)
                 toolchain_data["platform"] = platform_name
 
-        toolchain_data["path"] = path
         toolchain_data["target_arch"] = target_arch.value
+        toolchain_data["attributes"] = toolchain.data
+        if toolchain.sysroot:
+            toolchain_data["sysroot"] = toolchain.sysroot
 
         _toolbox = ToolchainManager.parse_config_file()
-        _toolbox[_TOOLCHAINS][toolchain_name] = toolchain_data
+        _toolbox[_TOOLCHAINS][toolchain.name] = toolchain_data
         with open(
             f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
             "w",
             encoding="utf-8",
         ) as f_toolbox:
-            yaml.safe_dump(_toolbox, f_toolbox)
+            yaml.safe_dump(_toolbox, f_toolbox, indent=_STD_INDENT)
         return True

@@ -1,7 +1,6 @@
 """The common module that is used in most other modules"""
 
 from abc import ABC, abstractmethod
-from curses.ascii import isalpha
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -134,8 +133,6 @@ class CompilerFlags(StrEnum):
 class ToolchainAttrs(StrEnum):
     """Constants for getting access to attributes from toolchain dictionary"""
 
-    SYSROOT = "sysroot"
-
     # TOOLS: postfix "_t" means "tool"
     AR_T = "ar"
     AS_T = "as"
@@ -168,26 +165,30 @@ class ToolchainAttrs(StrEnum):
 class Toolchain:
     """Class that generalized idea of toolchain"""
 
-    __tools: dict[ToolchainAttrs, str]  # attr -> [ /path/to/any | flags ]
-    __name: str | None = None
+    def __init__(self, name: str | None = None, sysroot: str | None = None):
+        self.__attrs: dict[str, str] = {}  # attr -> [ /path/to/any | flags ]
+        self.__name = name
+        self.__sysroot = sysroot
 
     @property
     def name(self) -> str | None:
         """Name of toolchain getter"""
         return self.__name
 
-    @name.setter
-    def name(self, new_name: str) -> bool:
-        """Name of toolchain setter"""
-        if all(isalpha(ch) for ch in new_name):
-            __name = new_name
-            return True
-        return False
+    @property
+    def sysroot(self) -> str | None:
+        """Sysroot of toolchain getter"""
+        return self.__sysroot
 
-    def get(self, attr: ToolchainAttrs) -> str | None:
+    def get(self, attr: ToolchainAttrs | CompilerFlags) -> str | None:
         """Getter of toolchain attributes"""
-        return self.__tools.get(attr)
+        return self.__attrs.get(attr.value)
 
-    def set(self, attr: ToolchainAttrs, new_value: str) -> None:
+    def set(self, attr: ToolchainAttrs | CompilerFlags, new_value: str) -> None:
         """Setter of toolchain attributes"""
-        self.__tools[attr] = new_value
+        self.__attrs[attr.value] = new_value
+
+    @property
+    def data(self) -> dict[str, str]:
+        """Return dictionary with all tools"""
+        return self.__attrs

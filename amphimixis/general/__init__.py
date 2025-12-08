@@ -1,16 +1,16 @@
 """The common module that is used in most other modules"""
 
-from amphimixis.general.colors import (
-    Colors,
-)
-
+from amphimixis.general.colors import Colors
 from amphimixis.general.general import (
+    Arch,
     Build,
+    CompilerFlags,
     IBuildSystem,
     MachineAuthenticationInfo,
     MachineInfo,
     Project,
-    Arch,
+    Toolchain,
+    ToolchainAttrs,
 )
 
 __all__ = [
@@ -23,4 +23,7 @@ __all__ = [
     "Colors",
     "MachineInfo",
     "MachineAuthenticationInfo",
+    "Toolchain",
+    "ToolchainAttrs",
+    "CompilerFlags",
 ]
