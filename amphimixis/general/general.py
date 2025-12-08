@@ -45,6 +45,7 @@ class MachineInfo:
     auth: MachineAuthenticationInfo | None
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class Build:
     """Class with information about one build of project
@@ -57,6 +58,7 @@ class Build:
     build_machine: MachineInfo
     run_machine: MachineInfo
     build_path: str
+    executables: list[str]
     toolchain: str | None
     sysroot: str | None
     config_flags: str = ""
