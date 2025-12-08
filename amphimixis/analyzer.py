@@ -1,22 +1,24 @@
 """Module that analyzes project's repository and creates file with its information"""
 
 import glob
+import re
 from os import listdir, path
 
 import yaml
 
-from amphimixis import general, logger
+from amphimixis.general import general
+from amphimixis.logger import setup_logger
 
-log = logger.setup_logger("ANALYZER")
+_logger = setup_logger("analyzer")
 
 ci_list = ["**/ci", "**/.github/workflows"]
 
 build_systems_list = {
     "cmake": ["**/CMakeLists.txt"],
     "meson": ["**/*meson*"],
-    "bazel": ["**/*bazel*", "**/BUILD"],
+    "bazel": ["**/*bazel*", "**/BUILD", "**/WORKSPACE"],
     "make": ["**/Makefile", "**/makefile"],
-    "SCons": ["**SCons*"],
+    "SCons": ["**/*SCons*"],
     "autotools": ["**/configure.ac", "**/configure.in"],
     "needs_bootstrap": ["bootstrap"],
 }
@@ -34,12 +36,11 @@ def analyze(project: general.Project):
     }
 
     proj_path = project.path
-
     if not path.exists(proj_path):
-        log.error("Directory '%s' not found", proj_path)
-        raise FileNotFoundError(f'Directory "{proj_path}" not found')
+        _logger.error("Directory '%s' not found", proj_path)
+        return False
 
-    log.info("Analyzing %s", path.basename(path.normpath(proj_path)))
+    _logger.info("Analyzing %s", path.basename(path.normpath(proj_path)))
 
     _search_tests(proj_path, results)
     _search_benchmarks(proj_path, results)
@@ -49,14 +50,14 @@ def analyze(project: general.Project):
 
     _file_output(results["build_systems"])
 
-    log.info("Analyzing done")
+    _logger.info("Analyzing done")
 
-    return results
+    return True
 
 
-def _rel_path(proj_path, paths):
+def _rel_path(proj_path, p):
     parent_dir = path.dirname(path.normpath(proj_path))
-    return [path.relpath(p, parent_dir) for p in paths]
+    return path.relpath(p, parent_dir)
 
 
 def _find_paths(proj_path, pattern, dirs_only=True):
@@ -64,13 +65,14 @@ def _find_paths(proj_path, pattern, dirs_only=True):
     return [p for p in paths if path.isdir(p)] if dirs_only else paths
 
 
-def _log_results(proj_path, results, key, paths):
-    rel_paths = _rel_path(proj_path, paths) if paths else []
-    if rel_paths:
-        results[key] = rel_paths[0]
-        log.info("found %s: %s", key, rel_paths[0])
+def _logger_results(proj_path, results, key, paths):
+    if paths:
+        first_path = paths[0]
+        rel_path = _rel_path(proj_path, first_path)
+        results[key] = rel_path
+        _logger.info("found %s: %s", key, rel_path)
     else:
-        log.info("%s not found", key)
+        _logger.info("%s: not found", key)
 
 
 def _file_output(results, file_name="amphimixis.analyzed"):
@@ -84,12 +86,12 @@ def _file_output(results, file_name="amphimixis.analyzed"):
 
 def _search_tests(proj_path, results):
     paths = _find_paths(proj_path, "**/*test*")
-    _log_results(proj_path, results, "tests", paths)
+    _logger_results(proj_path, results, "tests", paths)
 
 
 def _search_benchmarks(proj_path, results):
     paths = _find_paths(proj_path, "**/*bench*")
-    _log_results(proj_path, results, "benchmarks", paths)
+    _logger_results(proj_path, results, "benchmarks", paths)
 
 
 def _search_ci(proj_path, results):
@@ -97,56 +99,65 @@ def _search_ci(proj_path, results):
     for pattern in ci_list:
         paths.extend(_find_paths(proj_path, pattern))
 
-    _log_results(proj_path, results, "ci", paths)
+    _logger_results(proj_path, results, "ci", paths)
 
 
 def _search_build_systems(proj_path, results):
-    log.info("build systems:")
+    _logger.info("build systems:")
     found = False
     for system, patterns in build_systems_list.items():
         for pat in patterns:
-            if _find_paths(proj_path, pat, dirs_only=False):
+            matched_paths = _find_paths(proj_path, pat, dirs_only=False)
+            matched_files = [p for p in matched_paths if path.isfile(p)]
+            if matched_files:
                 results["build_systems"][system] = True
-                log.info(" %s", system)
+                _logger.info("  %s", system)
                 found = True
                 break
 
     if not found:
-        log.info(" not found")
+        _logger.info("  not found")
 
 
 def _search_dependencies(proj_path, results):
-    log.info("dependencies:")
+    _logger.info("dependencies:")
+
+    _third_party_dependencies(proj_path, results)
+    _cmake_dependencies(proj_path, results)
+
+    # no dependencies
+    if not results["dependencies"]:
+        _logger.info("  not found")
+
+
+def _third_party_dependencies(proj_path, results):
+    # third party dependencies
+
     dep_path = path.join(proj_path, "third_party")
     if path.exists(dep_path):
         dirs = [d for d in listdir(dep_path) if path.isdir(path.join(dep_path, d))]
-        results["dependencies"].extend(dirs)
+        for d in dirs:
+            if d not in results["dependencies"]:
+                results["dependencies"].append(d)
+                _logger.info("  %s", d)
 
-    if results["dependencies"]:
-        for dep in results["dependencies"]:
-            log.info(" %s", dep)
+
+def _cmake_dependencies(proj_path, results):
+    # cmake dependencies
 
     if results["build_systems"]["cmake"] is True:
         file_path = path.join(proj_path, "CMakeLists.txt")
+        if not path.isfile(file_path):
+            _logger.info("  no CMakeLists.txt in project root")
+            return
+
         with open(file_path, "r", encoding="utf8") as file:
-            for line in file:
-                index_of_find_package = line.find("find_package(")
-                if index_of_find_package == -1:
-                    continue
+            text = file.read()
 
-                after_find_package = line[
-                    index_of_find_package + len("find_package(") :
-                ]
-                package = ""
-                for character in after_find_package:
-                    if character in (" ", ")"):
-                        break
-
-                    package += character
-
-                if package not in results["dependencies"]:
-                    results["dependencies"].append(package)
-                    log.info(" %s", package)
-
-    if not results["dependencies"]:
-        log.info("not found")
+        text = re.sub(r"#.*", "", text)
+        pattern = r"find_package\s*\(\s*([\w+-]+)"
+        packages = re.findall(pattern, text, flags=re.IGNORECASE)
+        for package in packages:
+            if package not in results["dependencies"]:
+                results["dependencies"].append(package)
+                _logger.info("  %s", package)
