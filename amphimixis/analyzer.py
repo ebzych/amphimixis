@@ -18,7 +18,7 @@ build_systems_list = {
     "meson": ["**/*meson*"],
     "bazel": ["**/*bazel*", "**/BUILD", "**/WORKSPACE"],
     "make": ["**/Makefile", "**/makefile"],
-    "SCons": ["**SCons*"],
+    "SCons": ["**/*SCons*"],
     "autotools": ["**/configure.ac", "**/configure.in"],
     "needs_bootstrap": ["bootstrap"],
 }
