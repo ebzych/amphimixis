@@ -55,9 +55,9 @@ def analyze(project: general.Project):
     return True
 
 
-def _rel_path(proj_path, paths):
+def _rel_path(proj_path, p):
     parent_dir = path.dirname(path.normpath(proj_path))
-    return [path.relpath(p, parent_dir) for p in paths]
+    return path.relpath(p, parent_dir)
 
 
 def _find_paths(proj_path, pattern, dirs_only=True):
@@ -66,10 +66,11 @@ def _find_paths(proj_path, pattern, dirs_only=True):
 
 
 def _logger_results(proj_path, results, key, paths):
-    rel_paths = _rel_path(proj_path, paths) if paths else []
-    if rel_paths:
-        results[key] = rel_paths[0]
-        _logger.info("found %s: %s", key, rel_paths[0])
+    if paths:
+        first_path = paths[0]
+        rel_path = _rel_path(proj_path, first_path)
+        results[key] = rel_path
+        _logger.info("found %s: %s", key, rel_path)
     else:
         _logger.info("%s: not found", key)
 
@@ -121,7 +122,17 @@ def _search_build_systems(proj_path, results):
 def _search_dependencies(proj_path, results):
     _logger.info("dependencies:")
 
+    _third_party_dependencies(proj_path, results)
+    _cmake_dependencies(proj_path, results)
+
+    # no dependencies
+    if not results["dependencies"]:
+        _logger.info("  not found")
+
+
+def _third_party_dependencies(proj_path, results):
     # third party dependencies
+
     dep_path = path.join(proj_path, "third_party")
     if path.exists(dep_path):
         dirs = [d for d in listdir(dep_path) if path.isdir(path.join(dep_path, d))]
@@ -130,7 +141,10 @@ def _search_dependencies(proj_path, results):
                 results["dependencies"].append(d)
                 _logger.info("  %s", d)
 
+
+def _cmake_dependencies(proj_path, results):
     # cmake dependencies
+
     if results["build_systems"]["cmake"] is True:
         file_path = path.join(proj_path, "CMakeLists.txt")
         if not path.isfile(file_path):
@@ -147,7 +161,3 @@ def _search_dependencies(proj_path, results):
             if package not in results["dependencies"]:
                 results["dependencies"].append(package)
                 _logger.info("  %s", package)
-
-    # no dependencies
-    if not results["dependencies"]:
-        _logger.info("  not found")
