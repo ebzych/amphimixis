@@ -149,6 +149,10 @@ def _is_valid_build(build: dict[str, str]):
     if sysroot is not None and not isinstance(sysroot, str):
         _warn(f"Invalid sysrott in build: {sysroot}")
 
+    executables = build.get("executables")
+    if executables is not None and not isinstance(executables, list):
+        _warn(f"Invalid executables in build: {executables}")
+
 
 def _is_valid_address(address: str) -> bool:
     """Function to check whether address is valid

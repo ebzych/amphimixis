@@ -58,6 +58,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
 
                 toolchain = build.get("toolchain")
                 sysroot = build.get("sysroot")
+                executables = build.get("executables")
 
                 build_machine_info = _get_by_id(
                     input_config["platforms"], build["build_machine"]
@@ -83,6 +84,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
                     recipe_info,
                     toolchain,
                     sysroot,
+                    executables,
                 ):
                     return False
 
@@ -101,6 +103,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     recipe_info: dict[str, str],
     toolchain: str | None,
     sysroot: str | None,
+    executables: list[str] | None,
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
 
@@ -113,7 +116,9 @@ def _create_build(  # pylint: disable=R0913,R0917
     if not _has_valid_arch(run_machine):
         return False
 
-    build = general.Build(build_machine, run_machine, build_path, toolchain, sysroot)
+    build = general.Build(
+        build_machine, run_machine, build_path, toolchain, sysroot, executables
+    )
 
     build.config_flags = recipe_info["config_flags"]
     build.compiler_flags = recipe_info["compiler_flags"]
