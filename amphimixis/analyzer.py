@@ -40,20 +40,15 @@ def analyze(project: general.Project):
         _logger.error("Directory '%s' not found", proj_path)
         return False
 
-    try:
-        _logger.info("Analyzing %s", path.basename(path.normpath(proj_path)))
+    _logger.info("Analyzing %s", path.basename(path.normpath(proj_path)))
 
-        _search_tests(proj_path, results)
-        _search_benchmarks(proj_path, results)
-        _search_ci(proj_path, results)
-        _search_build_systems(proj_path, results)
-        _search_dependencies(proj_path, results)
+    _search_tests(proj_path, results)
+    _search_benchmarks(proj_path, results)
+    _search_ci(proj_path, results)
+    _search_build_systems(proj_path, results)
+    _search_dependencies(proj_path, results)
 
-        _file_output(results["build_systems"])
-
-    except FileNotFoundError:
-        _logger.error("Directory '%s' not found", proj_path)
-        return False
+    _file_output(results["build_systems"])
 
     _logger.info("Analyzing done")
 
