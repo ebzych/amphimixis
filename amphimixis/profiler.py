@@ -17,6 +17,9 @@ class Stats(Enum):
     PERF_STAT = 4
 
 
+ProfilerStats = dict[Stats, str]
+
+
 _commands_args: dict[str, dict[str, str]] = {
     "stat": {
         "cmd": "perf stat",
@@ -41,8 +44,7 @@ class Profiler:
         self.build = build
         self.executables = build.executables.copy()
         self.shell = shell.Shell(self.machine).connect()
-        self.stats: dict[Stats, str] = {}
-        self.record_filename = _generate_record_filename(build.build_id)
+        self.stats: dict[str, ProfilerStats]
 
     def profile_all(
         self,
@@ -78,6 +80,9 @@ class Profiler:
     def execution_time(self, executable: str) -> bool:
         """Measure execution time: real, user, kernel"""
 
+        if executable not in self.stats:
+            self.stats.update({executable: {}})
+
         error, _, stderr = self.shell.run(f"cd {self.build.build_path}")
         if error != 0:
             self.logger.error("".join(stderr[0]))
@@ -95,7 +100,7 @@ class Profiler:
             self.logger.error(error_message)
             return False
 
-        self.stats.update(
+        self.stats[executable].update(
             {
                 Stats.REAL_TIME: stderr[0][-3],
                 Stats.USER_TIME: stderr[0][-2],
@@ -108,6 +113,9 @@ class Profiler:
     def test_executable(self, executable: str) -> bool:
         """Checks if executable runs and returns no errors"""
 
+        if executable not in self.stats:
+            self.stats.update({executable: {}})
+
         error, stdout, stderr = self.shell.run(
             f"cd {self.build.build_path}", f"./{executable}"
         )
@@ -119,7 +127,7 @@ class Profiler:
             )
             self.logger.error(error_message)
 
-        self.stats.update(
+        self.stats[executable].update(
             {Stats.EXECUTABLE_RUN_SUCCESS: "true" if error == 0 else "false"}
         )
 
@@ -127,6 +135,9 @@ class Profiler:
 
     def perf_stat_collect(self, executable: str, options: str = "") -> bool:
         """Collect performance statistics using 'perf stat'."""
+
+        if executable not in self.stats:
+            self.stats.update({executable: {}})
 
         error, _, stderr = self.shell.run(
             f"cd {self.build.build_path}",
@@ -146,7 +157,7 @@ class Profiler:
             )
             return False
 
-        self.stats.update({Stats.PERF_STAT: "".join(stderr[0])})
+        self.stats[executable].update({Stats.PERF_STAT: "".join(stderr[0])})
 
         return True
 
