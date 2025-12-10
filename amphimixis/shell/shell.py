@@ -116,8 +116,8 @@ class Shell:
         """Send a file or folder to the target machine
         Absolute paths are needed
 
-        :var str source: absolute path to a file or folder on the host machine
-        :var str destination: absolute path to copy a file or folder to on the controlled machine
+        :param str source: absolute path to a file or folder on the host machine
+        :param str destination: absolute path to copy a file or folder to on the controlled machine
 
         :return: True if successfully copied else False
         """
@@ -134,8 +134,8 @@ class Shell:
         """Gets a file or folder from the target machine
         Absolute paths are needed
 
-        :var str source: absolute path to a file or folder on the controlled machine
-        :var str destination: absolute path to copy a file or folder to on the host machine
+        :param str source: absolute path to a file or folder on the controlled machine
+        :param str destination: absolute path to copy a file or folder to on the host machine
 
         :return: True if successfully copied else False
         """
@@ -150,11 +150,13 @@ class Shell:
     def get_project_workdir(self, project: Project) -> str:
         """Gets a working directory for amphimixis
 
-        :var Project project: Project object to determine the project name
+        :param Project project: Project object to determine the project name
 
         :rtype: str
-        :return: In case of remote machine: `~/${AMPHIMIXIS_DIRECTORY_NAME}/`.
-                 In case of local machine: current working directory.
+        :return: In case of remote machine:
+                 expanded `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}_builds`.\n
+
+                 In case of local machine: python process current working directory.
         """
 
         if self._project_workdir != "":
