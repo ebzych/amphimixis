@@ -36,7 +36,7 @@ _commands_args: dict[str, dict[str, str]] = {
 
 
 class Profiler:
-    """Class for profiling an executable within a project."""
+    """Class for profiling a build within a project."""
 
     def __init__(self, build: general.Build):
         self.logger = logger.setup_logger("PROFILER")
@@ -53,7 +53,32 @@ class Profiler:
         stat_collect: bool = True,
         record_collect: bool = True,
     ) -> bool:
-        """Run profiler on every executable"""
+        """
+        Run profiling on every executable.\n
+        If `build.executables` is empty, finds executables in `build.build_path`.
+
+        :type test_executable: bool
+        :param test_executable: Run an executable smoke test if `True`.
+            Saves result in `self.stats[EXECUTABLE][Stats.EXECUTABLE_RUN_SUCCESS]`.
+
+        :type execution_time: bool
+        :param execution_time: run an executable time measurement if `True`.
+            Saves result in `self.stats[EXECUTABLE]` dictionary with keys `Stats.REAL_TIME`,
+            `Stats.USER_TIME`, `Stats.KERNEL_TIME`.
+
+        :type stat_collect: bool
+        :param stat_collect: collect perfomance counters if `True`.
+            Saves result in `self.stats[EXECUTABLE][Stats.PERF_STAT]`.
+
+        :type record_collect: bool
+        :param record_collect: collect counters using sampling if `True`.
+            Saves `perf.data` into `self.get_record_filename()`
+            file in the working directory.
+
+        :return: False if no executable is found. Otherwise True.
+        :rtype: bool
+        """
+
         if not self.executables:
             self.executables = self._find_executables()
 
@@ -78,7 +103,14 @@ class Profiler:
         return True
 
     def execution_time(self, executable: str) -> bool:
-        """Measure execution time: real, user, kernel"""
+        """
+        Measure execution time: real, user, kernel
+
+        :param executable: relative to `build_path` path to executable
+        :type executable: str
+        :return: `False` if non-zero error code is returned. Otherwise `True`
+        :rtype: bool
+        """
 
         if executable not in self.stats:
             self.stats.update({executable: {}})
@@ -111,7 +143,16 @@ class Profiler:
         return True
 
     def test_executable(self, executable: str) -> bool:
-        """Checks if executable runs and returns no errors"""
+        """
+        Checks if executable runs and returns no errors.\n
+        Updates `self.stats[EXECUTABLE]` dictionary with `Stats.EXECUTABLE_RUN_SUCCESS` key
+
+        :param executable: relative to `build_path` path to executable
+        :type executable: str
+        :return: True if the executable return 0. False if can't run the executable or
+                 non-zero error code is returned.
+        :rtype: bool
+        """
 
         if executable not in self.stats:
             self.stats.update({executable: {}})
@@ -134,7 +175,17 @@ class Profiler:
         return error == 0
 
     def perf_stat_collect(self, executable: str, options: str = "") -> bool:
-        """Collect performance statistics using 'perf stat'."""
+        """
+        Collect performance statistics using `perf stat`.\n
+        Updates `self.stats[EXECUTABLE]` dictionary with `Stats.PERF_STAT` key
+
+        :param executable: relative to `build_path` path to executable
+        :type executable: str
+        :param options: `perf stat` additional options
+        :type options: str
+        :return: `False` if `perf stat` return non-zero error code. Otherwise `True`
+        :rtype: bool
+        """
 
         if executable not in self.stats:
             self.stats.update({executable: {}})
@@ -162,7 +213,17 @@ class Profiler:
         return True
 
     def perf_record_collect(self, executable: str, options: str = "") -> bool:
-        """Collect performance records using 'perf record'."""
+        """
+        Collect performance records using `perf record`.\n
+        Saves `perf.data` into `self.get_record_filename()` file in the working directory.
+
+        :param executable: relative to `build_path` path to executable
+        :type executable: str
+        :param options: `perf record` additional options
+        :type options: str
+        :return: `False` if can't collect samples. Otherwise `True`
+        :rtype: bool
+        """
 
         error, _, stderr = self.shell.run(
             f"cd {self.build.build_path}",
