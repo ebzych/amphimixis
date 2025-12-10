@@ -79,6 +79,7 @@ class CustomFormatterClass(
         return f"{banner}\n{help_text}\n{examples}"
 
 
+# pylint: disable=too-many-branches
 def main():
     """Main function for the Amphimixis CLI tool."""
 
@@ -165,8 +166,10 @@ def main():
             parse_config(project, config_file_path=str(config_file))
             Builder.build(project)
             profiler_ = Profiler(project.builds[0])
-            profiler_.profile_all()
-            print(profiler_.stats)
+            if profiler_.profile_all():
+                print(profiler_.stats)
+            else:
+                print("Executables not found")
 
         if args.analyze:
             analyze(project)
@@ -178,8 +181,10 @@ def main():
 
         if args.profile:
             profiler_ = Profiler(project.builds[0])
-            profiler_.profile_all()
-            print(profiler_.stats)
+            if profiler_.profile_all():
+                print(profiler_.stats)
+            else:
+                print("Executables not found")
 
         sys.exit(0)
 
