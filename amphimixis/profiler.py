@@ -119,6 +119,7 @@ class Profiler:
         error, stdout, stderr = self.shell.run(
             f"cd {self.build.build_path}", f"./{executable}"
         )
+
         if error != 0:
             error_message = "STDERR: " + "".join(line for cmd in stderr for line in cmd)
             error_message += "STDOUT: " + "".join(
@@ -171,7 +172,7 @@ class Profiler:
             self.logger.error("".join(stderr[0]))
             return False
 
-        options += f"-o {self.record_filename}"
+        options += f"-o {self.get_record_filename(executable)}"
         command = self._command(executable, "record", options)
         error, _, stderr = self.shell.run(command)
 
@@ -189,8 +190,8 @@ class Profiler:
 
         remote_workdir = stdout[0][0].strip()
         if not self.shell.copy_to_host(
-            os.path.join(remote_workdir, self.record_filename),
-            os.path.join(os.getcwd(), self.record_filename),
+            os.path.join(remote_workdir, self.get_record_filename(executable)),
+            os.path.join(os.getcwd(), self.get_record_filename(executable)),
         ):
             self.logger.error("Can't copy perf.data file")
             return False
@@ -204,6 +205,11 @@ class Profiler:
             self.stats,
             os.path.join(os.getcwd(), self._get_stats_filename()),
         )
+
+    def get_record_filename(self, executable: str) -> str:
+        """Gets perf record output file name."""
+
+        return f"{self.build.build_id}_{os.path.normpath(executable)}.data"
 
     def _get_stats_filename(self) -> str:
         return f"{self.build.build_id}.stats"
@@ -224,6 +230,7 @@ class Profiler:
         command.append(_commands_args[module]["cmd"])
         if options:
             command.append(options)
+
         for arg in _commands_args[module]:
             if arg != "cmd":
                 command.append(_commands_args[module][arg])
@@ -251,10 +258,6 @@ class Profiler:
             return []
 
         return [line.strip() for line in stdout[1]]
-
-
-def _generate_record_filename(_id: str) -> str:
-    return f"{_id}.data"
 
 
 if __name__ == "__main__":
