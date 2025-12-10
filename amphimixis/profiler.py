@@ -42,6 +42,7 @@ class Profiler:
         self.logger = logger.setup_logger("PROFILER")
         self.machine = build.run_machine
         self.build = build
+        self.executables = build.executables.copy()
         self.shell = shell.Shell(self.machine).connect()
         self.stats: dict[str, ProfilerStats]
 
@@ -51,10 +52,16 @@ class Profiler:
         execution_time: bool = True,
         stat_collect: bool = True,
         record_collect: bool = True,
-    ):
+    ) -> bool:
         """Run profiler on every executable"""
+        if not self.executables:
+            self.executables = self._find_executables()
 
-        for executable in self.build.executables:
+        if not self.executables:
+            self.logger.error("Can't find any executables")
+            return False
+
+        for executable in self.executables:
             if test_executable:
                 if not self.test_executable(executable):
                     continue
@@ -67,6 +74,8 @@ class Profiler:
 
             if record_collect:
                 self.perf_record_collect(executable)
+
+        return True
 
     def execution_time(self, executable: str) -> bool:
         """Measure execution time: real, user, kernel"""
@@ -229,6 +238,19 @@ class Profiler:
         command.append("'")
 
         return " ".join(command)
+
+    def _find_executables(self) -> list[str]:
+        error, stdout, stderr = self.shell.run(
+            f"cd {self.build.build_path}", 'find -type f -executable -name "*test*"'
+        )
+
+        if error != 0:
+            self.logger.error(
+                "STDERR: %s", "".join(line for cmd in stderr for line in cmd)
+            )
+            return []
+
+        return [line.strip() for line in stdout[1]]
 
 
 def _generate_record_filename(_id: str) -> str:
