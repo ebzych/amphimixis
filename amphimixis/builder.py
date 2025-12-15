@@ -5,7 +5,6 @@ import os
 from amphimixis import logger
 from amphimixis.general.general import Build, Project
 from amphimixis.shell.shell import Shell
-from amphimixis.toolchain_manager import ToolchainManager
 
 _logger = logger.setup_logger("BUILDER")
 
@@ -41,9 +40,6 @@ class Builder:
                 return False
 
         try:
-            build.toolchain = ToolchainManager.get_toolchain_from_build(build)
-            build.sysroot = ToolchainManager.get_sysroot_from_build(build)
-
             configuration_prompt = project.build_system.get_build_system_prompt(
                 project, build
             )

@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
+from os.path import isabs
 
 
 class Arch(StrEnum):
@@ -183,6 +184,12 @@ class Toolchain:
     def sysroot(self) -> str | None:
         """Sysroot of toolchain getter"""
         return self.__sysroot
+
+    @sysroot.setter
+    def sysroot(self, new_path) -> None:
+        """Sysroot of toolchain setter"""
+        if isabs(new_path):
+            self.__sysroot = new_path
 
     def get(self, attr: ToolchainAttrs | CompilerFlags) -> str | None:
         """Getter of toolchain attributes"""
