@@ -9,9 +9,11 @@ from amphimixis import logger
 from amphimixis.general.general import (
     Arch,
     Build,
+    CompilerFlags,
     MachineAuthenticationInfo,
     MachineInfo,
     Toolchain,
+    ToolchainAttrs,
 )
 from amphimixis.shell.shell import Shell
 
@@ -62,64 +64,42 @@ class ToolchainManager:
             return template
 
     @staticmethod
-    def get_toolchain_from_build(build: Build) -> str | None:
-        """Resolve string Build.toolchain: absolute path or name of known toolchain
-        Return absolute path to toolchain on building machine"""
+    def construct_toolchain_from_build(build: Build) -> Toolchain | None:
+        """Resolve Build.toolchain and Build.sysroot: if it is name of known toolchain
+        return Toolchain object constructed from amphimixis global config"""
         if build.toolchain is None:
             if build.build_machine.arch != build.run_machine.arch:
                 raise ValueError(
-                    "Machine and toolchain compatible error: "
+                    "Machine and toolchain compatibility error: "
                     "architecture of running machine and "
                     "target architecture of toolchain is different"
                 )
             return None
 
-        toolchain_path: str
-        # temporary pylint disabling while 'else' not implemented
-        # pylint: disable=no-else-return
-        if isabs(build.toolchain):
-            toolchain_path = build.toolchain
-        else:
-            if build.toolchain.isalpha():
-                pass
-            raise NotImplementedError
+        if build.toolchain is Toolchain:
+            return build.toolchain
 
-        shell = Shell(build.build_machine)
-        shell.connect()
-        if shell.run(f"ls {toolchain_path}")[0] != 0:
-            raise ValueError("Toolchain not found on the building machine")
+        # if build.toolchain is a string with name of toolchain in config file
+        toolbox: dict = ToolchainManager.parse_config_file()
+        if build.toolchain in toolbox[_TOOLCHAINS]:
+            d_toolchain: dict = toolbox[_TOOLCHAINS][build.toolchain]
+            sysroot: str = d_toolchain["sysroot"]
+            if build.sysroot is not None:
+                if isabs(build.sysroot):
+                    sysroot = build.sysroot
+                elif build.sysroot in toolbox[_SYSROOTS]:
+                    sysroot = toolbox[_SYSROOTS][build.sysroot]
+                else:
+                    raise ValueError(
+                        "Not found sysroot with specified name in global config"
+                    )
 
-        return toolchain_path
+            toolchain: Toolchain = Toolchain(build.toolchain, sysroot)
+            for attr in d_toolchain.items():
+                toolchain.set(ToolchainAttrs[attr[0]], attr[1])
+            return toolchain
 
-    @staticmethod
-    def get_sysroot_from_build(build: Build) -> str | None:
-        """Resolve string Build.sysroot: absolute path or name of known sysroot
-        Return absolute path to sysroot on building machine"""
-        if build.sysroot is None:
-            if build.build_machine.arch != build.run_machine.arch:
-                raise ValueError(
-                    "Machine and sysroot compatible error: "
-                    "architecture of running machine and "
-                    "architecture of sysroot is different"
-                )
-            return None
-
-        sysroot_path: str
-        # temporary pylint disabling while 'else' not implemented
-        # pylint: disable=no-else-return
-        if isabs(build.sysroot):
-            sysroot_path = build.sysroot
-        else:
-            if build.sysroot.isalpha():
-                pass
-            raise NotImplementedError
-
-        shell = Shell(build.build_machine)
-        shell.connect()
-        if shell.run(f"ls {sysroot_path}")[0] != 0:
-            raise ValueError("Sysroot not found on the building machine")
-
-        return sysroot_path
+        raise ValueError("Not found toolchain with specified name in global config")
 
     @staticmethod
     def find_platform(platform_name: str) -> MachineInfo | None:
@@ -176,14 +156,6 @@ class ToolchainManager:
         except FileExistsError:
             _logger.error("Error with writing to config file")
             return False
-
-    @staticmethod
-    def find_toolchain(toolchain_name: str) -> str:
-        """Find toolchain in amphimixis global config (toolbox) by name
-
-        :rtype: str
-        :return: platform name if platform exists else empty string"""
-        raise NotImplementedError
 
     @staticmethod
     def add_toolchain(
