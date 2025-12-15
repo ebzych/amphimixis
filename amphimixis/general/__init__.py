@@ -8,6 +8,7 @@ from amphimixis.general.general import (
     IBuildSystem,
     MachineAuthenticationInfo,
     MachineInfo,
+    NullUI,
     Project,
 )
 
@@ -22,4 +23,5 @@ __all__ = [
     "MachineInfo",
     "MachineAuthenticationInfo",
     "IUI",
+    "NullUI",
 ]
