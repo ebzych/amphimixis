@@ -42,6 +42,10 @@ class Shell:
             return self
 
         if self.machine.auth is None:
+            self.logger.error(
+                "Remote machine [%s] has no authentication info", self.machine.address
+            )
+
             raise ArgumentError(
                 f"Remote machine [{self.machine.address}] has no authentication info"
             )
@@ -49,6 +53,7 @@ class Shell:
         try:
             socket.getaddrinfo(self.machine.address, None)
         except socket.gaierror as exception:
+            self.logger.error("%s is unknown address", self.machine.address)
             raise ArgumentError(
                 f"{self.machine.address} is unknown address"
             ) from exception
