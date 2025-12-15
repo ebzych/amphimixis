@@ -17,6 +17,17 @@ from amphimixis import (
     validate,
 )
 
+
+# pylint: disable=too-few-public-methods
+class CLI(general.IUI):
+    """CLI class implementing IUI interface"""
+
+    @staticmethod
+    def print(message: str) -> None:
+        """Print message to the console"""
+        print(message)
+
+
 YELLOW = "\033[93m"
 GRAY = "\033[90m"
 RESET = "\033[0m"
