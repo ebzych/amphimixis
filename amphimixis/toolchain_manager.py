@@ -192,9 +192,6 @@ class ToolchainManager:
         target_arch: Arch,
     ) -> bool:
         """Add toolchain to amphimixis global config (toolbox)"""
-        # temporary pylint disable
-        # pylint: disable=no-else-raise
-
         if not toolchain.data:
             return False
 
