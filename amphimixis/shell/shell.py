@@ -170,7 +170,7 @@ class Shell:
         self._project_workdir = os.path.join(
             self.get_home(),
             constants.AMPHIMIXIS_DIRECTORY_NAME,
-            os.path.basename(project.path) + "_builds",
+            os.path.basename(os.path.normpath(project.path)) + "_builds",
         )
 
         return self._project_workdir
