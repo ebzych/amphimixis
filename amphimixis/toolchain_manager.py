@@ -9,13 +9,11 @@ from amphimixis import logger
 from amphimixis.general.general import (
     Arch,
     Build,
-    CompilerFlags,
     MachineAuthenticationInfo,
     MachineInfo,
     Toolchain,
     ToolchainAttrs,
 )
-from amphimixis.shell.shell import Shell
 
 _logger = logger.setup_logger("TOOLCHAIN_MANAGER")
 
