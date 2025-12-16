@@ -184,11 +184,33 @@ class Shell:
         if not self._is_connected:
             self.connect()
 
+        if self._is_local:
+            self._homedir = os.path.expanduser("~")
+            if self._homedir == "":
+                self.logger.error("Can't get homedir for [local] machine")
+                raise RuntimeError("Can't get homedir for [local] machine")
+
         error, stdout, _ = self.run("echo ~")
 
+        if self.machine.auth is None:
+            self.logger.error(
+                "Remote machine [%s] has no authentication info", self.machine.address
+            )
+
+            raise ArgumentError(
+                f"Remote machine [{self.machine.address}] has no authentication info"
+            )
+
         if error != 0:
-            self.logger.error("Can't get workdir for %s", self.machine.address)
-            return ""
+            self.logger.error(
+                "Can't get homedir for [%s@%s] ",
+                self.machine.auth.username,
+                self.machine.address,
+            )
+
+            raise RuntimeError(
+                f"Can't get homedir for [{self.machine.auth.username}@{self.machine.address}]"
+            )
 
         self._homedir = stdout[0][0].strip()
         return self._homedir
