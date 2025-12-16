@@ -1,12 +1,13 @@
 """Module for shell operations."""
 
+import os
 import socket
 import subprocess
 from ctypes import ArgumentError
 from typing import List, Self, Tuple
 
 from amphimixis import logger
-from amphimixis.general import MachineInfo
+from amphimixis.general import MachineInfo, Project, constants
 from amphimixis.shell.local_shell_handler import _LocalShellHandler
 from amphimixis.shell.shell_interface import IShellHandler
 from amphimixis.shell.ssh_shell_handler import _SSHHandler
@@ -14,10 +15,11 @@ from amphimixis.shell.ssh_shell_handler import _SSHHandler
 _READING_BARRIER_FLAG = "READING_BARRIER_FLAG"
 
 
+# pylint: disable=too-many-instance-attributes
 class Shell:
     """Shell class to manage shell operations.
 
-    In case of local machine $SHELL is used as shell.
+    In case of local machine `bash` is used as shell.
     """
 
     def __init__(self, machine: MachineInfo, connect_timeout=5):
@@ -25,15 +27,25 @@ class Shell:
         self._shell: IShellHandler
         self.machine = machine
         self.connect_timeout = connect_timeout
+        self._project_workdir: str = ""
+        self._homedir: str = ""
+        self._is_connected: bool = False
+        self._is_local: bool = False
 
     def connect(self) -> Self:
         """Connect to the shell of the machine."""
 
         if self.machine.address is None:
             self._shell = _LocalShellHandler()
+            self._is_connected = True
+            self._is_local = True
             return self
 
         if self.machine.auth is None:
+            self.logger.error(
+                "Remote machine [%s] has no authentication info", self.machine.address
+            )
+
             raise ArgumentError(
                 f"Remote machine [{self.machine.address}] has no authentication info"
             )
@@ -41,11 +53,14 @@ class Shell:
         try:
             socket.getaddrinfo(self.machine.address, None)
         except socket.gaierror as exception:
+            self.logger.error("%s is unknown address", self.machine.address)
             raise ArgumentError(
                 f"{self.machine.address} is unknown address"
             ) from exception
 
         self._shell = _SSHHandler(self.machine, self.connect_timeout)
+        self._is_connected = True
+        self._is_local = False
 
         return self
 
@@ -131,6 +146,74 @@ class Shell:
             _source = f"{self.machine.auth.username}@{self.machine.address}:{source}"
 
         return self._copy(_source, destination)
+
+    def get_project_workdir(self, project: Project) -> str:
+        """Gets a working directory for amphimixis
+
+        :var Project project: Project object to determine the project name
+
+        :rtype: str
+        :return: In case of remote machine: `~/${AMPHIMIXIS_DIRECTORY_NAME}/`.
+                 In case of local machine: current working directory.
+        """
+
+        if self._project_workdir != "":
+            return self._project_workdir
+
+        if not self._is_connected:
+            self.connect()
+
+        if self._is_local:
+            self._project_workdir = os.getcwd()
+            return self._project_workdir
+
+        self._project_workdir = os.path.join(
+            self.get_home(),
+            constants.AMPHIMIXIS_DIRECTORY_NAME,
+            os.path.basename(os.path.normpath(project.path)) + "_builds",
+        )
+
+        return self._project_workdir
+
+    def get_home(self) -> str:
+        """Gets a home directory for current connection (user@machine)"""
+
+        if self._homedir != "":
+            return self._homedir
+
+        if not self._is_connected:
+            self.connect()
+
+        if self._is_local:
+            self._homedir = os.path.expanduser("~")
+            if self._homedir == "":
+                self.logger.error("Can't get homedir for [local] machine")
+                raise RuntimeError("Can't get homedir for [local] machine")
+
+        error, stdout, _ = self.run("echo ~")
+
+        if self.machine.auth is None:
+            self.logger.error(
+                "Remote machine [%s] has no authentication info", self.machine.address
+            )
+
+            raise ArgumentError(
+                f"Remote machine [{self.machine.address}] has no authentication info"
+            )
+
+        if error != 0:
+            self.logger.error(
+                "Can't get homedir for [%s@%s] ",
+                self.machine.auth.username,
+                self.machine.address,
+            )
+
+            raise RuntimeError(
+                f"Can't get homedir for [{self.machine.auth.username}@{self.machine.address}]"
+            )
+
+        self._homedir = stdout[0][0].strip()
+        return self._homedir
 
     def _copy(self, source: str, destination: str) -> bool:
         if self.machine.auth is None:
