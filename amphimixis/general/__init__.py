@@ -4,7 +4,7 @@ from amphimixis.general import constants
 from amphimixis.general.general import (
     Arch,
     Build,
-    Flags,
+    CompilerFlagsAttrs,
     IBuildSystem,
     MachineAuthenticationInfo,
     MachineInfo,
@@ -25,5 +25,5 @@ __all__ = [
     "MachineAuthenticationInfo",
     "Toolchain",
     "ToolchainAttrs",
-    "Flags",
+    "CompilerFlagsAttrs",
 ]
