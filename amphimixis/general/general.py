@@ -113,7 +113,7 @@ class IBuildSystem(ABC):
         """Generate runner prompt"""
 
 
-class Flags(StrEnum):
+class CompilerFlagsAttrs(StrEnum):
     """Enumeration for getting access to flags of concrete compiler"""
 
     C_FLAGS = "c_flags"
@@ -190,11 +190,11 @@ class Toolchain:
         if isabs(new_path):
             self.__sysroot = new_path
 
-    def get(self, attr: ToolchainAttrs | Flags) -> str | None:
+    def get(self, attr: ToolchainAttrs | CompilerFlagsAttrs) -> str | None:
         """Getter of toolchain attributes"""
         return self.__attrs.get(attr.value)
 
-    def set(self, attr: ToolchainAttrs | Flags, new_value: str) -> None:
+    def set(self, attr: ToolchainAttrs | CompilerFlagsAttrs, new_value: str) -> None:
         """Setter of toolchain attributes"""
         self.__attrs[attr.value] = new_value
 
@@ -208,17 +208,17 @@ class CompilerFlags:
     """Storing flags of compilers"""
 
     def __init__(self) -> None:
-        self.__attrs: dict[Flags, str] = {}  # attr -> compiler_flags
+        self.__attrs: dict[CompilerFlagsAttrs, str] = {}  # attr -> compiler_flags
 
-    def get(self, attr: Flags) -> str | None:
+    def get(self, attr: CompilerFlagsAttrs) -> str | None:
         """Getter of compiler flags"""
         return self.__attrs.get(attr)
 
-    def set(self, attr: Flags, new_value: str) -> None:
+    def set(self, attr: CompilerFlagsAttrs, new_value: str) -> None:
         """Setter of compiler flags"""
         self.__attrs[attr] = new_value
 
     @property
-    def data(self) -> dict[Flags, str]:
+    def data(self) -> dict[CompilerFlagsAttrs, str]:
         """Return dictionary with all tools"""
         return self.__attrs
