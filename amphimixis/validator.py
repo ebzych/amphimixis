@@ -34,8 +34,8 @@ def validate(config_file_path: str) -> bool:
 
             build_system = file_dict.get("build_system")
             if (
-                not isinstance(build_system, str)
-                or build_system.lower() not in build_systems_dict
+                isinstance(build_system, str)
+                and build_system.lower() not in build_systems_dict
             ):
                 _warn(f"Invalid build_system: {build_system}")
 
@@ -148,6 +148,10 @@ def _is_valid_build(build: dict[str, str]):
     sysroot = build.get("sysroot")
     if sysroot is not None and not isinstance(sysroot, str):
         _warn(f"Invalid sysrott in build: {sysroot}")
+
+    executables = build.get("executables")
+    if executables is not None and not isinstance(executables, list):
+        _warn(f"Invalid executables in build: {executables}")
 
 
 def _is_valid_address(address: str) -> bool:
