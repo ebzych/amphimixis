@@ -63,6 +63,7 @@ class MachineInfo:
         return ret
 
 
+# pylint: disable = too-many-instance-attributes
 class CompilerFlagsAttrs(StrEnum):
     """Enumeration for getting access to flags of concrete compiler"""
 
@@ -83,6 +84,7 @@ class CompilerFlagsAttrs(StrEnum):
     ASM_ATT_FLAGS = "asm_att_flags"
 
 
+# pylint: disable = too-many-instance-attributes
 class ToolchainAttrs(StrEnum):
     """Constants for getting access to attributes from toolchain dictionary"""
 
@@ -187,7 +189,6 @@ class CompilerFlags:
         return self.__attrs
 
 
-# pylint: disable = too-many-instance-attributes
 @dataclass
 class Build:
     """Class with information about one build of project
@@ -205,10 +206,10 @@ class Build:
     run_machine: MachineInfo
     build_name: str
     executables: list[str]
-    toolchain: Toolchain | str | None
+    toolchain: Toolchain | None
     sysroot: str | None
-    config_flags: str = ""
-    compiler_flags: str = ""
+    compiler_flags: CompilerFlags | None
+    config_flags: None | str
 
 
 @dataclass

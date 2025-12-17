@@ -3,12 +3,16 @@
 # pylint: disable=W0603, C0103
 
 from ipaddress import ip_address
+from os import path
 from re import compile as re_compile
+from types import NoneType
+from typing import Any
 
 import yaml
 
 from amphimixis.build_systems import build_systems_dict
 from amphimixis.general import general
+from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
 
 DEFAULT_PORT = 22
@@ -118,40 +122,75 @@ def _is_valid_recipe(recipe: dict[str, str]):
         _warn(f"Invalid id in recipe: {re_id}")
 
     config_flags = recipe.get("config_flags")
-    if not isinstance(config_flags, str):
+    if not isinstance(config_flags, str | NoneType):
         _warn(f"Invalid config_flags in recipe {re_id}: {config_flags}")
 
     compiler_flags = recipe.get("compiler_flags")
-    if not isinstance(compiler_flags, str):
+    if not isinstance(compiler_flags, dict | NoneType):
         _warn(f"Invalid compiler_flags in recipe {re_id}: {compiler_flags}")
+
+    if isinstance(compiler_flags, dict):
+        for attr in compiler_flags:
+            if attr not in general.CompilerFlagsAttrs:
+                _warn(
+                    f"Recipe {re_id}: invalid compiler_flags: unknown attribute '{attr}'"
+                )
 
 
 def _is_valid_build(build: dict[str, str]):
     """Function to check whether build is valid"""
 
     build_machine = build.get("build_machine")
-    if not isinstance(build_machine, int):
+    if not isinstance(build_machine, int | str):
         _warn(f"Invalid build_machine in build: {build_machine}")
 
+    if isinstance(build_machine, str) and not LaboratoryAssistant.find_platform(
+        build_machine
+    ):
+        _warn(f"Unknown build machine: {build_machine}")
+
     run_machine = build.get("run_machine")
-    if not isinstance(run_machine, int):
+    if not isinstance(run_machine, int | str):
         _warn(f"Invalid run_machine in build: {run_machine}")
+
+    if isinstance(run_machine, str) and not LaboratoryAssistant.find_platform(
+        run_machine
+    ):
+        _warn(f"Unknown run machine: {run_machine}")
 
     recipe_id = build.get("recipe_id")
     if not isinstance(recipe_id, int):
         _warn(f"Invalid recipe_id in build: {recipe_id}")
 
     toolchain = build.get("toolchain")
-    if toolchain is not None and not isinstance(toolchain, str):
-        _warn(f"Invalid toolchain in build: {toolchain}")
+    _is_valid_toolchain(toolchain)
 
     sysroot = build.get("sysroot")
     if sysroot is not None and not isinstance(sysroot, str):
-        _warn(f"Invalid sysrott in build: {sysroot}")
+        _warn(f"Invalid sysroot in build: {sysroot}")
 
     executables = build.get("executables")
     if executables is not None and not isinstance(executables, list):
         _warn(f"Invalid executables in build: {executables}")
+
+
+def _is_valid_toolchain(toolchain: Any) -> None:
+
+    if not isinstance(toolchain, dict | str | NoneType):
+        _warn(f"Invalid toolchain in build: '{toolchain}'")
+
+    if isinstance(toolchain, str) and not LaboratoryAssistant.find_toolchain_by_name(
+        toolchain
+    ):
+        _warn(f"Unknown toolchain '{toolchain}'")
+
+    if isinstance(toolchain, dict):
+        for attr, value in toolchain.items():
+            if attr in general.ToolchainAttrs:
+                if not path.isabs(value):
+                    _warn(f"Invalid toolchain: {attr}: path '{value}' is not absolute")
+            elif attr not in general.CompilerFlagsAttrs and attr != "sysroot":
+                _warn(f"Invalid toolchain: unknown attribute '{attr}'")
 
 
 def _is_valid_address(address: str) -> bool:
