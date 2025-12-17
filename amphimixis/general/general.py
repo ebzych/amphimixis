@@ -50,18 +50,19 @@ class MachineInfo:
 class Build:
     """Class with information about one build of project
 
-    :var MachineInfo machine: Information about the machine.
-    :var str build_path: Path to the directory with this build.
+    :var MachineInfo build_machine: Information about the machine to build at.
+    :var MachineInfo build_machine: Information about the machine to profile at.
+    :var str build_name: Unique name of the build.
+    :var list[str] executables: List of relative to `build path` paths to executables.
     :var str compiler_flags: Compiler flags for the build.
     """
 
     build_machine: MachineInfo
     run_machine: MachineInfo
-    build_path: str
+    build_name: str
     executables: list[str]
     toolchain: str | None
     sysroot: str | None
-    build_id: str = ""
     config_flags: str = ""
     compiler_flags: str = ""
 

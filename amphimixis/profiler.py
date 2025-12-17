@@ -38,13 +38,16 @@ _commands_args: dict[str, dict[str, str]] = {
 class Profiler:
     """Class for profiling a build within a project."""
 
-    def __init__(self, build: general.Build):
+    def __init__(self, project: general.Project, build: general.Build):
         self.logger = logger.setup_logger("PROFILER")
         self.machine = build.run_machine
         self.build = build
         self.executables = build.executables.copy()
         self.shell = shell.Shell(self.machine).connect()
-        self.stats: dict[str, ProfilerStats]
+        self.stats: dict[str, ProfilerStats] = {}
+        self.build_path = os.path.join(
+            self.shell.get_project_workdir(project), build.build_name
+        )
 
     def profile_all(
         self,
@@ -115,7 +118,7 @@ class Profiler:
         if executable not in self.stats:
             self.stats.update({executable: {}})
 
-        error, _, stderr = self.shell.run(f"cd {self.build.build_path}")
+        error, _, stderr = self.shell.run(f"cd {self.build_path}")
         if error != 0:
             self.logger.error("".join(stderr[0]))
             return False
@@ -158,7 +161,7 @@ class Profiler:
             self.stats.update({executable: {}})
 
         error, stdout, stderr = self.shell.run(
-            f"cd {self.build.build_path}", f"./{executable}"
+            f"cd {self.build_path}", f"./{executable}"
         )
 
         if error != 0:
@@ -191,7 +194,7 @@ class Profiler:
             self.stats.update({executable: {}})
 
         error, _, stderr = self.shell.run(
-            f"cd {self.build.build_path}",
+            f"cd {self.build_path}",
         )
 
         if error != 0:
@@ -226,7 +229,7 @@ class Profiler:
         """
 
         error, _, stderr = self.shell.run(
-            f"cd {self.build.build_path}",
+            f"cd {self.build_path}",
         )
 
         if error != 0:
@@ -270,10 +273,10 @@ class Profiler:
     def get_record_filename(self, executable: str) -> str:
         """Gets perf record output file name."""
 
-        return f"{self.build.build_id}_{os.path.normpath(executable)}.data"
+        return f"{self.build.build_name}_{os.path.normpath(executable)}.data"
 
     def _get_stats_filename(self) -> str:
-        return f"{self.build.build_id}.stats"
+        return f"{self.build.build_name}.stats"
 
     # pylint: disable=too-many-positional-arguments,too-many-arguments
     def _command(
@@ -309,7 +312,7 @@ class Profiler:
 
     def _find_executables(self) -> list[str]:
         error, stdout, stderr = self.shell.run(
-            f"cd {self.build.build_path}", 'find -type f -executable -name "*test*"'
+            f"cd {self.build_path}", 'find -type f -executable -name "*test*"'
         )
 
         if error != 0:

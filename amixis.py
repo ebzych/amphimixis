@@ -165,7 +165,7 @@ def main():
             analyze(project)
             parse_config(project, config_file_path=str(config_file))
             Builder.build(project)
-            profiler_ = Profiler(project.builds[0])
+            profiler_ = Profiler(project, project.builds[0])
             if profiler_.profile_all():
                 print(profiler_.stats)
             else:
@@ -180,7 +180,7 @@ def main():
             Builder.build(project)
 
         if args.profile:
-            profiler_ = Profiler(project.builds[0])
+            profiler_ = Profiler(project, project.builds[0])
             if profiler_.profile_all():
                 print(profiler_.stats)
             else:

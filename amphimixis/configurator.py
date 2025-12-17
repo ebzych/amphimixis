@@ -106,7 +106,7 @@ def _create_build(  # pylint: disable=R0913,R0917
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
 
-    build_path = _generate_build_path(
+    build_name = _generate_build_name(
         build_machine_info["id"], run_machine_info["id"], recipe_info["id"]
     )
 
@@ -118,7 +118,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     build = general.Build(
         build_machine,
         run_machine,
-        build_path,
+        build_name,
         executables,
         toolchain,
         sysroot,
@@ -129,8 +129,8 @@ def _create_build(  # pylint: disable=R0913,R0917
 
     project.builds.append(build)
 
-    config_name = f"{build_path}_config"
-    with open(config_name, "wb") as file:
+    config_path = path.join(getcwd(), f"{build_name}_config")
+    with open(config_path, "wb") as file:
         pickle.dump(build, file)
 
     return True
@@ -155,10 +155,10 @@ def _create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
     return machine
 
 
-def _generate_build_path(build_id: str, run_id: str, recipe_id: str) -> str:
+def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
     """Function to create path to build, depending on build, run and recipes ids"""
 
-    return path.normpath(path.join(getcwd(), f"{build_id}_{run_id}_{recipe_id}"))
+    return f"{build_id}_{run_id}_{recipe_id}"
 
 
 def _get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
