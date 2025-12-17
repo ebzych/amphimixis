@@ -142,7 +142,7 @@ def _is_valid_build(build: dict[str, str]):
         _warn(f"Invalid recipe_id in build: {recipe_id}")
 
     toolchain = build.get("toolchain")
-    if toolchain is not None and not isinstance(toolchain, str):
+    if not isinstance(toolchain, dict | None):
         _warn(f"Invalid toolchain in build: {toolchain}")
 
     sysroot = build.get("sysroot")

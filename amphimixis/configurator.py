@@ -55,7 +55,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
 
             for build in input_config["builds"]:
 
-                toolchain = build.get("toolchain")
+                toolchain = _create_toolchain(build.get("toolchain"))
                 sysroot = build.get("sysroot")
                 executables = build.get("executables", [])
 
@@ -101,7 +101,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     run_machine_info: dict[str, str],
     recipe_info: dict[str, str],
     executables: list[str],
-    toolchain: str | None,
+    toolchain: general.Toolchain | None,
     sysroot: str | None,
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
@@ -228,3 +228,19 @@ def _get_analyzed_build_system() -> str | None:
 
     except FileNotFoundError:
         return None
+
+
+def _create_toolchain(
+    toolchain_dict: dict[str, str] | None,
+) -> general.Toolchain | None:
+    if toolchain_dict is None:
+        return None
+
+    toolchain = general.Toolchain()
+    for attr in toolchain_dict:
+        if attr in general.ToolchainAttrs:
+            toolchain.set(general.ToolchainAttrs(attr), toolchain_dict[attr])
+        else:
+            toolchain.set(general.CompilerFlagsAttrs(attr), toolchain_dict[attr])
+    print(toolchain.get(general.CompilerFlagsAttrs("c_flags")))
+    return toolchain

@@ -63,56 +63,6 @@ class MachineInfo:
         return ret
 
 
-# pylint: disable=too-many-instance-attributes
-@dataclass
-class Build:
-    """Class with information about one build of project
-
-    :var MachineInfo machine: Information about the machine.
-    :var str build_path: Path to the directory with this build.
-    :var str compiler_flags: Compiler flags for the build.
-    """
-
-    build_machine: MachineInfo
-    run_machine: MachineInfo
-    build_path: str
-    executables: list[str]
-    toolchain: str | None
-    sysroot: str | None
-    config_flags: str = ""
-    compiler_flags: str = ""
-
-
-@dataclass
-class Project:
-    """Class with information about project and his builds
-
-    :var str path: Path to project for research.
-    :var type[IBuildSystem] build_system: High-level build system interface.
-    :var type[IBuildSystem] runner: Low-level build system interface.
-    :var list[Build]: List of project configurations to be build.
-    """
-
-    path: str
-    builds: list[Build]
-    build_system: "type[IBuildSystem]"
-    runner: "type[IBuildSystem]"
-
-
-class IBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system"""
-
-    @staticmethod
-    @abstractmethod
-    def get_build_system_prompt(project: Project, build: Build) -> str:
-        """Generate build system prompt with all specified flags"""
-
-    @staticmethod
-    @abstractmethod
-    def get_runner_prompt(project: Project, build: Build) -> str:
-        """Generate runner prompt"""
-
-
 class CompilerFlagsAttrs(StrEnum):
     """Enumeration for getting access to flags of concrete compiler"""
 
@@ -222,3 +172,58 @@ class CompilerFlags:
     def data(self) -> dict[CompilerFlagsAttrs, str]:
         """Return dictionary with all tools"""
         return self.__attrs
+
+
+# pylint: disable=too-many-instance-attributes
+@dataclass
+class Build:
+    """Class with information about one build of project
+
+    :var MachineInfo build_machine: Information about the machine to build at.
+    :var MachineInfo build_machine: Information about the machine to profile at.
+    :var str build_name: Unique name of the build.
+    :var list[str] executables: List of relative to `build path` paths to executables.
+    :var Toolchain | None toolchain: Toolchain with compilers and default flags.
+    :var str | None sysroot: Sysroot to use with toolchain.
+    :var str config_flags: Flags to build system configuration.
+    :var CompilerFlags | None compiler_flags: Flags to compilers for the build.
+    """
+
+    build_machine: MachineInfo
+    run_machine: MachineInfo
+    build_name: str
+    executables: list[str]
+    toolchain: Toolchain | None
+    sysroot: str | None
+    config_flags: str | None
+    compiler_flags: CompilerFlags | None
+
+
+@dataclass
+class Project:
+    """Class with information about project and his builds
+
+    :var str path: Path to project for research.
+    :var type[IBuildSystem] build_system: High-level build system interface.
+    :var type[IBuildSystem] runner: Low-level build system interface.
+    :var list[Build]: List of project configurations to be build.
+    """
+
+    path: str
+    builds: list[Build]
+    build_system: "type[IBuildSystem]"
+    runner: "type[IBuildSystem]"
+
+
+class IBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system"""
+
+    @staticmethod
+    @abstractmethod
+    def get_build_system_prompt(project: Project, build: Build) -> str:
+        """Generate build system prompt with all specified flags"""
+
+    @staticmethod
+    @abstractmethod
+    def get_runner_prompt(project: Project, build: Build) -> str:
+        """Generate runner prompt"""
