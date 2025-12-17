@@ -165,11 +165,14 @@ def main():
             analyze(project)
             parse_config(project, config_file_path=str(config_file))
             Builder.build(project)
-            profiler_ = Profiler(project, project.builds[0])
-            if profiler_.profile_all():
-                print(profiler_.stats)
-            else:
-                print("Executables not found")
+
+            for build in project.builds:
+                print(f"Profiling {build.build_name}")
+                profiler_ = Profiler(project, build)
+                if profiler_.profile_all():
+                    print(profiler_.stats)
+                else:
+                    print("Executables not found")
 
         if args.analyze:
             analyze(project)
@@ -180,11 +183,13 @@ def main():
             Builder.build(project)
 
         if args.profile:
-            profiler_ = Profiler(project, project.builds[0])
-            if profiler_.profile_all():
-                print(profiler_.stats)
-            else:
-                print("Executables not found")
+            for build in project.builds:
+                print(f"Profiling {build.build_name}")
+                profiler_ = Profiler(project, build)
+                if profiler_.profile_all():
+                    print(profiler_.stats)
+                else:
+                    print("Executables not found")
 
         sys.exit(0)
 
