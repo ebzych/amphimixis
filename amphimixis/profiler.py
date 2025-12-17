@@ -49,12 +49,14 @@ class Profiler:
             self.shell.get_project_workdir(project), build.build_name
         )
 
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def profile_all(
         self,
         test_executable: bool = True,
         execution_time: bool = True,
         stat_collect: bool = True,
         record_collect: bool = True,
+        max_number_of_executables=1,
     ) -> bool:
         """
         Run profiling on every executable.\n
@@ -83,7 +85,8 @@ class Profiler:
         """
 
         if not self.executables:
-            self.executables = self._find_executables()
+            self.executables = self._find_executables(max_number_of_executables)
+            self.logger.info("Found executables:\n%s\n", "\n".join(self.executables))
 
         if not self.executables:
             self.logger.error("Can't find any executables")
@@ -115,6 +118,12 @@ class Profiler:
         :rtype: bool
         """
 
+        self.logger.info(
+            "Measuring execution time started %s:%s",
+            self.build.build_name,
+            executable,
+        )
+
         if executable not in self.stats:
             self.stats.update({executable: {}})
 
@@ -143,6 +152,12 @@ class Profiler:
             }
         )
 
+        self.logger.info(
+            "Measuring execution time finished %s:%s",
+            self.build.build_name,
+            executable,
+        )
+
         return True
 
     def test_executable(self, executable: str) -> bool:
@@ -156,6 +171,12 @@ class Profiler:
                  non-zero error code is returned.
         :rtype: bool
         """
+
+        self.logger.info(
+            "Smoke test started %s:%s",
+            self.build.build_name,
+            executable,
+        )
 
         if executable not in self.stats:
             self.stats.update({executable: {}})
@@ -175,6 +196,12 @@ class Profiler:
             {Stats.EXECUTABLE_RUN_SUCCESS: "true" if error == 0 else "false"}
         )
 
+        self.logger.info(
+            "Smoke test finished %s:%s",
+            self.build.build_name,
+            executable,
+        )
+
         return error == 0
 
     def perf_stat_collect(self, executable: str, options: str = "") -> bool:
@@ -189,6 +216,12 @@ class Profiler:
         :return: `False` if `perf stat` return non-zero error code. Otherwise `True`
         :rtype: bool
         """
+
+        self.logger.info(
+            "Perf stat collecting started %s:%s",
+            self.build.build_name,
+            executable,
+        )
 
         if executable not in self.stats:
             self.stats.update({executable: {}})
@@ -213,6 +246,12 @@ class Profiler:
 
         self.stats[executable].update({Stats.PERF_STAT: "".join(stderr[0])})
 
+        self.logger.info(
+            "Perf stat collecting finished %s:%s",
+            self.build.build_name,
+            executable,
+        )
+
         return True
 
     def perf_record_collect(self, executable: str, options: str = "") -> bool:
@@ -227,6 +266,12 @@ class Profiler:
         :return: `False` if can't collect samples. Otherwise `True`
         :rtype: bool
         """
+
+        self.logger.info(
+            "Perf record collecting started %s:%s",
+            self.build.build_name,
+            executable,
+        )
 
         error, _, stderr = self.shell.run(
             f"cd {self.build_path}",
@@ -259,6 +304,12 @@ class Profiler:
         ):
             self.logger.error("Can't copy perf.data file")
             return False
+
+        self.logger.info(
+            "Perf record collecting finished %s:%s",
+            self.build.build_name,
+            executable,
+        )
 
         return True
 
@@ -310,7 +361,7 @@ class Profiler:
 
         return " ".join(command)
 
-    def _find_executables(self) -> list[str]:
+    def _find_executables(self, max_number_of_executables=1) -> list[str]:
         error, stdout, stderr = self.shell.run(
             f"cd {self.build_path}", 'find -type f -executable -name "*test*"'
         )
@@ -321,7 +372,7 @@ class Profiler:
             )
             return []
 
-        return [line.strip() for line in stdout[1]]
+        return [line.strip() for line in stdout[1][:max_number_of_executables]]
 
 
 if __name__ == "__main__":
