@@ -6,115 +6,6 @@ from enum import StrEnum
 from os.path import isabs
 
 
-class Arch(StrEnum):
-    """Supported architectures"""
-
-    X86 = "x86"
-    RISCV = "riscv"
-    ARM = "arm"
-
-
-@dataclass
-class MachineAuthenticationInfo:
-    """Information about authentication on a remote machine
-
-    :var str username: Username for authentication.
-    :var str | None password: Password for authentication.
-    Password can be set to None if an SSH agent is used.
-
-    :var int port: Port number for the SSH connection.
-    """
-
-    username: str
-    password: str | None
-    port: int
-
-    @property
-    def __dictstr__(self) -> dict[str, str]:
-        ret = {"username": self.username}
-        if self.password is not None:
-            ret["password"] = self.password
-        ret["port"] = str(self.port)
-        return ret
-
-
-@dataclass
-class MachineInfo:
-    """Information about the machine
-
-    :var Arch arch: Architecture of the machine.
-    :var str | None address: IP address or hostname of the remote machine.
-    If address is None, the machine is considered to be local.
-
-    :var MachineAuthenticationInfo auth: Authentication info for the machine.
-    """
-
-    arch: Arch
-    address: str | None
-    auth: MachineAuthenticationInfo | None
-
-    @property
-    def __dictstr__(self) -> dict:
-        ret: dict[str, str | dict] = {"arch": self.arch.value}
-        if self.address is not None:
-            ret["address"] = self.address
-        if self.auth is not None:
-            ret["auth"] = self.auth.__dictstr__
-        return ret
-
-
-# pylint: disable=too-many-instance-attributes
-@dataclass
-class Build:
-    """Class with information about one build of project
-
-    :var MachineInfo build_machine: Information about the machine to build at.
-    :var MachineInfo build_machine: Information about the machine to profile at.
-    :var str build_name: Unique name of the build.
-    :var list[str] executables: List of relative to `build path` paths to executables.
-    :var str compiler_flags: Compiler flags for the build.
-    """
-
-    build_machine: MachineInfo
-    run_machine: MachineInfo
-    build_name: str
-    executables: list[str]
-    toolchain: str | None
-    sysroot: str | None
-    config_flags: str = ""
-    compiler_flags: str = ""
-
-
-@dataclass
-class Project:
-    """Class with information about project and his builds
-
-    :var str path: Path to project for research.
-    :var type[IBuildSystem] build_system: High-level build system interface.
-    :var type[IBuildSystem] runner: Low-level build system interface.
-    :var list[Build] builds: List of project configurations to be build.
-    """
-
-    path: str
-    builds: list[Build]
-    build_system: "type[IBuildSystem]"
-    runner: "type[IBuildSystem]"
-
-
-class IBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system"""
-
-    @staticmethod
-    @abstractmethod
-    def get_build_system_prompt(project: Project, build: Build) -> str:
-        """Generate build system prompt with all specified flags"""
-
-    @staticmethod
-    @abstractmethod
-    def get_runner_prompt(project: Project, build: Build) -> str:
-        """Generate runner prompt"""
-
-
 class CompilerFlagsAttrs(StrEnum):
     """Enumeration for getting access to flags of concrete compiler"""
 
@@ -224,3 +115,113 @@ class CompilerFlags:
     def data(self) -> dict[CompilerFlagsAttrs, str]:
         """Return dictionary with all tools"""
         return self.__attrs
+
+
+class Arch(StrEnum):
+    """Supported architectures"""
+
+    X86 = "x86"
+    RISCV = "riscv"
+    ARM = "arm"
+
+
+@dataclass
+class MachineAuthenticationInfo:
+    """Information about authentication on a remote machine
+
+    :var str username: Username for authentication.
+    :var str | None password: Password for authentication.
+    Password can be set to None if an SSH agent is used.
+
+    :var int port: Port number for the SSH connection.
+    """
+
+    username: str
+    password: str | None
+    port: int
+
+    @property
+    def __dictstr__(self) -> dict[str, str]:
+        ret = {"username": self.username}
+        if self.password is not None:
+            ret["password"] = self.password
+        ret["port"] = str(self.port)
+        return ret
+
+
+@dataclass
+class MachineInfo:
+    """Information about the machine
+
+    :var Arch arch: Architecture of the machine.
+    :var str | None address: IP address or hostname of the remote machine.
+    If address is None, the machine is considered to be local.
+
+    :var MachineAuthenticationInfo auth: Authentication info for the machine.
+    """
+
+    arch: Arch
+    address: str | None
+    auth: MachineAuthenticationInfo | None
+
+    @property
+    def __dictstr__(self) -> dict:
+        ret: dict[str, str | dict] = {"arch": self.arch.value}
+        if self.address is not None:
+            ret["address"] = self.address
+        if self.auth is not None:
+            ret["auth"] = self.auth.__dictstr__
+        return ret
+
+
+@dataclass
+class Build:
+    """Class with information about one build of project
+
+    :var MachineInfo build_machine: Information about the machine to build at
+    :var MachineInfo run_machine: Information about the machine to profile at
+    :var str build_name: Unique name of the build
+    :var Toolchain | None toolchain: Toolchain used to building
+    :var str | None sysroot: Path to sysroot or name of sysroot used to building
+    :var list[str] executables: List of relative to `build path` paths to executables
+    :var str compiler_flags: Compiler flags for the build
+    """
+
+    build_machine: MachineInfo
+    run_machine: MachineInfo
+    build_name: str
+    executables: list[str]
+    toolchain: Toolchain | None
+    sysroot: str | None
+    config_flags: str = ""
+    compiler_flags: str = ""
+
+
+@dataclass
+class Project:
+    """Class with information about project and his builds
+
+    :var str path: Path to project for research.
+    :var type[IBuildSystem] build_system: High-level build system interface.
+    :var type[IBuildSystem] runner: Low-level build system interface.
+    :var list[Build]: List of project configurations to be build.
+    """
+
+    path: str
+    builds: list[Build]
+    build_system: "type[IBuildSystem]"
+    runner: "type[IBuildSystem]"
+
+
+class IBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system"""
+
+    @staticmethod
+    @abstractmethod
+    def get_build_system_prompt(project: Project, build: Build) -> str:
+        """Generate build system prompt with all specified flags"""
+
+    @staticmethod
+    @abstractmethod
+    def get_runner_prompt(project: Project, build: Build) -> str:
+        """Generate runner prompt"""
