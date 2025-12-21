@@ -1,5 +1,6 @@
 """Module for profiling executables within a project."""
 
+import logging
 import os
 import pickle
 from enum import Enum
@@ -38,8 +39,26 @@ _commands_args: dict[str, dict[str, str]] = {
 class Profiler:
     """Class for profiling a build within a project."""
 
+    class CustomLogger(logging.LoggerAdapter):
+        """Custom logger to add build and executable prefixes to log messages."""
+
+        def process(self, msg, kwargs):
+            build_prefix = self.extra.get("build")
+
+            extra = kwargs.get("extra", {})
+            exe_prefix = extra.get("executable") if isinstance(extra, dict) else None
+
+            if exe_prefix:
+                prefix = f"{build_prefix} | {exe_prefix} |"
+            else:
+                prefix = f"{build_prefix} |"
+
+            return f"{prefix} {msg}", kwargs
+
     def __init__(self, project: general.Project, build: general.Build):
-        self.logger = logger.setup_logger("PROFILER")
+        self.logger = self.CustomLogger(
+            logger.setup_logger("PROFILER"), {"build": build.build_name}
+        )
         self.machine = build.run_machine
         self.build = build
         self.executables = build.executables.copy()
@@ -119,9 +138,8 @@ class Profiler:
         """
 
         self.logger.info(
-            "Measuring execution time started %s:%s",
-            self.build.build_name,
-            executable,
+            "Measuring execution time started",
+            extra={"executable": executable},
         )
 
         if executable not in self.stats:
@@ -129,19 +147,36 @@ class Profiler:
 
         error, _, stderr = self.shell.run(f"cd {self.build_path}")
         if error != 0:
-            self.logger.error("".join(stderr[0]))
+            self.logger.error(
+                "".join(stderr[0]),
+                extra={"executable": executable},
+            )
+
             return False
 
         command = self._command(executable, "time", stderr_clear=False)
         self.logger.info(
-            "Measure execution time %s\n\tCommand: %s", executable, command
+            "Measure execution time\n\tCommand: %s",
+            command,
+            extra={"executable": executable},
         )
 
         error, stdout, stderr = self.shell.run(command)
         if error != 0:
-            error_message = "STDERR: " + "".join(stderr[0])
-            error_message += "STDOUT: " + "".join(stdout[0])
-            self.logger.error(error_message)
+            stderr_message = "STDERR: " + "".join(stderr[0])
+            stdout_message = "STDOUT: " + "".join(stdout[0])
+            self.logger.error(
+                "Measure execution time fail\n%s",
+                stderr_message,
+                extra={"executable": executable},
+            )
+
+            self.logger.error(
+                "Measure execution time fail\n%s",
+                stdout_message,
+                extra={"executable": executable},
+            )
+
             return False
 
         self.stats[executable].update(
@@ -153,9 +188,8 @@ class Profiler:
         )
 
         self.logger.info(
-            "Measuring execution time finished %s:%s",
-            self.build.build_name,
-            executable,
+            "Measuring execution time finished",
+            extra={"executable": executable},
         )
 
         return True
@@ -173,9 +207,8 @@ class Profiler:
         """
 
         self.logger.info(
-            "Smoke test started %s:%s",
-            self.build.build_name,
-            executable,
+            "Smoke test started",
+            extra={"executable": executable},
         )
 
         if executable not in self.stats:
@@ -186,20 +219,27 @@ class Profiler:
         )
 
         if error != 0:
-            error_message = "STDERR: " + "".join(line for cmd in stderr for line in cmd)
-            error_message += "STDOUT: " + "".join(
-                line for cmd in stdout for line in cmd
+            stderr_message = "".join(line for cmd in stderr for line in cmd)
+            self.logger.error(
+                "Smoke test fail STDERR:\n%s",
+                stderr_message,
+                extra={"executable": executable},
             )
-            self.logger.error(error_message)
+
+            stdout_message = "".join(line for cmd in stdout for line in cmd)
+            self.logger.error(
+                "Smoke test fail STDOUT:\n%s",
+                stdout_message,
+                extra={"executable": executable},
+            )
 
         self.stats[executable].update(
             {Stats.EXECUTABLE_RUN_SUCCESS: "true" if error == 0 else "false"}
         )
 
         self.logger.info(
-            "Smoke test finished %s:%s",
-            self.build.build_name,
-            executable,
+            "Smoke test finished",
+            extra={"executable": executable},
         )
 
         return error == 0
@@ -218,9 +258,8 @@ class Profiler:
         """
 
         self.logger.info(
-            "Perf stat collecting started %s:%s",
-            self.build.build_name,
-            executable,
+            "Perf stat started",
+            extra={"executable": executable},
         )
 
         if executable not in self.stats:
@@ -231,25 +270,38 @@ class Profiler:
         )
 
         if error != 0:
-            self.logger.error("".join(stderr[0]))
+            self.logger.error(
+                "Perf stat fail STDERR:\n%s",
+                "".join(stderr[0]),
+                extra={"executable": executable},
+            )
+
             return False
 
         command = self._command(executable, "stat", options)
-        self.logger.info("Collecting perfomance counters with:\n\t%s", command)
+        self.logger.info(
+            "Perf stat command:\n\t%s",
+            command,
+            extra={"executable": executable},
+        )
+
         error, _, stderr = self.shell.run(command)
 
         if error != 0:
             self.logger.error(
-                "Executable returned %d code\n%s", error, "".join(stderr[0])
+                "Perf stat fail. Executable returned %d code\n%s",
+                error,
+                "".join(stderr[0]),
+                extra={"executable": executable},
             )
+
             return False
 
         self.stats[executable].update({Stats.PERF_STAT: "".join(stderr[0])})
 
         self.logger.info(
-            "Perf stat collecting finished %s:%s",
-            self.build.build_name,
-            executable,
+            "Perf stat finished",
+            extra={"executable": executable},
         )
 
         return True
@@ -268,9 +320,8 @@ class Profiler:
         """
 
         self.logger.info(
-            "Perf record collecting started %s:%s",
-            self.build.build_name,
-            executable,
+            "Perf record started",
+            extra={"executable": executable},
         )
 
         error, _, stderr = self.shell.run(
@@ -283,18 +334,32 @@ class Profiler:
 
         options += f"-o {self.get_record_filename(executable)}"
         command = self._command(executable, "record", options)
+        self.logger.info(
+            "Perf record command:\n\t%s",
+            command,
+            extra={"executable": executable},
+        )
+
         error, _, stderr = self.shell.run(command)
 
         if error != 0:
             self.logger.error(
-                "Executable returned %d code\n%s", error, "".join(stderr[0])
+                "Perf record fail. Executable returned %d code\n%s",
+                error,
+                "".join(stderr[0]),
+                extra={"executable": executable},
             )
             return False
 
         error, stdout, stderr = self.shell.run("pwd")
 
         if error != 0:
-            self.logger.error("".join(stderr[0]))
+            self.logger.error(
+                "Perf record fail STDERR:\n%s",
+                "".join(stderr[0]),
+                extra={"executable": executable},
+            )
+
             return False
 
         remote_workdir = stdout[0][0].strip()
@@ -302,13 +367,16 @@ class Profiler:
             os.path.join(remote_workdir, self.get_record_filename(executable)),
             os.path.join(os.getcwd(), self.get_record_filename(executable)),
         ):
-            self.logger.error("Can't copy perf.data file")
+            self.logger.error(
+                "Perf record fail. Can't copy perf.data file",
+                extra={"executable": executable},
+            )
+
             return False
 
         self.logger.info(
-            "Perf record collecting finished %s:%s",
-            self.build.build_name,
-            executable,
+            "Perf record collecting finished",
+            extra={"executable": executable},
         )
 
         return True
