@@ -102,7 +102,7 @@ def _search_ci(proj_path, results):
 
 
 def _search_build_systems(proj_path, results):
-    _logger.info("build_systems:")
+    _logger.info("build systems:")
     found = False
     for system, patterns in build_systems_list.items():
         for pat in patterns:
