@@ -113,13 +113,3 @@ class IBuildSystem(ABC):
     @abstractmethod
     def get_runner_prompt(project: Project, build: Build) -> str:
         """Generate runner prompt"""
-
-
-# pylint: disable=too-few-public-methods
-class IUI(ABC):
-    """Interface for User Interface (UI) classes"""
-
-    @staticmethod
-    @abstractmethod
-    def print(message: str) -> None:
-        """Print message to user"""
