@@ -2,8 +2,15 @@
 
 import os
 import queue
-from amphimixis.general.general import Build, IBuildSystem, Project
+
 from amphimixis import logger
+from amphimixis.general.general import (
+    Build,
+    CompilerFlags,
+    IBuildSystem,
+    Project,
+    Toolchain,
+)
 
 _logger = logger.setup_logger("CMAKE")
 
@@ -13,7 +20,13 @@ class CMake(IBuildSystem):
 
     @staticmethod
     def find_cmakelists_path(proj_path: str, max_depth: int = 3) -> str:
-        """Find first CMakeLists.txt file relatively project root"""
+        """Find first CMakeLists.txt file relative to project root.
+
+        :param str proj_path: Path to project root
+        :param int max_depth: Max depth of search
+        :rtype: str
+        :return: Path to CMakeLists.txt relative to project root
+        """
         q_dirs: queue.Queue[tuple[str, int]] = queue.Queue()
         q_dirs.put((proj_path, 0))
         while not q_dirs.empty():
@@ -29,12 +42,27 @@ class CMake(IBuildSystem):
         raise FileNotFoundError("Can't find CMakeLists.txt")
 
     @staticmethod
+    def _flags_generate(flags: CompilerFlags):
+        ret_flags = []
+        for flag, value in flags.data.items():
+            ret_flags.append(f"-DCMAKE_{flag.upper()}={value}")
+        return " ".join(ret_flags)
+
+    @staticmethod
+    def _toolchain_generate(toolchain: Toolchain):
+        ret_flags = []
+        for tool, value in toolchain.data.items():
+            ret_flags.append(f"-DCMAKE_{tool.upper()}={value}")
+        return " ".join(ret_flags)
+
+    @staticmethod
     def get_build_system_prompt(project: Project, build: Build) -> str:
         """Generate build system prompt with all specified flags"""
         if build.build_machine.address is None:
             cmake_lists_path = os.path.normpath(project.path)
         else:
             cmake_lists_path = f"~/amphimixis/{CMake._normbase(project.path)}"
+
         try:
             cmake_lists_path += CMake.find_cmakelists_path(project.path)[
                 len(os.path.normpath(project.path)) :
@@ -42,10 +70,23 @@ class CMake(IBuildSystem):
         except FileNotFoundError:
             _logger.error("CMakeLists.txt not found")
 
-        command = "cmake " + cmake_lists_path + " "
-        command += build.config_flags
-        command += " CXXFLAGS='" + build.compiler_flags + "'"
-        command += " CFLAGS='" + build.compiler_flags + "'"
+        command = f"cmake {cmake_lists_path} "
+
+        if build.config_flags is not None:
+            command += f"{build.config_flags} "
+
+        if build.compiler_flags is not None:
+            command += f"{CMake._flags_generate(build.compiler_flags)} "
+
+        if build.toolchain is not None:
+            if build.toolchain.sysroot is not None:
+                command += f"-DCMAKE_SYSROOT={build.toolchain.sysroot} "
+            command += f"{CMake._toolchain_generate(build.toolchain)} "
+
+        # if cross-compiling -- add cmake mandatory variable for cross-compiling
+        if build.build_machine.address != build.run_machine.address:
+            command += "-DCMAKE_SYSTEM_NAME=Linux "
+
         return command
 
     @staticmethod
