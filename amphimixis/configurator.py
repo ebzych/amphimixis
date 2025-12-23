@@ -3,6 +3,7 @@
 import pickle
 from os import getcwd, path
 from platform import machine as local_arch
+from typing import Any
 
 import yaml
 
@@ -11,6 +12,7 @@ from amphimixis.general import general
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.logger import setup_logger
 from amphimixis.shell import Shell
+from amphimixis.toolchain_manager import ToolchainManager
 from amphimixis.validator import validate
 
 DEFAULT_PORT = 22
@@ -56,7 +58,13 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
             for build in input_config["builds"]:
 
                 toolchain = _create_toolchain(build.get("toolchain"))
-                sysroot = build.get("sysroot")
+
+                sysroot = None
+                if sysroot_id := build.get("sysroot_id"):
+                    sysroot = _get_by_id(input_config["sysroots"], sysroot_id).get(
+                        "path"
+                    )
+
                 executables = build.get("executables", [])
 
                 build_machine_info = _get_by_id(
@@ -99,9 +107,9 @@ def _create_build(  # pylint: disable=R0913,R0917
     project: general.Project,
     build_machine_info: dict[str, str],
     run_machine_info: dict[str, str],
-    recipe_info: dict[str, str],
+    recipe_info: dict[str, Any],
     executables: list[str],
-    toolchain: general.Toolchain | None,
+    toolchain: general.Toolchain | str | None,
     sysroot: str | None,
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
@@ -115,6 +123,9 @@ def _create_build(  # pylint: disable=R0913,R0917
     if not _has_valid_arch(run_machine):
         return False
 
+    config_flags = recipe_info.get("config_flags")
+    compiler_flags = _create_flags(recipe_info.get("compiler_flags"))
+
     build = general.Build(
         build_machine,
         run_machine,
@@ -122,10 +133,15 @@ def _create_build(  # pylint: disable=R0913,R0917
         executables,
         toolchain,
         sysroot,
+        config_flags,
+        compiler_flags,
     )
 
-    build.config_flags = recipe_info["config_flags"]
-    build.compiler_flags = recipe_info["compiler_flags"]
+    if isinstance(build.toolchain, str):
+        build.toolchain = ToolchainManager.construct_toolchain_from_build(build)
+
+    if isinstance(build.toolchain, general.Toolchain):
+        build.sysroot = build.toolchain.sysroot
 
     project.builds.append(build)
 
@@ -162,7 +178,7 @@ def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
 
 
 def _get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
-    """Function to find platform or recipe by id"""
+    """Function to find item in dict by id"""
 
     for item in items:
         if item["id"] == target_id:
@@ -231,16 +247,43 @@ def _get_analyzed_build_system() -> str | None:
 
 
 def _create_toolchain(
-    toolchain_dict: dict[str, str] | None,
-) -> general.Toolchain | None:
-    if toolchain_dict is None:
-        return None
+    toolchain_dict: dict[str, str] | str | None,
+) -> general.Toolchain | str | None:
+    if isinstance(toolchain_dict, str | None):
+        return toolchain_dict
 
     toolchain = general.Toolchain()
     for attr in toolchain_dict:
-        if attr in general.ToolchainAttrs:
-            toolchain.set(general.ToolchainAttrs(attr), toolchain_dict[attr])
+        if attr.lower() in general.ToolchainAttrs:
+            toolchain.set(general.ToolchainAttrs(attr.lower()), toolchain_dict[attr])
+
+        elif attr.lower() in general.CompilerFlagsAttrs:
+            toolchain.set(
+                general.CompilerFlagsAttrs(attr.lower()), toolchain_dict[attr]
+            )
+
+        elif attr.lower() == "sysroot":
+            toolchain.sysroot = toolchain_dict[attr]
+
         else:
-            toolchain.set(general.CompilerFlagsAttrs(attr), toolchain_dict[attr])
-    print(toolchain.get(general.CompilerFlagsAttrs("c_flags")))
+            pass
+
     return toolchain
+
+
+def _create_flags(
+    compiler_flags_dict: dict[str, str] | None,
+) -> general.CompilerFlags | None:
+    if compiler_flags_dict is None:
+        return compiler_flags_dict
+
+    compiler_flags = general.CompilerFlags()
+    for flag in compiler_flags_dict:
+        if flag.lower() in general.CompilerFlagsAttrs:
+            compiler_flags.set(
+                general.CompilerFlagsAttrs(flag.lower()), compiler_flags_dict[flag]
+            )
+        else:
+            pass
+
+    return compiler_flags

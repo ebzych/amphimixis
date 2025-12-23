@@ -118,11 +118,11 @@ def _is_valid_recipe(recipe: dict[str, str]):
         _warn(f"Invalid id in recipe: {re_id}")
 
     config_flags = recipe.get("config_flags")
-    if not isinstance(config_flags, str):
+    if not isinstance(config_flags, str | None):
         _warn(f"Invalid config_flags in recipe {re_id}: {config_flags}")
 
     compiler_flags = recipe.get("compiler_flags")
-    if not isinstance(compiler_flags, str):
+    if not isinstance(compiler_flags, dict | None):
         _warn(f"Invalid compiler_flags in recipe {re_id}: {compiler_flags}")
 
 
@@ -142,7 +142,7 @@ def _is_valid_build(build: dict[str, str]):
         _warn(f"Invalid recipe_id in build: {recipe_id}")
 
     toolchain = build.get("toolchain")
-    if toolchain is not None and not isinstance(toolchain, str | dict):
+    if not isinstance(toolchain, dict | str | None):
         _warn(f"Invalid toolchain in build: {toolchain}")
 
     sysroot = build.get("sysroot")
