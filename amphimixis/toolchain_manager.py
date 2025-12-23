@@ -74,7 +74,7 @@ class ToolchainManager:
                 )
             return None
 
-        if build.toolchain is Toolchain:
+        if isinstance(build.toolchain, Toolchain):
             return build.toolchain
 
         # if build.toolchain is a string with name of toolchain in config file
@@ -108,7 +108,7 @@ class ToolchainManager:
         _toolbox = ToolchainManager.parse_config_file()
         if platform_name in _toolbox[_PLATFORMS]:
             machine = _toolbox[_PLATFORMS][platform_name]
-            auth: MachineAuthenticationInfo
+            auth = None
             if "auth" in machine:
                 auth = MachineAuthenticationInfo(
                     machine["auth"]["username"],
