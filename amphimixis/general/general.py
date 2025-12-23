@@ -193,7 +193,7 @@ class Build:
     run_machine: MachineInfo
     build_name: str
     executables: list[str]
-    toolchain: Toolchain | None
+    toolchain: Toolchain | str | None
     sysroot: str | None
     config_flags: str | None
     compiler_flags: CompilerFlags | None
