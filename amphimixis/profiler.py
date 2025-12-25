@@ -392,7 +392,9 @@ class Profiler:
     def get_record_filename(self, executable: str) -> str:
         """Gets perf record output file name."""
 
-        return f"{self.build.build_name}_{os.path.normpath(executable)}.data"
+        executable_path_flatten = os.path.normpath(executable).replace("/", "_")
+
+        return f"{self.build.build_name}_{executable_path_flatten}.data"
 
     def _get_stats_filename(self) -> str:
         return f"{self.build.build_name}.stats"
