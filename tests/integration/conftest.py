@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from testcontainers.compose import DockerCompose
 
 
 @pytest.fixture
@@ -43,3 +44,16 @@ def create_working_space():
     for dir_ in working_dirs:
         if os.path.exists(dir_):
             shutil.rmtree(dir_, ignore_errors=True)
+
+
+@pytest.fixture
+def _docker_compose():
+    """Run Docker Compose for integration tests.
+    Comment out the line 'compose.stop()' if you don't want the containers to be deleted.
+    Don't forget to delete them after debugging."""
+    compose = DockerCompose(
+        context="tests/integration", compose_file_name="docker-compose.test.yml"
+    )
+    compose.start()
+
+    yield compose

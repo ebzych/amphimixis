@@ -27,6 +27,7 @@ def test_build_local_machine(clone_repo, create_working_space):
         with open(config_file, "w", encoding="utf-8") as file:
             yaml.dump(config_content, file)
         command = ["python3", orig_dir / "amixis.py", str(repo_path)]
+
         result = subprocess.run(command, check=True)
 
         assert result.returncode == 0
