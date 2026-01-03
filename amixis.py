@@ -22,9 +22,11 @@ from amphimixis import (
 class CLI(general.IUI):
     """CLI class implementing IUI interface"""
 
-    @staticmethod
-    def print(message: str) -> None:
-        """Print message to the console"""
+    def print(self, message: str) -> None:
+        """Print message to the console
+
+        :var str message: Message to print to the console"""
+
         print(message)
 
 
