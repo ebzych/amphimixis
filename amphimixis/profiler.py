@@ -43,6 +43,9 @@ class Profiler:
         """Custom logger to add build and executable prefixes to log messages."""
 
         def process(self, msg, kwargs):
+            if self.extra is None:
+                return f"{msg}", kwargs
+
             build_prefix = self.extra.get("build")
 
             extra = kwargs.get("extra", {})
