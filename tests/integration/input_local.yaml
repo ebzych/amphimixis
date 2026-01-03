@@ -1,0 +1,21 @@
+build_system: CMake
+runner: Make
+platforms:
+- id: 1
+  arch: x86
+  username: testuser
+  port: 22
+  password: testpass
+
+recipes:
+- id: 1
+  config_flags: "-DCMAKE_BUILD_TYPE=Release -DYAML_CPP_BUILD_TESTS=ON"
+  compiler_flags: "-O2"
+  
+builds:
+- build_machine: 1
+  toolchain: "/usr/bin/g++"
+  sysroot: "/"
+  run_machine: 1
+  recipe_id: 1
+  
