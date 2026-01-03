@@ -1,14 +1,13 @@
 """Class that manages and provides toolchains and sysroots"""
 
 from os import environ, makedirs
-from os.path import exists, isabs
+from os.path import exists
 
 import yaml
 
 from amphimixis import logger
 from amphimixis.general.general import (
     Arch,
-    Build,
     MachineAuthenticationInfo,
     MachineInfo,
     Toolchain,
@@ -21,11 +20,22 @@ _PLATFORMS = "platforms"
 _SYSROOTS = "sysroots"
 _TOOLCHAINS = "toolchains"
 
+_PLATFORM = "platform"
+_SYSROOT = "sysroot"
+_ADDRESS = "address"
+_PORT = "port"
+_ARCH = "arch"
+_AUTH = "auth"
+_USERNAME = "username"
+_PASSWORD = "password"
+_TARGET_ARCH = "target_arch"
+_ATTRIBUTES = "attributes"
+
 _STD_INDENT = 4
 
 
 class ToolchainManager:
-    """Toolchain Manager"""
+    """Manager of toolchains, sysroots and platforms in Amphimixis global config"""
 
     CONFIG_DIR_PATH = (
         f"{environ["HOME"]}/.config/amphimixis"
@@ -33,9 +43,14 @@ class ToolchainManager:
         else f"{environ.get("XDG_CONFIG_HOME")}/amphimixis"
     )
 
+    TOOLBOX_PATH = CONFIG_DIR_PATH + "/toolbox.yml"
+
     @staticmethod
     def parse_config_file() -> dict:
-        """Search ~/.config/amphimixis/toolbox.yml and parse in __toolbox list or create it"""
+        """Search ~/.config/amphimixis/toolbox.yml and parse or create it
+
+        :rtype: dict
+        :return: Toolbox content from Amphimixis global config"""
 
         template: dict[str, dict] = {
             _PLATFORMS: {},
@@ -43,9 +58,9 @@ class ToolchainManager:
             _SYSROOTS: {},
         }
         makedirs(ToolchainManager.CONFIG_DIR_PATH, exist_ok=True)
-        if exists(f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml"):
+        if exists(f"{ToolchainManager.TOOLBOX_PATH}"):
             with open(
-                f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
+                f"{ToolchainManager.TOOLBOX_PATH}",
                 "r",
                 encoding="utf-8",
             ) as f_toolbox:
@@ -53,146 +68,137 @@ class ToolchainManager:
                     [_PLATFORMS, _TOOLCHAINS, _SYSROOTS]
                 ):
                     return _toolbox
-        with open(
-            f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
-            "w",
-            encoding="utf-8",
-        ) as f_toolbox:
-            yaml.safe_dump(template, f_toolbox)
-            return template
+
+        ToolchainManager.dump_config(template)
+        return template
 
     @staticmethod
-    def construct_toolchain_from_build(build: Build) -> Toolchain | None:
-        """Resolve Build.toolchain and Build.sysroot: if it is name of known toolchain
-        return Toolchain object constructed from amphimixis global config"""
-        if build.toolchain is None:
-            if build.build_machine.arch != build.run_machine.arch:
-                raise ValueError(
-                    "Machine and toolchain compatibility error: "
-                    "architecture of running machine and "
-                    "target architecture of toolchain is different"
-                )
-            return None
-
-        if isinstance(build.toolchain, Toolchain):
-            return build.toolchain
-
-        # if build.toolchain is a string with name of toolchain in config file
-        toolbox: dict = ToolchainManager.parse_config_file()
-        if build.toolchain in toolbox[_TOOLCHAINS]:
-            d_toolchain: dict = toolbox[_TOOLCHAINS][build.toolchain]
-            sysroot: str = d_toolchain["sysroot"]
-            if build.sysroot is not None:
-                if isabs(build.sysroot):
-                    sysroot = build.sysroot
-                elif build.sysroot in toolbox[_SYSROOTS]:
-                    sysroot = toolbox[_SYSROOTS][build.sysroot]
-                else:
-                    raise ValueError(
-                        "Not found sysroot with specified name in global config"
-                    )
-
-            toolchain: Toolchain = Toolchain(build.toolchain, sysroot)
-            for attr in d_toolchain.items():
-                toolchain.set(ToolchainAttrs[attr[0]], attr[1])
-            return toolchain
-
-        raise ValueError("Not found toolchain with specified name in global config")
+    def dump_config(toolbox: dict) -> None:
+        """Dump toolbox to Amphimixis global config"""
+        with open(
+            f"{ToolchainManager.TOOLBOX_PATH}",
+            "w",
+            encoding="utf-8",
+        ) as config_file:
+            yaml.safe_dump(toolbox, config_file, indent=_STD_INDENT)
 
     @staticmethod
     def find_platform(platform_name: str) -> MachineInfo | None:
-        """Find platform in amphimixis global config (toolbox) by name
+        """Find platform in Amphimixis global config (toolbox) by name
 
+        :var str platform_name: Name of platform
         :rtype: MachineInfo | None
         :return: info about machine if found else None"""
         _toolbox = ToolchainManager.parse_config_file()
         if platform_name in _toolbox[_PLATFORMS]:
             machine = _toolbox[_PLATFORMS][platform_name]
             auth = None
-            if "auth" in machine:
+            if _AUTH in machine:
                 auth = MachineAuthenticationInfo(
-                    machine["auth"]["username"],
+                    machine[_AUTH][_USERNAME],
                     (
-                        machine["auth"]["password"]
-                        if "password" in machine["auth"]
+                        machine[_AUTH][_PASSWORD]
+                        if _PASSWORD in machine[_AUTH]
                         else None
                     ),
-                    machine["auth"]["port"],
+                    machine[_AUTH][_PORT],
                 )
             return MachineInfo(
-                Arch(machine["arch"]),
-                machine["address"] if "address" in machine else None,
+                Arch(machine[_ARCH]),
+                machine[_ADDRESS] if _ADDRESS in machine else None,
                 auth,
             )
         return None
 
     @staticmethod
     def find_platform_by_address(address: str) -> str:
-        """Find platform in amphimixis global config (toolbox) by address
+        """Find platform in Amphimixis global config (toolbox) by address
 
+        :var str address: Address of platform in network
         :rtype: str
         :return: platform name if platform exists else empty string"""
         _toolbox = ToolchainManager.parse_config_file()
-        for name, machine in _toolbox["platforms"].items():
-            if machine["address"] == address:
+        for name, machine in _toolbox[_PLATFORMS].items():
+            if machine[_ADDRESS] == address:
                 return name
         return ""
 
     @staticmethod
     def add_platform(name: str, machine: MachineInfo) -> bool:
-        """Add platform to amphimixis global config (toolbox)"""
+        """Add platform to Amphimixis global config (toolbox)
+
+        :var str name: Name of platform
+        :var MachineInfo machine: Information about machine to write to global config
+        :rtype: bool
+        :return: True if platform successfully added to global config"""
         _toolbox = ToolchainManager.parse_config_file()
         _toolbox[_PLATFORMS][name] = machine.__dictstr__
         try:
-            with open(
-                f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
-                "w",
-                encoding="utf-8",
-            ) as f_toolbox:
-                yaml.safe_dump(_toolbox, f_toolbox)
+            ToolchainManager.dump_config(_toolbox)
             return True
         except FileExistsError:
             _logger.error("Error with writing to config file")
             return False
 
     @staticmethod
+    def find_toolchain_by_name(name: str) -> Toolchain | None:
+        """Find toolchain by name in global config
+
+        :var str name: name of toolchain in global config
+        :rtype: Toolchain | None
+        :return: Toolchain constructed from Amphimixis global config found by name
+        if not found then return None"""
+
+        toolbox: dict = ToolchainManager.parse_config_file()
+        if name in toolbox[_TOOLCHAINS]:
+            d_toolchain: dict = toolbox[_TOOLCHAINS][name]
+            toolchain = Toolchain(name, d_toolchain[_SYSROOT])
+            for attr, value in d_toolchain.items():
+                toolchain.set(ToolchainAttrs[attr], value)
+            return toolchain
+
+        return None  # if not found in global config
+
+    @staticmethod
     def add_toolchain(
         toolchain: Toolchain,
-        machine_or_name: MachineInfo | str,
+        machine: MachineInfo | str,
         target_arch: Arch,
     ) -> bool:
-        """Add toolchain to amphimixis global config (toolbox)"""
+        """Add toolchain to Amphimixis global config (toolbox)
+
+        :var Toolchain toolchain: Toolchain to adding
+        :var MachineInfo | str machine: Platform that contains toolchain
+        :var Arch target_arch: The architecture for that the toolchain generates code
+        :rtype: bool
+        :return: True if toolchain successfully added to global config"""
         if not toolchain.data:
             return False
 
         toolchain_data: dict[str, str | dict[str, str]] = {}
         platform_name: str
-        if isinstance(machine_or_name, str):
-            if ToolchainManager.find_platform(machine_or_name) is None:
+        if isinstance(machine, str):
+            if ToolchainManager.find_platform(machine) is None:
                 return False
-            toolchain_data["platform"] = machine_or_name
+            toolchain_data[_PLATFORM] = machine
         else:
-            if machine_or_name.address is not None:  # else: localhost
+            if machine.address is not None:  # else: localhost
                 if not (
                     platform_name := ToolchainManager.find_platform_by_address(
-                        machine_or_name.address
+                        machine.address
                     )
                 ):
-                    platform_name = "".join(machine_or_name.address.split(sep="."))
-                    ToolchainManager.add_platform(platform_name, machine_or_name)
-                toolchain_data["platform"] = platform_name
+                    platform_name = "".join(machine.address.split(sep="."))
+                    ToolchainManager.add_platform(platform_name, machine)
+                toolchain_data[_PLATFORM] = platform_name
 
-        toolchain_data["target_arch"] = target_arch.value
-        toolchain_data["attributes"] = toolchain.data
+        toolchain_data[_TARGET_ARCH] = target_arch.value
+        toolchain_data[_ATTRIBUTES] = toolchain.data
         if toolchain.sysroot:
-            toolchain_data["sysroot"] = toolchain.sysroot
+            toolchain_data[_SYSROOT] = toolchain.sysroot
 
         _toolbox = ToolchainManager.parse_config_file()
         _toolbox[_TOOLCHAINS][toolchain.name] = toolchain_data
-        with open(
-            f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml",
-            "w",
-            encoding="utf-8",
-        ) as f_toolbox:
-            yaml.safe_dump(_toolbox, f_toolbox, indent=_STD_INDENT)
+        ToolchainManager.dump_config(_toolbox)
+
         return True
