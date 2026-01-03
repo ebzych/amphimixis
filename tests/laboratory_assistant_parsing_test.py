@@ -6,6 +6,7 @@ from shutil import rmtree
 import yaml
 
 from amphimixis import LaboratoryAssistant
+from amphimixis.laboratory_assistant import _PLATFORMS, _SYSROOTS, _TOOLCHAINS
 
 
 def is_file_exists_and_correct(pth: str) -> bool:
@@ -13,16 +14,15 @@ def is_file_exists_and_correct(pth: str) -> bool:
     is_exists = path.exists(pth)
 
     LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    LaboratoryAssistant.TOOLBOX_PATH = "/tmp/amphimixis/toolbox.yml"
 
     is_correct_filled = False
-    with open(
-        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
-    ) as f_toolbox:
+    with open(LaboratoryAssistant.TOOLBOX_PATH, "r", encoding="utf-8") as f_toolbox:
         toolbox = yaml.safe_load(f_toolbox)
         is_correct_filled = toolbox == {
-            "platforms": {},
-            "toolchains": {},
-            "sysroots": {},
+            _PLATFORMS: {},
+            _TOOLCHAINS: {},
+            _SYSROOTS: {},
         }
     return is_exists and is_correct_filled
 
@@ -46,25 +46,21 @@ def test_creating_file() -> None:
     Remove f"ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml" and call _parse_config_file()
     Expected: create file f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml" and fill it correct
     """
-    LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    LaboratoryAssistant.TOOLBOX_PATH = "/tmp/amphimixis/toolbox.yml"
 
-    if path.exists(f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml"):
-        remove(f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml")
+    if path.exists(LaboratoryAssistant.TOOLBOX_PATH):
+        remove(LaboratoryAssistant.TOOLBOX_PATH)
 
     LaboratoryAssistant.parse_config_file()
-    assert is_file_exists_and_correct(
-        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml"
-    )
+    assert is_file_exists_and_correct(LaboratoryAssistant.TOOLBOX_PATH)
 
 
 def test_creating_dir_and_file():
     """Test if directory and file creating correct"""
-    LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    LaboratoryAssistant.TOOLBOX_PATH = "/tmp/amphimixis/toolbox.yml"
 
     rmtree(LaboratoryAssistant.CONFIG_DIR_PATH)
     LaboratoryAssistant.parse_config_file()
 
     assert path.exists(LaboratoryAssistant.CONFIG_DIR_PATH)
-    assert is_file_exists_and_correct(
-        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml"
-    )
+    assert is_file_exists_and_correct(LaboratoryAssistant.TOOLBOX_PATH)

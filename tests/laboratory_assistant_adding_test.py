@@ -2,10 +2,23 @@
 
 from shutil import rmtree
 
-import yaml
-
 from amphimixis import LaboratoryAssistant
-from amphimixis.general import Arch, MachineAuthenticationInfo, MachineInfo
+from amphimixis.general import (
+    Arch,
+    CompilerFlagsAttrs,
+    MachineAuthenticationInfo,
+    MachineInfo,
+    Toolchain,
+    ToolchainAttrs,
+)
+from amphimixis.laboratory_assistant import (
+    _ATTRIBUTES,
+    _PLATFORM,
+    _PLATFORMS,
+    _SYSROOT,
+    _TARGET_ARCH,
+    _TOOLCHAINS,
+)
 
 
 def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
@@ -13,7 +26,9 @@ def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
     Test: Adding two non-existing platform to the toolbox
     Expected: Platforms appeared in the toolbox
     """
+
     LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    LaboratoryAssistant.TOOLBOX_PATH = "/tmp/amphimixis/toolbox.yml"
     rmtree(LaboratoryAssistant.CONFIG_DIR_PATH, ignore_errors=True)
 
     # construct new platform
@@ -28,13 +43,10 @@ def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
     LaboratoryAssistant.add_platform(platform_name, machine)
 
     # reload from file
-    with open(
-        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
-    ) as f_toolbox:
-        experimental = yaml.safe_load(f_toolbox)
+    experimental = LaboratoryAssistant.parse_config_file()
 
     # check that platform was load correct from experimental
-    assert experimental["platforms"][platform_name] == machine.__dictstr__
+    assert experimental[_PLATFORMS][platform_name] == machine.__dictstr__
 
     # construct new platform
     platform_name = "platku-smazhem-bianbu"
@@ -48,13 +60,12 @@ def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
     LaboratoryAssistant.add_platform(platform_name, machine)
 
     # reload from file
-    with open(
-        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
-    ) as f_toolbox:
-        experimental = yaml.safe_load(f_toolbox)
+    experimental = LaboratoryAssistant.parse_config_file()
 
     # check that toolchain was load correct from experimental
-    assert experimental["platforms"][platform_name] == machine.__dictstr__
+    assert experimental[_PLATFORMS][platform_name] == machine.__dictstr__
+
+    LaboratoryAssistant.reset_config_dir_path()
 
 
 def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_info() -> (
@@ -64,32 +75,37 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
     Test: Adding non-existing toolchain to the toolbox with specifying machine info
     Expected: Toolchain appeared in the toolbox
     """
+
     LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    LaboratoryAssistant.TOOLBOX_PATH = "/tmp/amphimixis/toolbox.yml"
     rmtree(LaboratoryAssistant.CONFIG_DIR_PATH, ignore_errors=True)
 
     # 1) construct new toolchain
-    path_to_toolchain = "/bin/g++-14"
-    target_arch = Arch.RISCV
+    toolchain_name = "g++-14-platka"
+    sysroot = "/"
+    path_cxx_compiler = "/bin/g++-14"
     build_machine = MachineInfo(
         Arch.X86,
-        "333.666.069.404",
+        "8.8.8.8",
         MachineAuthenticationInfo("bzych", None, 8000),
     )
+    target_arch = Arch.RISCV
 
-    toolchain_name = "g++-14-platka"
+    toolchain = Toolchain(toolchain_name, sysroot)
+    toolchain.set(ToolchainAttrs.CXX_COMPILER, path_cxx_compiler)
+    toolchain.set(CompilerFlagsAttrs.CXX_FLAGS, "-ftree-vectorize")
 
     # 2) add toolchain to toolbox via ToolchainManager
-    # LaboratoryAssistant.add_toolchain(
-    #     toolchain_name,
-    #     build_machine,
-    #     path_to_toolchain,
-    #     target_arch,
-    # )
+    LaboratoryAssistant.add_toolchain(toolchain, build_machine, target_arch)
 
     # 3) construct this toolchain as dictionary
     toolchain_data = {
-        "path": path_to_toolchain,
-        "target_arch": target_arch.value,
+        _ATTRIBUTES: {
+            ToolchainAttrs.CXX_COMPILER: path_cxx_compiler,
+            CompilerFlagsAttrs.CXX_FLAGS: "-ftree-vectorize",
+        },
+        _TARGET_ARCH: target_arch.value,
+        _SYSROOT: sysroot,
     }
 
     platform_name = LaboratoryAssistant.find_platform_by_address(
@@ -97,13 +113,12 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
     )
 
     if platform_name:
-        toolchain_data["platform"] = platform_name
+        toolchain_data[_PLATFORM] = platform_name
 
     # 3) reload from file
-    with open(
-        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
-    ) as f_toolbox:
-        experimental = yaml.safe_load(f_toolbox)
+    experimental = LaboratoryAssistant.parse_config_file()
 
     # 4) check that toolchain was load correct from experimental
-    assert experimental["toolchains"][toolchain_name] == toolchain_data
+    assert experimental[_TOOLCHAINS][toolchain_name] == toolchain_data
+
+    LaboratoryAssistant.reset_config_dir_path()

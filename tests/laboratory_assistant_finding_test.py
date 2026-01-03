@@ -6,16 +6,17 @@ from amphimixis import LaboratoryAssistant
 from amphimixis.general import Arch, MachineAuthenticationInfo, MachineInfo
 
 
-def test_find_platform_by_addtess() -> None:
+def test_find_platform_by_address() -> None:
     """Find platform by address of machine
     Expect: find existing platform and not find non-existing"""
+
     LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    LaboratoryAssistant.TOOLBOX_PATH = "/tmp/amphimixis/toolbox.yml"
     rmtree(LaboratoryAssistant.CONFIG_DIR_PATH, ignore_errors=True)
-    _toolbox = LaboratoryAssistant.parse_config_file()
 
     # construct new platform
     platform_name = "platku-smazhem-bianbu"
-    platform_address = "333.666.069.404"
+    platform_address = "8.8.8.8"
     machine = MachineInfo(
         Arch.X86,
         platform_address,
