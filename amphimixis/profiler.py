@@ -384,10 +384,8 @@ class Profiler:
     def save_stats(self):
         """Save collected statistics to a file."""
 
-        pickle.dump(
-            self.stats,
-            os.path.join(os.getcwd(), self._get_stats_filename()),
-        )
+        with open(os.path.join(os.getcwd(), self._get_stats_filename()), "wb") as file:
+            pickle.dump(self.stats, file)
 
     def get_record_filename(self, executable: str) -> str:
         """Gets perf record output file name."""
