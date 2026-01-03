@@ -65,7 +65,7 @@ def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
     # check that toolchain was load correct from experimental
     assert experimental[_PLATFORMS][platform_name] == machine.__dictstr__
 
-    LaboratoryAssistant.reset_config_dir_path()
+    LaboratoryAssistant.reset_config_paths()
 
 
 def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_info() -> (
@@ -121,4 +121,4 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
     # 4) check that toolchain was load correct from experimental
     assert experimental[_TOOLCHAINS][toolchain_name] == toolchain_data
 
-    LaboratoryAssistant.reset_config_dir_path()
+    LaboratoryAssistant.reset_config_paths()

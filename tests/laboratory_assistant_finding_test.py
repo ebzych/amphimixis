@@ -49,3 +49,5 @@ def test_find_platform_by_address() -> None:
 
     # check that platform not in toolbox
     assert not LaboratoryAssistant.find_platform_by_address(platform_address)
+
+    LaboratoryAssistant.reset_config_paths()

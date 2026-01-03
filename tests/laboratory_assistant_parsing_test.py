@@ -40,6 +40,8 @@ def test_creating_dir() -> None:
     LaboratoryAssistant.parse_config_file()
     assert path.exists(LaboratoryAssistant.CONFIG_DIR_PATH)
 
+    LaboratoryAssistant.reset_config_paths()
+
 
 def test_creating_file() -> None:
     """
@@ -54,6 +56,8 @@ def test_creating_file() -> None:
     LaboratoryAssistant.parse_config_file()
     assert is_file_exists_and_correct(LaboratoryAssistant.TOOLBOX_PATH)
 
+    LaboratoryAssistant.reset_config_paths()
+
 
 def test_creating_dir_and_file():
     """Test if directory and file creating correct"""
@@ -64,3 +68,5 @@ def test_creating_dir_and_file():
 
     assert path.exists(LaboratoryAssistant.CONFIG_DIR_PATH)
     assert is_file_exists_and_correct(LaboratoryAssistant.TOOLBOX_PATH)
+
+    LaboratoryAssistant.reset_config_paths()

@@ -46,6 +46,18 @@ class LaboratoryAssistant:
     TOOLBOX_PATH = CONFIG_DIR_PATH + "/toolbox.yml"
 
     @staticmethod
+    def reset_config_paths() -> None:
+        """Reset path to config directory and path to toolbox to default values"""
+        LaboratoryAssistant.CONFIG_DIR_PATH = (
+            f"{environ["HOME"]}/.config/amphimixis"
+            if environ.get("XDG_CONFIG_HOME") is None
+            else f"{environ.get("XDG_CONFIG_HOME")}/amphimixis"
+        )
+        LaboratoryAssistant.TOOLBOX_PATH = (
+            LaboratoryAssistant.CONFIG_DIR_PATH + "/toolbox.yml"
+        )
+
+    @staticmethod
     def parse_config_file() -> dict:
         """Search ~/.config/amphimixis/toolbox.yml and parse or create it
 
@@ -118,7 +130,7 @@ class LaboratoryAssistant:
         :return: platform name if platform exists else empty string"""
         _toolbox = LaboratoryAssistant.parse_config_file()
         for name, machine in _toolbox[_PLATFORMS].items():
-            if machine[_ADDRESS] == address:
+            if machine.get(_ADDRESS, None) == address:
                 return name
         return ""
 
