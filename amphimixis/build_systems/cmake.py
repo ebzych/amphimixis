@@ -70,18 +70,22 @@ class CMake(IBuildSystem):
         except FileNotFoundError:
             _logger.error("CMakeLists.txt not found")
 
-        command = "cmake " + cmake_lists_path + " "
+        command = f"cmake {cmake_lists_path} "
 
         if build.config_flags is not None:
-            command += build.config_flags + " "
+            command += f"{build.config_flags} "
 
         if build.compiler_flags is not None:
-            command += CMake._flags_generate(build.compiler_flags) + " "
+            command += f"{CMake._flags_generate(build.compiler_flags)} "
 
         if build.toolchain is not None:
             if build.toolchain.sysroot is not None:
-                command += "-DCMAKE_SYSROOT=" + build.toolchain.sysroot + " "
-            command += CMake._toolchain_generate(build.toolchain) + " "
+                command += f"-DCMAKE_SYSROOT={build.toolchain.sysroot} "
+            command += f"{CMake._toolchain_generate(build.toolchain)} "
+
+        # if cross-compiling
+        if build.build_machine.address != build.run_machine.address:
+            command += "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_CROSSCOMPILING=TRUE "  # cmake mandatory variables
 
         return command
 
