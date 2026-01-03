@@ -69,12 +69,11 @@ class LaboratoryAssistant:
                 ):
                     return _toolbox
 
-        LaboratoryAssistant.dump_config(template)
+        LaboratoryAssistant._dump_config(template)
         return template
 
     @staticmethod
-    def dump_config(toolbox: dict) -> None:
-        """Dump toolbox to Amphimixis global config"""
+    def _dump_config(toolbox: dict) -> None:
         with open(
             f"{LaboratoryAssistant.TOOLBOX_PATH}",
             "w",
@@ -134,7 +133,7 @@ class LaboratoryAssistant:
         _toolbox = LaboratoryAssistant.parse_config_file()
         _toolbox[_PLATFORMS][name] = machine.__dictstr__
         try:
-            LaboratoryAssistant.dump_config(_toolbox)
+            LaboratoryAssistant._dump_config(_toolbox)
             return True
         except FileExistsError:
             _logger.error("Error with writing to config file")
@@ -207,7 +206,7 @@ class LaboratoryAssistant:
 
         _toolbox = LaboratoryAssistant.parse_config_file()
         _toolbox[_TOOLCHAINS][toolchain.name] = toolchain_data
-        LaboratoryAssistant.dump_config(_toolbox)
+        LaboratoryAssistant._dump_config(_toolbox)
 
         return True
 
