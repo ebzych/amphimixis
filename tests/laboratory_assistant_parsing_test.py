@@ -5,7 +5,7 @@ from shutil import rmtree
 
 import yaml
 
-from amphimixis.toolchain_manager import LaboratoryAssistant
+from amphimixis import LaboratoryAssistant
 
 
 def is_file_exists_and_correct(pth: str) -> bool:

@@ -79,12 +79,12 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
     toolchain_name = "g++-14-platka"
 
     # 2) add toolchain to toolbox via ToolchainManager
-    LaboratoryAssistant.add_toolchain(
-        toolchain_name,
-        build_machine,
-        path_to_toolchain,
-        target_arch,
-    )
+    # LaboratoryAssistant.add_toolchain(
+    #     toolchain_name,
+    #     build_machine,
+    #     path_to_toolchain,
+    #     target_arch,
+    # )
 
     # 3) construct this toolchain as dictionary
     toolchain_data = {

@@ -174,6 +174,7 @@ class MachineInfo:
         return ret
 
 
+# pylint: disable = too-many-instance-attributes
 @dataclass
 class Build:
     """Class with information about one build of project
