@@ -59,7 +59,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
 
                 toolchain = None
                 if toolchain_info := build.get("toolchain"):
-                    toolchain = _create_toolchain(toolchain_info)
+                    toolchain = create_toolchain(toolchain_info)
 
                 sysroot = build.get("sysroot")
                 if sysroot is None and (sysroot_id := build.get("sysroot_id")):
@@ -122,13 +122,13 @@ def _create_build(  # pylint: disable=R0913,R0917
         build_machine_info["id"], run_machine_info["id"], recipe_info["id"]
     )
 
-    build_machine = _create_machine(build_machine_info)
-    run_machine = _create_machine(run_machine_info)
+    build_machine = create_machine(build_machine_info)
+    run_machine = create_machine(run_machine_info)
     if not _has_valid_arch(run_machine):
         return False
 
     config_flags = recipe_info.get("config_flags", "")
-    compiler_flags = _create_flags(recipe_info.get("compiler_flags"))
+    compiler_flags = create_flags(recipe_info.get("compiler_flags"))
 
     build = general.Build(
         build_machine,
@@ -148,25 +148,6 @@ def _create_build(  # pylint: disable=R0913,R0917
         pickle.dump(build, file)
 
     return True
-
-
-def _create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
-    """Function to create a new machine"""
-
-    arch = str(machine_info.get("arch"))
-    address = machine_info.get("address")
-    auth = None
-
-    if address is not None:
-        username = str(machine_info.get("username"))
-        password = machine_info.get("password")
-        port = int(machine_info.get("port", DEFAULT_PORT))
-
-        auth = general.MachineAuthenticationInfo(username, password, port)
-
-    machine = general.MachineInfo(general.Arch(arch.lower()), address, auth)
-
-    return machine
 
 
 def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
@@ -244,9 +225,30 @@ def _get_analyzed_build_system() -> str | None:
         return None
 
 
-def _create_toolchain(
+def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
+    """Function to create a new machine"""
+
+    arch = str(machine_info.get("arch"))
+    address = machine_info.get("address")
+    auth = None
+
+    if address is not None:
+        username = str(machine_info.get("username"))
+        password = machine_info.get("password")
+        port = int(machine_info.get("port", DEFAULT_PORT))
+
+        auth = general.MachineAuthenticationInfo(username, password, port)
+
+    machine = general.MachineInfo(general.Arch(arch.lower()), address, auth)
+
+    return machine
+
+
+def create_toolchain(
     toolchain_dict: dict[str, str] | str,
 ) -> general.Toolchain | None:
+    """Function to create a new toolchain"""
+
     if isinstance(toolchain_dict, str):
         return LaboratoryAssistant.find_toolchain_by_name(toolchain_dict)
 
@@ -269,9 +271,11 @@ def _create_toolchain(
     return toolchain
 
 
-def _create_flags(
+def create_flags(
     compiler_flags_dict: dict[str, str] | None,
 ) -> general.CompilerFlags | None:
+    """Function to create new flags"""
+
     if compiler_flags_dict is None:
         return compiler_flags_dict
 
