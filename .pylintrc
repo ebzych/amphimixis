@@ -1,2 +1,2 @@
-[MASTER]
-ignore=tests
+[MAIN]
+ignore-path=./tests
