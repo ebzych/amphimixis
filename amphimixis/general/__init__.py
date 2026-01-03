@@ -2,11 +2,13 @@
 
 from amphimixis.general import constants
 from amphimixis.general.general import (
+    IUI,
     Arch,
     Build,
     IBuildSystem,
     MachineAuthenticationInfo,
     MachineInfo,
+    NullUI,
     Project,
 )
 
@@ -20,4 +22,6 @@ __all__ = [
     "constants",
     "MachineInfo",
     "MachineAuthenticationInfo",
+    "IUI",
+    "NullUI",
 ]

@@ -83,6 +83,22 @@ class Project:
     runner: "type[IBuildSystem]"
 
 
+# pylint: disable=too-few-public-methods
+class IUI(ABC):
+    """Interface for User Interface (UI) classes"""
+
+    @abstractmethod
+    def print(self, message: str) -> None:
+        """Print message to user"""
+
+
+class NullUI(IUI):
+    """A UI implementation that does nothing (used to suppress output)"""
+
+    def print(self, message: str) -> None:
+        pass
+
+
 class IBuildSystem(ABC):
     """Interface for classes implementing interaction with build system"""
 
