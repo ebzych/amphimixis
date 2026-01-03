@@ -83,9 +83,9 @@ class CMake(IBuildSystem):
                 command += f"-DCMAKE_SYSROOT={build.toolchain.sysroot} "
             command += f"{CMake._toolchain_generate(build.toolchain)} "
 
-        # if cross-compiling
+        # if cross-compiling -- add cmake mandatory variables for cross-compiling
         if build.build_machine.address != build.run_machine.address:
-            command += "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_CROSSCOMPILING=TRUE "  # cmake mandatory variables
+            command += "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_CROSSCOMPILING=TRUE "
 
         return command
 
