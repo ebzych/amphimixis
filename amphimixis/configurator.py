@@ -10,9 +10,9 @@ import yaml
 from amphimixis.build_systems import build_systems_dict
 from amphimixis.general import general
 from amphimixis.general.constants import ANALYZED_FILE_NAME
+from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
 from amphimixis.shell import Shell
-from amphimixis.toolchain_manager import ToolchainManager
 from amphimixis.validator import validate
 
 DEFAULT_PORT = 22
@@ -138,7 +138,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     )
 
     if isinstance(build.toolchain, str):
-        build.toolchain = ToolchainManager.construct_toolchain_from_build(build)
+        build.toolchain = LaboratoryAssistant.construct_toolchain_from_build(build)
 
     if isinstance(build.toolchain, general.Toolchain):
         build.sysroot = build.toolchain.sysroot

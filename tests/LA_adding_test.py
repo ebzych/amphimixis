@@ -4,7 +4,7 @@ from shutil import rmtree
 
 import yaml
 
-from amphimixis import ToolchainManager
+from amphimixis import LaboratoryAssistant
 from amphimixis.general import Arch, MachineAuthenticationInfo, MachineInfo
 
 
@@ -13,8 +13,8 @@ def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
     Test: Adding two non-existing platform to the toolbox
     Expected: Platforms appeared in the toolbox
     """
-    ToolchainManager.CONFIG_DIR_PATH = "/tmp/amphimixis"
-    rmtree(ToolchainManager.CONFIG_DIR_PATH, ignore_errors=True)
+    LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    rmtree(LaboratoryAssistant.CONFIG_DIR_PATH, ignore_errors=True)
 
     # construct new platform
     platform_name = "platka-bianbu"
@@ -25,11 +25,11 @@ def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
     )
 
     # add platform to toolbox via ToolchainManager
-    ToolchainManager.add_platform(platform_name, machine)
+    LaboratoryAssistant.add_platform(platform_name, machine)
 
     # reload from file
     with open(
-        f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
+        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
     ) as f_toolbox:
         experimental = yaml.safe_load(f_toolbox)
 
@@ -45,11 +45,11 @@ def test_adding_two_non_existing_platform_in_toolbox_file() -> None:
     )
 
     # add platform to toolbox via ToolchainManager
-    ToolchainManager.add_platform(platform_name, machine)
+    LaboratoryAssistant.add_platform(platform_name, machine)
 
     # reload from file
     with open(
-        f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
+        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
     ) as f_toolbox:
         experimental = yaml.safe_load(f_toolbox)
 
@@ -64,8 +64,8 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
     Test: Adding non-existing toolchain to the toolbox with specifying machine info
     Expected: Toolchain appeared in the toolbox
     """
-    ToolchainManager.CONFIG_DIR_PATH = "/tmp/amphimixis"
-    rmtree(ToolchainManager.CONFIG_DIR_PATH, ignore_errors=True)
+    LaboratoryAssistant.CONFIG_DIR_PATH = "/tmp/amphimixis"
+    rmtree(LaboratoryAssistant.CONFIG_DIR_PATH, ignore_errors=True)
 
     # 1) construct new toolchain
     path_to_toolchain = "/bin/g++-14"
@@ -79,7 +79,7 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
     toolchain_name = "g++-14-platka"
 
     # 2) add toolchain to toolbox via ToolchainManager
-    ToolchainManager.add_toolchain(
+    LaboratoryAssistant.add_toolchain(
         toolchain_name,
         build_machine,
         path_to_toolchain,
@@ -92,7 +92,7 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
         "target_arch": target_arch.value,
     }
 
-    platform_name = ToolchainManager.find_platform_by_address(
+    platform_name = LaboratoryAssistant.find_platform_by_address(
         str(build_machine.address)
     )
 
@@ -101,7 +101,7 @@ def test_adding_not_existing_toolchain_in_toolbox_file_with_specifying_machine_i
 
     # 3) reload from file
     with open(
-        f"{ToolchainManager.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
+        f"{LaboratoryAssistant.CONFIG_DIR_PATH}/toolbox.yml", "r", encoding="utf-8"
     ) as f_toolbox:
         experimental = yaml.safe_load(f_toolbox)
 

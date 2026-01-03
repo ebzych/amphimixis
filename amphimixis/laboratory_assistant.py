@@ -1,4 +1,4 @@
-"""Class that manages and provides toolchains and sysroots"""
+"""Class that manages and provides toolchains, sysroots and platforms"""
 
 from os import environ, makedirs
 from os.path import exists
@@ -14,7 +14,7 @@ from amphimixis.general.general import (
     ToolchainAttrs,
 )
 
-_logger = logger.setup_logger("TOOLCHAIN_MANAGER")
+_logger = logger.setup_logger("LABORATORY_ASSISTANT")
 
 _PLATFORMS = "platforms"
 _SYSROOTS = "sysroots"
@@ -34,7 +34,7 @@ _ATTRIBUTES = "attributes"
 _STD_INDENT = 4
 
 
-class ToolchainManager:
+class LaboratoryAssistant:
     """Manager of toolchains, sysroots and platforms in Amphimixis global config"""
 
     CONFIG_DIR_PATH = (
@@ -57,10 +57,10 @@ class ToolchainManager:
             _TOOLCHAINS: {},
             _SYSROOTS: {},
         }
-        makedirs(ToolchainManager.CONFIG_DIR_PATH, exist_ok=True)
-        if exists(f"{ToolchainManager.TOOLBOX_PATH}"):
+        makedirs(LaboratoryAssistant.CONFIG_DIR_PATH, exist_ok=True)
+        if exists(f"{LaboratoryAssistant.TOOLBOX_PATH}"):
             with open(
-                f"{ToolchainManager.TOOLBOX_PATH}",
+                f"{LaboratoryAssistant.TOOLBOX_PATH}",
                 "r",
                 encoding="utf-8",
             ) as f_toolbox:
@@ -69,14 +69,14 @@ class ToolchainManager:
                 ):
                     return _toolbox
 
-        ToolchainManager.dump_config(template)
+        LaboratoryAssistant.dump_config(template)
         return template
 
     @staticmethod
     def dump_config(toolbox: dict) -> None:
         """Dump toolbox to Amphimixis global config"""
         with open(
-            f"{ToolchainManager.TOOLBOX_PATH}",
+            f"{LaboratoryAssistant.TOOLBOX_PATH}",
             "w",
             encoding="utf-8",
         ) as config_file:
@@ -89,7 +89,7 @@ class ToolchainManager:
         :var str platform_name: Name of platform
         :rtype: MachineInfo | None
         :return: info about machine if found else None"""
-        _toolbox = ToolchainManager.parse_config_file()
+        _toolbox = LaboratoryAssistant.parse_config_file()
         if platform_name in _toolbox[_PLATFORMS]:
             machine = _toolbox[_PLATFORMS][platform_name]
             auth = None
@@ -117,7 +117,7 @@ class ToolchainManager:
         :var str address: Address of platform in network
         :rtype: str
         :return: platform name if platform exists else empty string"""
-        _toolbox = ToolchainManager.parse_config_file()
+        _toolbox = LaboratoryAssistant.parse_config_file()
         for name, machine in _toolbox[_PLATFORMS].items():
             if machine[_ADDRESS] == address:
                 return name
@@ -131,10 +131,10 @@ class ToolchainManager:
         :var MachineInfo machine: Information about machine to write to global config
         :rtype: bool
         :return: True if platform successfully added to global config"""
-        _toolbox = ToolchainManager.parse_config_file()
+        _toolbox = LaboratoryAssistant.parse_config_file()
         _toolbox[_PLATFORMS][name] = machine.__dictstr__
         try:
-            ToolchainManager.dump_config(_toolbox)
+            LaboratoryAssistant.dump_config(_toolbox)
             return True
         except FileExistsError:
             _logger.error("Error with writing to config file")
@@ -149,7 +149,7 @@ class ToolchainManager:
         :return: Toolchain constructed from Amphimixis global config found by name
         if not found then return None"""
 
-        toolbox: dict = ToolchainManager.parse_config_file()
+        toolbox: dict = LaboratoryAssistant.parse_config_file()
         if name in toolbox[_TOOLCHAINS]:
             d_toolchain: dict = toolbox[_TOOLCHAINS][name]
             toolchain = Toolchain(name, d_toolchain[_SYSROOT])
@@ -178,18 +178,18 @@ class ToolchainManager:
         toolchain_data: dict[str, str | dict[str, str]] = {}
         platform_name: str
         if isinstance(machine, str):
-            if ToolchainManager.find_platform(machine) is None:
+            if LaboratoryAssistant.find_platform(machine) is None:
                 return False
             toolchain_data[_PLATFORM] = machine
         else:
             if machine.address is not None:  # else: localhost
                 if not (
-                    platform_name := ToolchainManager.find_platform_by_address(
+                    platform_name := LaboratoryAssistant.find_platform_by_address(
                         machine.address
                     )
                 ):
                     platform_name = "".join(machine.address.split(sep="."))
-                    ToolchainManager.add_platform(platform_name, machine)
+                    LaboratoryAssistant.add_platform(platform_name, machine)
                 toolchain_data[_PLATFORM] = platform_name
 
         toolchain_data[_TARGET_ARCH] = target_arch.value
@@ -197,8 +197,8 @@ class ToolchainManager:
         if toolchain.sysroot:
             toolchain_data[_SYSROOT] = toolchain.sysroot
 
-        _toolbox = ToolchainManager.parse_config_file()
+        _toolbox = LaboratoryAssistant.parse_config_file()
         _toolbox[_TOOLCHAINS][toolchain.name] = toolchain_data
-        ToolchainManager.dump_config(_toolbox)
+        LaboratoryAssistant.dump_config(_toolbox)
 
         return True
