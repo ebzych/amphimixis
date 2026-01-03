@@ -4,6 +4,7 @@
 
 from ipaddress import ip_address
 from re import compile as re_compile
+from types import NoneType
 
 import yaml
 
@@ -118,11 +119,11 @@ def _is_valid_recipe(recipe: dict[str, str]):
         _warn(f"Invalid id in recipe: {re_id}")
 
     config_flags = recipe.get("config_flags")
-    if not isinstance(config_flags, str | None):
+    if not isinstance(config_flags, str | NoneType):
         _warn(f"Invalid config_flags in recipe {re_id}: {config_flags}")
 
     compiler_flags = recipe.get("compiler_flags")
-    if not isinstance(compiler_flags, dict | None):
+    if not isinstance(compiler_flags, dict | NoneType):
         _warn(f"Invalid compiler_flags in recipe {re_id}: {compiler_flags}")
 
 
@@ -142,12 +143,16 @@ def _is_valid_build(build: dict[str, str]):
         _warn(f"Invalid recipe_id in build: {recipe_id}")
 
     toolchain = build.get("toolchain")
-    if not isinstance(toolchain, dict | str | None):
+    if not isinstance(toolchain, dict | str | NoneType):
         _warn(f"Invalid toolchain in build: {toolchain}")
 
     sysroot = build.get("sysroot")
     if sysroot is not None and not isinstance(sysroot, str):
-        _warn(f"Invalid sysrott in build: {sysroot}")
+        _warn(f"Invalid sysroot in build: {sysroot}")
+
+    sysroot_id = build.get("sysroot_id")
+    if sysroot_id is not None and not isinstance(sysroot_id, int):
+        _warn(f"Invalid sysroot_id in build: {sysroot_id}")
 
     executables = build.get("executables")
     if executables is not None and not isinstance(executables, list):
