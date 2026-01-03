@@ -43,6 +43,9 @@ class Profiler:
         """Custom logger to add build and executable prefixes to log messages."""
 
         def process(self, msg, kwargs):
+            if self.extra is None:
+                return f"{msg}", kwargs
+
             build_prefix = self.extra.get("build")
 
             extra = kwargs.get("extra", {})
@@ -384,15 +387,15 @@ class Profiler:
     def save_stats(self):
         """Save collected statistics to a file."""
 
-        pickle.dump(
-            self.stats,
-            os.path.join(os.getcwd(), self._get_stats_filename()),
-        )
+        with open(os.path.join(os.getcwd(), self._get_stats_filename()), "wb") as file:
+            pickle.dump(self.stats, file)
 
     def get_record_filename(self, executable: str) -> str:
         """Gets perf record output file name."""
 
-        return f"{self.build.build_name}_{os.path.normpath(executable)}.data"
+        executable_path_flatten = os.path.normpath(executable).replace("/", "_")
+
+        return f"{self.build.build_name}_{executable_path_flatten}.data"
 
     def _get_stats_filename(self) -> str:
         return f"{self.build.build_name}.stats"
