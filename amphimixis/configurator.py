@@ -57,13 +57,17 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
 
             for build in input_config["builds"]:
 
-                toolchain = _create_toolchain(build.get("toolchain"))
+                toolchain = None
+                if toolchain_info := build.get("toolchain"):
+                    toolchain = _create_toolchain(toolchain_info)
 
-                sysroot = None
-                if sysroot_id := build.get("sysroot_id"):
+                sysroot = build.get("sysroot")
+                if sysroot is None and (sysroot_id := build.get("sysroot_id")):
                     sysroot = _get_by_id(input_config["sysroots"], sysroot_id).get(
                         "path"
                     )
+                elif sysroot is None and toolchain is not None:
+                    sysroot = toolchain.sysroot
 
                 executables = build.get("executables", [])
 
@@ -109,7 +113,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     run_machine_info: dict[str, str],
     recipe_info: dict[str, Any],
     executables: list[str],
-    toolchain: general.Toolchain | str | None,
+    toolchain: general.Toolchain | None,
     sysroot: str | None,
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
@@ -123,7 +127,7 @@ def _create_build(  # pylint: disable=R0913,R0917
     if not _has_valid_arch(run_machine):
         return False
 
-    config_flags = recipe_info.get("config_flags")
+    config_flags = recipe_info.get("config_flags", "")
     compiler_flags = _create_flags(recipe_info.get("compiler_flags"))
 
     build = general.Build(
@@ -133,15 +137,9 @@ def _create_build(  # pylint: disable=R0913,R0917
         executables,
         toolchain,
         sysroot,
-        config_flags,
         compiler_flags,
+        config_flags,
     )
-
-    if isinstance(build.toolchain, str):
-        build.toolchain = LaboratoryAssistant.construct_toolchain_from_build(build)
-
-    if isinstance(build.toolchain, general.Toolchain):
-        build.sysroot = build.toolchain.sysroot
 
     project.builds.append(build)
 
@@ -247,10 +245,10 @@ def _get_analyzed_build_system() -> str | None:
 
 
 def _create_toolchain(
-    toolchain_dict: dict[str, str] | str | None,
-) -> general.Toolchain | str | None:
-    if isinstance(toolchain_dict, str | None):
-        return toolchain_dict
+    toolchain_dict: dict[str, str] | str,
+) -> general.Toolchain | None:
+    if isinstance(toolchain_dict, str):
+        return LaboratoryAssistant.find_toolchain_by_name(toolchain_dict)
 
     toolchain = general.Toolchain()
     for attr in toolchain_dict:
@@ -266,7 +264,7 @@ def _create_toolchain(
             toolchain.sysroot = toolchain_dict[attr]
 
         else:
-            pass
+            _logger.info("Unknown toolchain attribute: %s, skipping...", attr.lower())
 
     return toolchain
 
@@ -284,6 +282,6 @@ def _create_flags(
                 general.CompilerFlagsAttrs(flag.lower()), compiler_flags_dict[flag]
             )
         else:
-            pass
+            _logger.info("Unknown compiler flag attribute: %s, skipping...", flag)
 
     return compiler_flags

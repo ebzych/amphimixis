@@ -192,10 +192,10 @@ class Build:
     run_machine: MachineInfo
     build_name: str
     executables: list[str]
-    toolchain: Toolchain | str | None
+    toolchain: Toolchain | None
     sysroot: str | None
+    compiler_flags: CompilerFlags | None
     config_flags: str = ""
-    compiler_flags: str = ""
 
 
 @dataclass
