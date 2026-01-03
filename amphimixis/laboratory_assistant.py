@@ -141,6 +141,14 @@ class LaboratoryAssistant:
             return False
 
     @staticmethod
+    def delete_platform(name: str) -> None:
+        """Delete platform from Amphimixis global config by name
+
+        :var str name: Name of platform"""
+        toolbox = LaboratoryAssistant.parse_config_file()
+        toolbox[_PLATFORMS].pop(name)
+
+    @staticmethod
     def find_toolchain_by_name(name: str) -> Toolchain | None:
         """Find toolchain by name in global config
 
@@ -202,3 +210,11 @@ class LaboratoryAssistant:
         LaboratoryAssistant.dump_config(_toolbox)
 
         return True
+
+    @staticmethod
+    def delete_toolchain(name: str) -> None:
+        """Delete toolchain from Amphimixis global config by name
+
+        :var str name: Name of toolchain"""
+        toolbox = LaboratoryAssistant.parse_config_file()
+        toolbox[_TOOLCHAINS].pop(name)
