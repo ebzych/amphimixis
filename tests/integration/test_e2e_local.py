@@ -10,8 +10,9 @@ import pytest
 
 @pytest.mark.integration
 def test_e2e_local_machine(clone_repo, create_working_space):
-    """This integration test checks whether the application can successfully build the project
-    on the local machine"""
+    """This end-to-end test validates that the pipeline can successfully process
+    the yaml-cpp repository using the configuration file input_local.yaml.
+    """
     repo_path = clone_repo("https://github.com/jbeder/yaml-cpp.git")
     working_dir = create_working_space()
     orig_dir = Path.cwd()
@@ -23,7 +24,7 @@ def test_e2e_local_machine(clone_repo, create_working_space):
         os.chdir(working_dir)
         command = ["python3", orig_dir / "amixis.py", str(repo_path)]
 
-        result = subprocess.run(command, check=True)
+        result = subprocess.run(command)
 
         assert result.returncode == 0
 

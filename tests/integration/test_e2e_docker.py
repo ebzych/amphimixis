@@ -9,8 +9,12 @@ import pytest
 
 @pytest.mark.integration
 def test_e2e_remote_machine_between_containers(clone_repo, _docker_compose):
-    """This integration test checks whether the application can successfully build the project
-    on the remote machine with using two containers"""
+    """End-to-end test for remote build between Docker containers.
+    Validates that the pipeline can successfully run across separate
+    containers (build-client and build-server).
+    Waits for containers to be ready, extracts server IP, updates configuration,
+    copies repository to client container, and executes the process.
+    """
 
     docker_client = docker.from_env()
 
