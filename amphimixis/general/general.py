@@ -91,7 +91,7 @@ class IUI(ABC):
     def print(self, message: str) -> None:
         """Print message to user
 
-        :var str message: Message to print to the user"""
+        :param str message: Message to print to the user"""
 
 
 class NullUI(IUI):
