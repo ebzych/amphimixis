@@ -24,7 +24,7 @@ def test_e2e_local_machine(clone_repo, create_working_space):
         os.chdir(working_dir)
         command = ["python3", orig_dir / "amixis.py", str(repo_path)]
 
-        result = subprocess.run(command)
+        result = subprocess.run(command, check=False)
 
         assert result.returncode == 0
 
