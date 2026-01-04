@@ -25,7 +25,7 @@ class CLI(general.IUI):
     def print(self, message: str) -> None:
         """Print message to the console
 
-        :var str message: Message to print to the console"""
+        :param str message: Message to print to the console"""
 
         print(message)
 

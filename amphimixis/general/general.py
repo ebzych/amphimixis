@@ -89,7 +89,9 @@ class IUI(ABC):
 
     @abstractmethod
     def print(self, message: str) -> None:
-        """Print message to user"""
+        """Print message to user
+
+        :var str message: Message to print to the user"""
 
 
 class NullUI(IUI):
