@@ -12,7 +12,9 @@ from testcontainers.compose import DockerCompose
 
 @pytest.fixture
 def clone_repo():
-    """The fixture for cloning a repository from GitHub to a temporary directory"""
+    """The fixture for cloning a repository from GitHub to a temporary directory.
+    Comment out the lines after yield if you don't want the directory with the cloned repository
+    to be deleted. Don't forget to delete it after debugging."""
     repo_paths = []
 
     def _clone_repo(repo_url):
@@ -31,7 +33,9 @@ def clone_repo():
 
 @pytest.fixture
 def create_working_space():
-    """The ficture for creating a temporary working directory"""
+    """The fixture for creating a temporary working directory.
+    Comment out lines after yield if you don't want the working directory to be deleted.
+    Don't forget to delete it after debugging."""
     working_dirs = []
 
     def _create_temp_file():
@@ -57,3 +61,5 @@ def _docker_compose():
     compose.start()
 
     yield compose
+
+    compose.stop()

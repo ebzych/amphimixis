@@ -8,7 +8,7 @@ import pytest
 
 
 @pytest.mark.integration
-def test_build_remote_machine_between_containers(clone_repo, _docker_compose):
+def test_e2e_remote_machine_between_containers(clone_repo, _docker_compose):
     """This integration test checks whether the application can successfully build the project
     on the remote machine with using two containers"""
 
