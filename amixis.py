@@ -48,7 +48,7 @@ def main():
         if not any([args.analyze, args.build, args.profile]):
             run_analyze(project)
             run_build(project, config_file_path=str(config_file))
-            run_profile(project)
+            run_profile(project, config_file_path=str(config_file))
 
         if args.analyze:
             run_analyze(project)
@@ -57,7 +57,7 @@ def main():
             run_build(project, config_file_path=str(config_file))
 
         if args.profile:
-            run_profile(project)
+            run_profile(project, config_file_path=str(config_file))
 
         sys.exit(0)
 

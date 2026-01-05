@@ -23,11 +23,16 @@ def run_build(project, config_file_path):
     Builder.build(project)
 
 
-def run_profile(project):
+def run_profile(project, config_file_path):
     """Execute project profiling.
 
     :param project: Project instance to profiler
+    :param config_file_path: Path to YAML configuration file
     """
+
+    if not project.builds:
+        parse_config(project, config_file_path=str(config_file_path))
+
     for build in project.builds:
         print(f"Profiling {build.build_name}")
         profiler_ = Profiler(project, build)
