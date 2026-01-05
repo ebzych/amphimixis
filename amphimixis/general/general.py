@@ -88,16 +88,35 @@ class IUI(ABC):
     """Interface for User Interface (UI) classes"""
 
     @abstractmethod
-    def print(self, message: str) -> None:
-        """Print message to user
+    def print(self) -> None:
+        """Print message to user"""
 
-        :param str message: Message to print to the user"""
+    @abstractmethod
+    def update_message(self, message: str, build_id: str) -> None:
+        """Update message for specific build
+
+        :param str message: Message to store
+        :param str build_id: Build identifier
+        """
+
+    @abstractmethod
+    def step(self, build_id: str) -> None:
+        """Advance the progress counter by one step
+
+        :param str build_id: Build identifier
+        """
 
 
 class NullUI(IUI):
     """A UI implementation that does nothing (used to suppress output)"""
 
-    def print(self, message: str) -> None:
+    def print(self) -> None:
+        pass
+
+    def update_message(self, message: str, build_id: str) -> None:
+        pass
+
+    def step(self, build_id: str) -> None:
         pass
 
 
