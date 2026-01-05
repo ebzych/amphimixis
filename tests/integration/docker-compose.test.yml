@@ -1,0 +1,22 @@
+services:
+  build-server:
+    container_name: build-server
+    image: marianovik/build-server:latest
+    ports:
+      - "2222:22"
+    networks:
+      - test-network
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+  build-client:
+    container_name: build-client
+    image: marianovik/build-client:latest
+    volumes:
+      - ../../:/app:ro
+      - ./input_remote.yaml:/workspace/input_remote.yml:ro
+    networks:
+      - test-network
+networks:
+  test-network:
+    driver: bridge

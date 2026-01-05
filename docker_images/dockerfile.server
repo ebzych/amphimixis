@@ -1,0 +1,13 @@
+FROM ubuntu:24.04
+
+COPY default.json /etc/docker/seccomp-perf.json
+RUN apt-get update && \
+    apt-get install -y openssh-server g++ make cmake rsync time linux-tools-generic && \
+    echo 'root:password' | chpasswd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    rm /usr/bin/perf && \
+    ln -s /usr/lib/linux-tools/6.8.0-90-generic/perf /usr/bin/perf
+
+WORKDIR /workspace
+ARG SECCOMP_PROFILE=/etc/docker/seccomp-perf.json
+CMD ["bash", "-c", "service ssh start && touch secret_ishtar && tail -f /dev/null"]

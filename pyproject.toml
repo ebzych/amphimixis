@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 
 dependencies = [
-    "pyyaml"
+    "pyyaml",
 ]
 
 [tool.setuptools]
@@ -17,17 +17,23 @@ include = ["amphimixis*"]
 
 [dependency-groups]
 dev = [
+    "docker",
+    "testcontainers",
+    "pytest",
     "ruff",
     "black",
     "mypy",
     "pylint",
     "types-paramiko",
     "types-pyyaml",
-    "pytest",
+    "types-docker",
 ]
 
 [tool.uv]
 package = true
+
+[tool.mypy]
+disable_error_code = ["import-untyped"]
 
 [project.scripts]
 amixis = "amixis:main"
