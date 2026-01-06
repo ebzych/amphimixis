@@ -443,7 +443,10 @@ class Profiler:
             )
             return []
 
-        return [line.strip() for line in stdout[1][:max_number_of_executables]]
+        return [
+            os.path.normpath(line.strip())
+            for line in stdout[1][:max_number_of_executables]
+        ]
 
 
 if __name__ == "__main__":
