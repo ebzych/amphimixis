@@ -1,5 +1,6 @@
 # pylint: skip-file
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -7,7 +8,7 @@ import pytest_mock
 
 import amphimixis
 import amphimixis.profiler
-from amphimixis import general
+from amphimixis import Profiler, general
 
 EXECUTABLE_FILENAME = "a.out"
 
@@ -41,7 +42,7 @@ def build_executable():
 
 @pytest.fixture
 def get_profiler(mocker: pytest_mock.MockerFixture):
-    def _profiler(path: Path, exec_name: str) -> amphimixis.Profiler:
+    def _profiler(path: Path, exec_name: str) -> Profiler:
         workdir_path_mock = mocker.Mock()
         workdir_path_mock.return_value = str(path)
         mocker.patch("amphimixis.Shell.get_project_workdir", workdir_path_mock)
@@ -64,17 +65,49 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
             amphimixis.build_systems_dict["cmake"],
         )
 
-        return amphimixis.Profiler(project, build)
+        return Profiler(project, build)
 
     return _profiler
 
 
 class TestProfiler:
+    @pytest.mark.parametrize(
+        "method",
+        [
+            Profiler.test_executable,
+            Profiler.execution_time,
+            Profiler.perf_stat_collect,
+            Profiler.perf_record_collect,
+        ],
+    )
+    @pytest.mark.parametrize(
+        "program, expected",
+        [
+            (C_PROGRAM_SUCCESSFUL_RUN, True),
+            (C_PROGRAM_FAILED_RUN, False),
+        ],
+    )
+    def test_basic_functions_return_appropriate_value(
+        self,
+        proj_path,
+        get_profiler,
+        build_executable,
+        method: Callable[[Profiler, str], bool],
+        program: str,
+        expected: bool,
+    ):
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        build_executable(
+            proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
+        )
+
+        assert method(profiler, EXECUTABLE_FILENAME) == expected
+
     @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
     def test_execution_time_updates_dictionary_with_correct_data(
         self, proj_path, get_profiler, build_executable, program: str
     ):
-        profiler: amphimixis.Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
         build_executable(
             proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
         )
@@ -98,7 +131,7 @@ class TestProfiler:
     def test_execution_time_measures_right(
         self, proj_path, get_profiler, build_executable, program: str, expected: float
     ):
-        profiler: amphimixis.Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
         build_executable(
             proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
         )
