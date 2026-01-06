@@ -177,3 +177,124 @@ class TestProfiler:
         )
 
         assert result.returncode == 0
+
+    @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
+    def test_profile_all_finds_executables_on_empty_list_in_build(
+        self, proj_path, get_profiler, build_executable, program: str
+    ):
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        profiler.executables.clear()
+
+        build_executable(
+            proj_path, program, EXECUTABLE_FILENAME + "test", profiler.build.build_name
+        )
+
+        assert profiler.profile_all(
+            test_executable=False,
+            execution_time=False,
+            stat_collect=False,
+            record_collect=False,
+            max_number_of_executables=1,
+        )
+
+    @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
+    def test_profile_all_return_false_if_can_not_find_executables(
+        self, proj_path, get_profiler, build_executable, program: str
+    ):
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        profiler.executables.clear()
+
+        assert not profiler.profile_all(
+            test_executable=False,
+            execution_time=False,
+            stat_collect=False,
+            record_collect=False,
+            max_number_of_executables=1,
+        )
+
+    @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
+    def test_profile_all_calls_every_method(
+        self,
+        proj_path,
+        get_profiler,
+        build_executable,
+        mocker: pytest_mock.MockerFixture,
+        program: str,
+    ):
+
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        profiler.executables.clear()
+        spies = [
+            mocker.spy(profiler, "test_executable"),
+            mocker.spy(profiler, "execution_time"),
+            mocker.spy(profiler, "perf_stat_collect"),
+            mocker.spy(profiler, "perf_record_collect"),
+        ]
+
+        build_executable(
+            proj_path, program, EXECUTABLE_FILENAME + "test", profiler.build.build_name
+        )
+
+        assert profiler.profile_all(
+            test_executable=True,
+            execution_time=True,
+            stat_collect=True,
+            record_collect=True,
+            max_number_of_executables=1,
+        )
+
+        assert all(
+            s.call_count == 1 for s in spies
+        ), "Not all profiler methods were called once"
+
+    @pytest.mark.parametrize(
+        "program_fail, program_ok", [(C_PROGRAM_FAILED_RUN, C_PROGRAM_SUCCESSFUL_RUN)]
+    )
+    def test_profile_all_skips_smoke_test_failed_executables(
+        self,
+        proj_path,
+        get_profiler,
+        build_executable,
+        mocker: pytest_mock.MockerFixture,
+        program_fail: str,
+        program_ok: str,
+    ):
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        profiler.executables.clear()
+        spies = [
+            mocker.spy(profiler, "test_executable"),
+            mocker.spy(profiler, "execution_time"),
+            mocker.spy(profiler, "perf_stat_collect"),
+            mocker.spy(profiler, "perf_record_collect"),
+        ]
+
+        build_executable(
+            proj_path,
+            program_fail,
+            EXECUTABLE_FILENAME + "fail_test",
+            profiler.build.build_name,
+        )
+
+        build_executable(
+            proj_path,
+            program_ok,
+            EXECUTABLE_FILENAME + "ok_test",
+            profiler.build.build_name,
+        )
+
+        assert profiler.profile_all(
+            test_executable=True,
+            execution_time=True,
+            stat_collect=True,
+            record_collect=True,
+            max_number_of_executables=2,
+        )
+
+        assert spies[0].call_count == 2
+        assert all(s.call_count == 1 for s in spies[1:])
+        assert (
+            len(profiler.stats[EXECUTABLE_FILENAME + "fail_test"].keys()) == 1
+        ), "Executable that failed smoke test is not skipped"
+        assert (
+            len(profiler.stats[EXECUTABLE_FILENAME + "ok_test"].keys()) == 5
+        ), "Executable that passed smoke test is skipped"
