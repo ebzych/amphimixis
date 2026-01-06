@@ -158,3 +158,20 @@ class TestProfiler:
             profiler.stats[EXECUTABLE_FILENAME].get(amphimixis.profiler.Stats.PERF_STAT)
             is not None
         )
+
+    @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
+    def test_perf_record_collect_creates_valid_perf_data_file(
+        self, proj_path, get_profiler, build_executable, program: str
+    ):
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        build_executable(
+            proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
+        )
+
+        assert profiler.perf_record_collect(EXECUTABLE_FILENAME)
+
+        result = subprocess.run(
+            ["perf", "report", "-i", profiler.get_record_filename(EXECUTABLE_FILENAME)],
+        )
+
+        assert result.returncode == 0
