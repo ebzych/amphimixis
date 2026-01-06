@@ -142,3 +142,19 @@ class TestProfiler:
             )
             > expected - 0.1
         )
+
+    @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
+    def test_perf_data_collect_updates_dictionary_with_some_data_on_successful_run(
+        self, proj_path, get_profiler, build_executable, program: str
+    ):
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        build_executable(
+            proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
+        )
+
+        assert profiler.perf_stat_collect(EXECUTABLE_FILENAME)
+
+        assert (
+            profiler.stats[EXECUTABLE_FILENAME].get(amphimixis.profiler.Stats.PERF_STAT)
+            is not None
+        )
