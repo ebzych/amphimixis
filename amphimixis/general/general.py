@@ -88,8 +88,11 @@ class IUI(ABC):
     """Interface for User Interface (UI) classes"""
 
     @abstractmethod
-    def print(self) -> None:
-        """Print message to user"""
+    def step(self, build_id: str) -> None:
+        """Advance the progress counter by one step
+
+        :param str build_id: Build identifier
+        """
 
     @abstractmethod
     def update_message(self, message: str, build_id: str) -> None:
@@ -100,23 +103,34 @@ class IUI(ABC):
         """
 
     @abstractmethod
-    def step(self, build_id: str) -> None:
-        """Advance the progress counter by one step
+    def mark_success(self, build_id: str) -> None:
+        """Mark build as successful.
 
-        :param str build_id: Build identifier
+        :param build_id: Build identifier
+        """
+
+    @abstractmethod
+    def mark_failed(self, build_id: str, error: str = "") -> None:
+        """Mark build as failed.
+
+        :param build_id: Build identifier
+        :param error: Error message
         """
 
 
 class NullUI(IUI):
     """A UI implementation that does nothing (used to suppress output)"""
 
-    def print(self) -> None:
+    def step(self, build_id: str) -> None:
         pass
 
     def update_message(self, message: str, build_id: str) -> None:
         pass
 
-    def step(self, build_id: str) -> None:
+    def mark_success(self, build_id: str) -> None:
+        pass
+
+    def mark_failed(self, build_id: str, error: str = "") -> None:
         pass
 
 
