@@ -68,6 +68,7 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
     return _profiler
 
 
+@pytest.mark.unit
 class TestProfiler:
     @pytest.mark.parametrize(
         "method",
