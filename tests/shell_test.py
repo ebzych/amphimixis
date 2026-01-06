@@ -7,6 +7,7 @@ import pytest
 import amphimixis
 
 
+@pytest.mark.unit
 class TestShell:
     local_machine = amphimixis.general.MachineInfo(
         amphimixis.general.Arch.X86, None, None
