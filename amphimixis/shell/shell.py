@@ -7,7 +7,7 @@ from ctypes import ArgumentError
 from typing import List, Self, Tuple
 
 from amphimixis import logger
-from amphimixis.general import MachineInfo, Project, constants
+from amphimixis.general import IUI, MachineInfo, NullUI, Project, constants
 from amphimixis.shell.local_shell_handler import _LocalShellHandler
 from amphimixis.shell.shell_interface import IShellHandler
 from amphimixis.shell.ssh_shell_handler import _SSHHandler
@@ -22,10 +22,16 @@ class Shell:
     In case of local machine `bash` is used as shell.
     """
 
-    def __init__(self, machine: MachineInfo, connect_timeout=5):
+    def __init__(
+        self,
+        machine: MachineInfo,
+        ui: IUI = NullUI(),
+        connect_timeout=5,
+    ):
         self.logger = logger.setup_logger("SHELL")
         self._shell: IShellHandler
         self.machine = machine
+        self.ui = ui
         self.connect_timeout = connect_timeout
         self._project_workdir: str = ""
         self._homedir: str = ""
@@ -96,6 +102,7 @@ class Shell:
             cmd_stdout: List[str] = []
             cmd_stderr: List[str] = []
             while line := self._shell.stdout_readline():
+                self.ui.step()
                 if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
                     error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
                     del cmd_stdout[-1]
@@ -104,6 +111,7 @@ class Shell:
             stdout.append(cmd_stdout)
 
             while line := self._shell.stderr_readline():
+                self.ui.step()
                 if line[:-1] == _READING_BARRIER_FLAG:
                     del cmd_stderr[-1]
                     break

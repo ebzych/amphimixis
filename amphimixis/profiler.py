@@ -6,6 +6,7 @@ import pickle
 from enum import Enum
 
 from amphimixis import general, logger, shell
+from amphimixis.general import IUI, NullUI
 
 
 class Stats(Enum):
@@ -36,6 +37,7 @@ _commands_args: dict[str, dict[str, str]] = {
 }
 
 
+# pylint: disable=too-many-instance-attributes
 class Profiler:
     """Class for profiling a build within a project."""
 
@@ -58,14 +60,17 @@ class Profiler:
 
             return f"{prefix} {msg}", kwargs
 
-    def __init__(self, project: general.Project, build: general.Build):
+    def __init__(
+        self, project: general.Project, build: general.Build, ui: IUI = NullUI()
+    ):
         self.logger = self.CustomLogger(
             logger.setup_logger("PROFILER"), {"build": build.build_name}
         )
         self.machine = build.run_machine
         self.build = build
+        self.ui = ui
         self.executables = build.executables.copy()
-        self.shell = shell.Shell(self.machine).connect()
+        self.shell = shell.Shell(self.machine, ui).connect()
         self.stats: dict[str, ProfilerStats] = {}
         self.build_path = os.path.join(
             self.shell.get_project_workdir(project), build.build_name
@@ -112,6 +117,7 @@ class Profiler:
 
         if not self.executables:
             self.logger.error("Can't find any executables")
+            self.ui.mark_failed("No executables found")
             return False
 
         for executable in self.executables:
@@ -128,6 +134,7 @@ class Profiler:
             if record_collect:
                 self.perf_record_collect(executable)
 
+        self.ui.mark_success()
         return True
 
     def execution_time(self, executable: str) -> bool:
