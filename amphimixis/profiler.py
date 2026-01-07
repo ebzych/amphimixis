@@ -113,28 +113,34 @@ class Profiler:
 
         if not self.executables:
             self.executables = self._find_executables(max_number_of_executables)
+            self.ui.update_message(
+                self.build.build_name, "Searching for executables..."
+            )
             self.logger.info("Found executables:\n%s\n", "\n".join(self.executables))
 
         if not self.executables:
             self.logger.error("Can't find any executables")
-            self.ui.mark_failed("No executables found")
+            self.ui.update_message(self.build.build_name, "No executables found")
             return False
 
         for executable in self.executables:
             if test_executable:
+                self.ui.update_message(self.build.build_name, "Testing...")
                 if not self.test_executable(executable):
                     continue
 
             if execution_time:
+                self.ui.update_message(self.build.build_name, "Measuring time...")
                 self.execution_time(executable)
 
             if stat_collect:
+                self.ui.update_message(self.build.build_name, "Perf stat collecting..")
                 self.perf_stat_collect(executable)
 
             if record_collect:
+                self.ui.update_message(self.build.build_name, "Perf data recording ...")
                 self.perf_record_collect(executable)
 
-        self.ui.mark_success()
         return True
 
     def execution_time(self, executable: str) -> bool:

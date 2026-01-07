@@ -30,17 +30,18 @@ def parse_config(
          False if configuration failed
     """
 
-    ui.update_message("config", "Parsing configuration...")
+    ui.update_message("config", "Parsing configuration file...")
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
+        ui.update_message("config", "Project path not found")
         return False
 
     project.builds = []
 
     if not validate(config_file_path):
         _logger.error("Incorrect input file")
-        ui.mark_failed("Incorrect input file")
+        ui.update_message("config", "Incorrect input file")
         return False
 
     try:
@@ -51,7 +52,7 @@ def parse_config(
             if build_system is None:
                 if not (build_system := _get_analyzed_build_system()):
                     _logger.error("Did not find any proper build_system")
-                    ui.mark_failed("No build system found")
+                    ui.update_message("config", "No build system found")
                     return False
 
             runner = input_config.get("runner")
@@ -92,15 +93,14 @@ def parse_config(
                     sysroot,
                     ui,
                 ):
-                    ui.mark_failed("Failed to create build")
+                    ui.update_message("config", "Failed to create build")
                     return False
 
     except FileNotFoundError:
         _logger.error("Error opening file, check input data")
-        ui.mark_failed("Config file not found")
+        ui.update_message("config", "Config file not found")
         return False
 
-    ui.mark_success()
     _logger.info("Configuration completed successfully!")
     return True
 
@@ -196,12 +196,14 @@ def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
             return False
 
     else:
+        ui.update_message("config", "Checking remote architecture for validity...")
         shell = Shell(machine, ui).connect()
         error_code, stdout, _ = shell.run("uname -m")
         if error_code != 0:
             _logger.error(
                 "An error occured during reading remote machine arch, check remote machine"
             )
+            ui.update_message("config", "Failed to check remote architecture")
             return False
 
         remote_arch = stdout[0][0]
@@ -211,6 +213,7 @@ def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
                 machine.arch.name.lower(),
                 remote_arch.lower(),
             )
+            ui.update_message("Config", "Invalid remote architecture")
             return False
 
     return True

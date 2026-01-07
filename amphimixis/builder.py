@@ -29,17 +29,21 @@ class Builder:
     def build_for_linux(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
         """The method build program on Linux"""
 
+        ui.update_message(build.build_name, "Connecting...")
         shell = Shell(build.build_machine, ui).connect()
 
         # path to build on the machine
         path: str = os.path.join(shell.get_project_workdir(project), build.build_name)
 
         if build.build_machine.address is not None:  # if building on the remote machine
+            ui.update_message(
+                build.build_name, "Copying project sources to remote machine..."
+            )
             if not shell.copy_to_remote(
                 os.path.normpath(project.path), "~/amphimixis/"
             ):
                 _logger.error("Error in copying source files")
-                ui.mark_failed("Error in copying source files")
+                ui.update_message(build.build_name, "Error in copying source files")
                 return False
 
         try:
@@ -80,12 +84,14 @@ class Builder:
                 _logger.info("Building output:\n%s", "".join(stdout[3]))
                 _logger.info("Building stderr:\n%s", "".join(stderr[3]))
 
-            if err == 0:
-                ui.mark_success()
-            else:
-                ui.mark_failed("Build failed!")
-            return err == 0
+            if err != 0:
+                ui.update_message(build.build_name, "Build failed")
+                return False
+
+            return True
+
         except FileNotFoundError:
+            ui.update_message(build.build_name, "Build system not found")
             return False
 
     @staticmethod
