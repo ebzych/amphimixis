@@ -148,7 +148,6 @@ class Profiler:
                         self.get_record_filename(executable), working_directory
                     )
 
-        self.ui.mark_success()
         return True
 
     def execution_time(self, executable: str, working_directory: str) -> bool:
