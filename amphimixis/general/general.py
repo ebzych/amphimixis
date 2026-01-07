@@ -95,11 +95,11 @@ class IUI(ABC):
         """
 
     @abstractmethod
-    def update_message(self, message: str, build_id: str) -> None:
+    def update_message(self, build_id: str, message: str) -> None:
         """Update message for specific build
 
-        :param str message: Message to store
         :param str build_id: Build identifier
+        :param str message: Message to store
         """
 
     @abstractmethod
@@ -124,7 +124,7 @@ class NullUI(IUI):
     def step(self, build_id: str) -> None:
         pass
 
-    def update_message(self, message: str, build_id: str) -> None:
+    def update_message(self, build_id: str, message: str) -> None:
         pass
 
     def mark_success(self, build_id: str) -> None:
