@@ -98,6 +98,7 @@ def parse_config(
         ui.update_message("config", "Config file not found")
         return False
 
+    ui.mark_success()
     _logger.info("Configuration completed successfully!")
     return True
 
