@@ -3,6 +3,7 @@
 import os
 
 from amphimixis import logger
+from amphimixis.general import IUI, NullUI
 from amphimixis.general.general import Build, Project
 from amphimixis.shell.shell import Shell
 
@@ -13,30 +14,36 @@ class Builder:
     """The class is representing a module which builds a build based on its configuration"""
 
     @staticmethod
-    def build(project: Project) -> None:
+    def build(project: Project, ui: IUI = NullUI()) -> None:
         """The method build all builds"""
 
         for build in project.builds:
             _logger.info("Build the %s", build.build_name)
 
-            if Builder.build_for_linux(project, build):
+            if Builder.build_for_linux(project, build, ui):
                 _logger.info("Build passed %s", build.build_name)
             else:
                 _logger.info("Build failed %s", build.build_name)
 
     @staticmethod
-    def build_for_linux(project: Project, build: Build) -> bool:
+    def build_for_linux(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
         """The method build program on Linux"""
-        shell = Shell(build.build_machine).connect()
+
+        ui.update_message(build.build_name, "Connecting...")
+        shell = Shell(build.build_machine, ui).connect()
 
         # path to build on the machine
         path: str = os.path.join(shell.get_project_workdir(project), build.build_name)
 
         if build.build_machine.address is not None:  # if building on the remote machine
+            ui.update_message(
+                build.build_name, "Copying project sources to remote machine..."
+            )
             if not shell.copy_to_remote(
                 os.path.normpath(project.path), "~/amphimixis/"
             ):
                 _logger.error("Error in copying source files")
+                ui.update_message(build.build_name, "Error in copying source files")
                 return False
 
         try:
@@ -49,6 +56,7 @@ class Builder:
             runner_prompt = project.runner.get_runner_prompt(project, build)
             _logger.info("Run building with: %s", runner_prompt)
 
+            ui.update_message(build.build_name, "Building...")
             err, stdout, stderr = shell.run(
                 f"mkdir -p {path}",
                 f"cd {path}",
@@ -76,8 +84,14 @@ class Builder:
                 _logger.info("Building output:\n%s", "".join(stdout[3]))
                 _logger.info("Building stderr:\n%s", "".join(stderr[3]))
 
-            return err == 0
+            if err != 0:
+                ui.update_message(build.build_name, "Build failed")
+                return False
+
+            return True
+
         except FileNotFoundError:
+            ui.update_message(build.build_name, "Build system not found")
             return False
 
     @staticmethod

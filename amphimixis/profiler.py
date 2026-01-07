@@ -6,6 +6,7 @@ import pickle
 from enum import Enum
 
 from amphimixis import general, logger, shell
+from amphimixis.general import IUI, NullUI
 
 
 class Stats(Enum):
@@ -36,6 +37,7 @@ _commands_args: dict[str, dict[str, str]] = {
 }
 
 
+# pylint: disable=too-many-instance-attributes
 class Profiler:
     """Class for profiling a build within a project."""
 
@@ -58,14 +60,17 @@ class Profiler:
 
             return f"{prefix} {msg}", kwargs
 
-    def __init__(self, project: general.Project, build: general.Build):
+    def __init__(
+        self, project: general.Project, build: general.Build, ui: IUI = NullUI()
+    ):
         self.logger = self.CustomLogger(
             logger.setup_logger("PROFILER"), {"build": build.build_name}
         )
         self.machine = build.run_machine
         self.build = build
+        self.ui = ui
         self.executables = build.executables.copy()
-        self.shell = shell.Shell(self.machine).connect()
+        self.shell = shell.Shell(self.machine, ui).connect()
         self.stats: dict[str, ProfilerStats] = {}
         self.build_path = os.path.join(
             self.shell.get_project_workdir(project), build.build_name
@@ -108,24 +113,32 @@ class Profiler:
 
         if not self.executables:
             self.executables = self._find_executables(max_number_of_executables)
+            self.ui.update_message(
+                self.build.build_name, "Searching for executables..."
+            )
             self.logger.info("Found executables:\n%s\n", "\n".join(self.executables))
 
         if not self.executables:
             self.logger.error("Can't find any executables")
+            self.ui.update_message(self.build.build_name, "No executables found")
             return False
 
         for executable in self.executables:
             if test_executable:
+                self.ui.update_message(self.build.build_name, "Testing...")
                 if not self.test_executable(executable):
                     continue
 
             if execution_time:
+                self.ui.update_message(self.build.build_name, "Measuring time...")
                 self.execution_time(executable)
 
             if stat_collect:
+                self.ui.update_message(self.build.build_name, "Perf stat collecting..")
                 self.perf_stat_collect(executable)
 
             if record_collect:
+                self.ui.update_message(self.build.build_name, "Perf data recording ...")
                 self.perf_record_collect(executable)
 
         return True
