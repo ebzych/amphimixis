@@ -96,8 +96,8 @@ def _configure_build(input_config: dict[str, Any], build: dict[str, Any]) -> tup
     general.Toolchain | None,
     str | None,
     list[str],
-    str | dict[str, str],
-    str | dict[str, str],
+    str | dict[str, int | str],
+    str | dict[str, int | str],
     dict[str, Any],
 ]:
     """Function to configure fields of a single build"""
@@ -136,8 +136,8 @@ def _configure_build(input_config: dict[str, Any], build: dict[str, Any]) -> tup
 
 def _create_build(  # pylint: disable=R0913,R0914,R0917
     project: general.Project,
-    build_machine_info: str | dict[str, str],
-    run_machine_info: str | dict[str, str],
+    build_machine_info: str | dict[str, int | str],
+    run_machine_info: str | dict[str, int | str],
     recipe_info: dict[str, Any],
     executables: list[str],
     toolchain: general.Toolchain | None,
@@ -156,24 +156,24 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
         else run_machine_info["id"]
     )
     build_name = _generate_build_name(
-        id_name_build_machine, id_name_run_machine, recipe_info["id"]
+        str(id_name_build_machine), str(id_name_run_machine), recipe_info["id"]
     )
 
     if isinstance(build_machine_info, str):
         if (
             build_machine := LaboratoryAssistant.find_platform(build_machine_info)
         ) is None:
-            raise ValueError(
-                f"Build '{build_name}': unknown build machine: '{build_machine_info}'"
-            )
+            msg = f"Build '{build_name}': unknown build machine: '{build_machine_info}'"
+            _logger.fatal(msg)
+            raise ValueError(msg)
     else:
         build_machine = create_machine(build_machine_info)
 
     if isinstance(run_machine_info, str):
         if (run_machine := LaboratoryAssistant.find_platform(run_machine_info)) is None:
-            raise ValueError(
-                f"Build '{build_name}': unknown run machine: '{run_machine_info}'"
-            )
+            msg = f"Build '{build_name}': unknown run machine: '{run_machine_info}'"
+            _logger.fatal(msg)
+            raise ValueError(msg)
     else:
         run_machine = create_machine(run_machine_info)
 
@@ -209,11 +209,16 @@ def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
     return f"{build_id}_{run_id}_{recipe_id}"
 
 
-def _get_by_id(items: list[dict[str, str]], target_id: str) -> dict[str, str]:
+def _get_by_id(items: list[dict[str, str]], target_id: int) -> dict[str, str]:
     """Function to find item in dict by id"""
 
     for item in items:
-        if item["id"] == target_id:
+        id_ = item["id"]
+        if not isinstance(id_, int):
+            msg = f"Error: not integer id '{id_}' of item: {item}"
+            _logger.fatal(msg)
+            raise ValueError(msg)
+        if id_ == target_id:
             return item
 
     _logger.error("Item id didn't match any existed id, check input file")
@@ -278,16 +283,18 @@ def _get_analyzed_build_system() -> str | None:
         return None
 
 
-def create_machine(machine_info: dict[str, str]) -> general.MachineInfo:
+def create_machine(machine_info: dict[str, int | str]) -> general.MachineInfo:
     """Function to create a new machine"""
 
     arch = str(machine_info.get("arch"))
     address = machine_info.get("address")
+    address = str(address) if address is not None else None
     auth = None
 
     if address is not None:
         username = str(machine_info.get("username"))
         password = machine_info.get("password")
+        password = str(password) if password is not None else None
         port = int(machine_info.get("port", DEFAULT_PORT))
 
         auth = general.MachineAuthenticationInfo(username, password, port)
