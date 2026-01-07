@@ -82,7 +82,7 @@ def validate(config_file_path: str) -> bool:
         return False
 
 
-def _is_valid_platform(platform: dict[str, str]):
+def _is_valid_platform(platform: dict[str, int | str]):
     """Function to check whether plafrom is valid"""
 
     pl_id = platform.get("id")
@@ -106,7 +106,7 @@ def _is_valid_platform(platform: dict[str, str]):
         _warn(f"Invalid username in platform {pl_id}: {username}")
 
     password = platform.get("password")
-    if password is not None and not isinstance(password, str):
+    if password is not None and not isinstance(password, int | str):
         _warn(f"Invalid password in platform {pl_id}: {password}")
 
     port = platform.get("port", DEFAULT_PORT)
@@ -114,7 +114,7 @@ def _is_valid_platform(platform: dict[str, str]):
         _warn(f"Invalid port in platform {pl_id}: {port}")
 
 
-def _is_valid_recipe(recipe: dict[str, str]):
+def _is_valid_recipe(recipe: dict[str, int | str]):
     """Function to check whether recipe is valid"""
 
     re_id = recipe.get("id")
@@ -131,13 +131,18 @@ def _is_valid_recipe(recipe: dict[str, str]):
 
     if isinstance(compiler_flags, dict):
         for attr in compiler_flags:
-            if attr not in general.CompilerFlagsAttrs:
+            if not isinstance(attr, str):
+                _warn(
+                    f"Recipe {re_id}: invalid compiler_flags: invalid attribute '{attr}'"
+                )
+                continue
+            if attr.lower() not in general.CompilerFlagsAttrs:
                 _warn(
                     f"Recipe {re_id}: invalid compiler_flags: unknown attribute '{attr}'"
                 )
 
 
-def _is_valid_build(build: dict[str, str]):
+def _is_valid_build(build: dict[str, int | str]):
     """Function to check whether build is valid"""
 
     build_machine = build.get("build_machine")
@@ -186,10 +191,13 @@ def _is_valid_toolchain(toolchain: Any) -> None:
 
     if isinstance(toolchain, dict):
         for attr, value in toolchain.items():
-            if attr in general.ToolchainAttrs:
+            if not isinstance(attr, str):
+                _warn(f"Invalid toolchain: invalid attribute '{attr}'")
+                continue
+            if attr.lower() in general.ToolchainAttrs:
                 if not path.isabs(value):
                     _warn(f"Invalid toolchain: {attr}: path '{value}' is not absolute")
-            elif attr not in general.CompilerFlagsAttrs and attr != "sysroot":
+            elif attr.lower() not in general.CompilerFlagsAttrs and attr != "sysroot":
                 _warn(f"Invalid toolchain: unknown attribute '{attr}'")
 
 
