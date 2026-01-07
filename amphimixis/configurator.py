@@ -8,7 +8,7 @@ from typing import Any
 import yaml
 
 from amphimixis.build_systems import build_systems_dict
-from amphimixis.general import general
+from amphimixis.general import IUI, NullUI, general
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -21,7 +21,9 @@ _logger = setup_logger("configurator")
 
 
 # pylint: disable=too-many-return-statements
-def parse_config(project: general.Project, config_file_path: str) -> bool:
+def parse_config(
+    project: general.Project, config_file_path: str, ui: IUI = NullUI()
+) -> bool:
     """Main function to configure builds
 
     :rtype: bool
@@ -29,6 +31,8 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
          True if configuration succeeded
          False if configuration failed
     """
+
+    ui.update_message("config", "Parsing configuration...")
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
@@ -38,6 +42,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
 
     if not validate(config_file_path):
         _logger.error("Incorrect input file")
+        ui.mark_failed("Incorrect input file")
         return False
 
     try:
@@ -48,6 +53,7 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
             if build_system is None:
                 if not (build_system := _get_analyzed_build_system()):
                     _logger.error("Did not find any proper build_system")
+                    ui.mark_failed("No build system found")
                     return False
 
             runner = input_config.get("runner")
@@ -81,13 +87,17 @@ def parse_config(project: general.Project, config_file_path: str) -> bool:
                     executables,
                     toolchain,
                     sysroot,
+                    ui,
                 ):
+                    ui.mark_failed("Failed to create build")
                     return False
 
     except FileNotFoundError:
         _logger.error("Error opening file, check input data")
+        ui.mark_failed("Config file not found")
         return False
 
+    ui.mark_success()
     _logger.info("Configuration completed successfully!")
     return True
 
@@ -142,6 +152,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     executables: list[str],
     toolchain: general.Toolchain | None,
     sysroot: str | None,
+    ui: IUI = NullUI(),
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
 
@@ -225,7 +236,7 @@ def _get_by_id(items: list[dict[str, str]], target_id: int) -> dict[str, str]:
     return {}
 
 
-def _has_valid_arch(machine: general.MachineInfo) -> bool:
+def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
     """Function to check whether run machine arch is valid"""
 
     if machine.address is None:
@@ -238,7 +249,7 @@ def _has_valid_arch(machine: general.MachineInfo) -> bool:
             return False
 
     else:
-        shell = Shell(machine).connect()
+        shell = Shell(machine, ui).connect()
         error_code, stdout, _ = shell.run("uname -m")
         if error_code != 0:
             _logger.error(

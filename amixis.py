@@ -13,6 +13,7 @@ from amphimixis.cli import (
     run_build,
     run_profile,
 )
+from amphimixis.cli.print_animation_to_console import PrintAnimationToConsole
 
 
 # pylint: disable=too-many-branches,too-many-statements
@@ -46,20 +47,22 @@ def main():
         build_systems_dict["cmake"],
     )
 
+    ui = PrintAnimationToConsole()
+
     try:
         if not any([args.analyze, args.build, args.profile]):
-            run_analyze(project)
-            run_build(project, config_file_path=str(config_file))
-            run_profile(project, config_file_path=str(config_file))
+            run_analyze(project, ui)
+            run_build(project, config_file_path=str(config_file), ui=ui)
+            run_profile(project, config_file_path=str(config_file), ui=ui)
 
         if args.analyze:
-            run_analyze(project)
+            run_analyze(project, ui)
 
         if args.build:
-            run_build(project, config_file_path=str(config_file))
+            run_build(project, config_file_path=str(config_file), ui=ui)
 
         if args.profile:
-            run_profile(project, config_file_path=str(config_file))
+            run_profile(project, config_file_path=str(config_file), ui=ui)
 
         return 0
 
