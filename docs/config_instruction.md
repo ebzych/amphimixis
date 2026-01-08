@@ -20,13 +20,12 @@ The YAML configuration file consists of the following **top-level fields**:
 
 <p id="note1">
 
-1. Only <code>CMake</code> is supported.
+1. **Optional field**. Only <code>CMake</code> is supported as the build system. Default value: CMake
 
 </p>
 <p id="note2">
 
-2. Only <code>Make</code> is supported.
-
+2. **Optional field**. Only <code>Make</code> is supported as the runner (low-level build system). Default value: make
 </p>
 
 ```yaml
@@ -54,14 +53,15 @@ The **platforms** section describes the machines on which the project will be bu
 
 <p id="note3">
 
-3. Optional, default value: "22". The `port` must be within the range 1-65535.  
+3. **Optional field**. Default value: "22". The `port` must be within the range 1-65535.  
 
 </p>
 <p id="note4">
 
-4. If the user has an SSH agent, then the password does not need to be provided.
+4. If the user has an SSH agent, then the password does not need to be provided. **Please note that passwords are passed to SSH through sshpass, which is not secure.**
 
 </p>
+
 
 > **<u>Note:</u>**
 >
@@ -82,9 +82,9 @@ The **recipes** section describes the build configuration and compiler flags.
 
 ---
 
-<p id="note5">
+<p id="note6">
 
-5. Optional.
+5. **Optional field**.
 
 </p>
 
