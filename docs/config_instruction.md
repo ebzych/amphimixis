@@ -26,6 +26,7 @@ The YAML configuration file consists of the following **top-level fields**:
 <p id="note2">
 
 2. **Optional field**. Only <code>Make</code> is supported as the runner (low-level build system). Default value: make
+
 </p>
 
 ```yaml
@@ -61,7 +62,6 @@ The **platforms** section describes the machines on which the project will be bu
 4. If the user has an SSH agent, then the password does not need to be provided. **Please note that passwords are passed to SSH through sshpass, which is not secure.**
 
 </p>
-
 
 > **<u>Note:</u>**
 >
