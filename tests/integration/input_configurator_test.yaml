@@ -1,0 +1,31 @@
+build_system: CMake
+runner: Make
+platforms:
+- id: 1
+  arch: x86
+
+- id: 2
+  arch: riscv
+  address: 10.0.40.2
+  username: root
+  password: password
+
+recipes:
+- id: 1
+  config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+  jobs: 3
+- id: 2
+  config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=/opt/toolchains/riscv.cmake"
+
+list: &executables
+- test/run-tests
+
+builds:
+- build_machine: 1
+  run_machine: 1
+  recipe_id: 1
+  executables: *executables
+- build_machine: 1
+  run_machine: 2
+  recipe_id: 2
+  executables: *executables
