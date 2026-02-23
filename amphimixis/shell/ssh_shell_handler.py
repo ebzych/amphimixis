@@ -60,7 +60,7 @@ class _SSHHandler(IShellHandler):
         # if connected -> poll() is None, if ssh failed -> poll() is some number
         # if r is empty -> timeout exceeded
         if not r or self.ssh.poll() is not None:
-            raise ConnectionError("can't connect to ssh")
+            raise ConnectionError(f"can't connect to ssh: {machine}")
 
         # clearing ssh banners
         for i in self.ssh.stdout:
