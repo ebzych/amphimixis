@@ -21,21 +21,6 @@ class Stats(Enum):
 ProfilerStats = dict[Stats, str]
 
 
-_commands_args: dict[str, dict[str, str]] = {
-    "stat": {
-        "cmd": "perf stat",
-        "opt": "-ddd -x,",
-        "cpu_affinity": "taskset -c 0",
-    },
-    "record": {"cmd": "perf record", "cpu_affinity": "taskset -c 0"},
-    "time": {
-        "cmd": "/bin/time",
-        "format": '-f"%e\\n%U\\n%S"',
-        "cpu_affinity": "taskset -c 0",
-    },
-}
-
-
 class Profiler:
     """Class for profiling a build within a project."""
 
@@ -157,7 +142,7 @@ class Profiler:
 
             return False
 
-        command = self._command(executable, "time", stderr_clear=False)
+        command = self._time_command(executable, stderr_clear=False)
         self.logger.info(
             "Measure execution time\n\tCommand: %s",
             command,
@@ -247,14 +232,14 @@ class Profiler:
 
         return error == 0
 
-    def perf_stat_collect(self, executable: str, options: str = "") -> bool:
+    def perf_stat_collect(self, executable: str, options: str = "-ddd") -> bool:
         """
         Collect performance statistics using `perf stat`.\n
         Updates `self.stats[EXECUTABLE]` dictionary with `Stats.PERF_STAT` key
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
-        :param options: `perf stat` additional options
+        :param options: `perf stat` additional options. Default `"-ddd"`
         :type options: str
         :return: `False` if `perf stat` return non-zero error code. Otherwise `True`
         :rtype: bool
@@ -281,7 +266,7 @@ class Profiler:
 
             return False
 
-        command = self._command(executable, "stat", options)
+        command = self._perf_stat_command(executable, options)
         self.logger.info(
             "Perf stat command:\n\t%s",
             command,
@@ -309,14 +294,20 @@ class Profiler:
 
         return True
 
-    def perf_record_collect(self, executable: str, options: str = "") -> bool:
+    def perf_record_collect(
+        self,
+        executable: str,
+        options: str = "-g -F 1000 -e cycles,cache-misses,branch-misses",
+    ) -> bool:
         """
         Collect performance records using `perf record`.\n
         Saves `perf.data` into `self.get_record_filename()` file in the working directory.
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
-        :param options: `perf record` additional options
+        :param options: `perf record` additional options.
+         Default: `"-g -F 1000 -e cycles,cache-misses,branch-misses"`
+
         :type options: str
         :return: `False` if can't collect samples. Otherwise `True`
         :rtype: bool
@@ -335,8 +326,8 @@ class Profiler:
             self.logger.error("".join(stderr[0]))
             return False
 
-        options += f"-o {self.get_record_filename(executable)}"
-        command = self._command(executable, "record", options)
+        options += f" -o {self.get_record_filename(executable)}"
+        command = self._perf_record_command(executable, options)
         self.logger.info(
             "Perf record command:\n\t%s",
             command,
@@ -400,37 +391,39 @@ class Profiler:
     def _get_stats_filename(self) -> str:
         return f"{self.build.build_name}.stats"
 
-    # pylint: disable=too-many-positional-arguments,too-many-arguments
-    def _command(
+    def _build_cmd(
         self,
+        tool_base: str,
         executable: str,
-        module: str,
-        options: str = "",
         stdout_clear: bool = False,
         stderr_clear: bool = True,
     ) -> str:
-        if module not in _commands_args:
-            return ""
-
-        command: list[str] = []
-        command.append(_commands_args[module]["cmd"])
-        if options:
-            command.append(options)
-
-        for arg in _commands_args[module]:
-            if arg != "cmd":
-                command.append(_commands_args[module][arg])
-
-        command.append(f"sh -c './{executable}")
+        redirects = ""
         if stdout_clear:
-            command.append("1>/dev/null")
-
+            redirects += " 1>/dev/null"
         if stderr_clear:
-            command.append("2>/dev/null")
+            redirects += " 2>/dev/null"
 
-        command.append("'")
+        return f"{tool_base} taskset -c 0 sh -c './{executable}{redirects}'"
 
-        return " ".join(command)
+    def _perf_stat_command(self, executable: str, user_options: str, **kwargs):
+        fixed_options = "-x,"
+        full_prefix = f"perf stat {user_options} {fixed_options}"
+        return self._build_cmd(full_prefix.strip(), executable, **kwargs)
+
+    def _perf_record_command(
+        self,
+        executable: str,
+        user_options: str,
+        **kwargs,
+    ):
+        full_prefix = f"perf record {user_options}"
+        return self._build_cmd(full_prefix.strip(), executable, **kwargs)
+
+    def _time_command(self, executable: str, **kwargs):
+        fixed_format = '-f"%e\\n%U\\n%S"'
+        full_prefix = f"/bin/time {fixed_format}"
+        return self._build_cmd(full_prefix.strip(), executable, **kwargs)
 
     def _find_executables(self, max_number_of_executables=1) -> list[str]:
         error, stdout, stderr = self.shell.run(
