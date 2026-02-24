@@ -88,6 +88,10 @@ class Shell:
         for cmd in commands:
             if error_code:
                 break
+
+            # Close stdin since reading from stdin
+            # leads to blocking if the command is waiting for input.
+            cmd += " 0<&-"
             self._shell.run(cmd)
 
             # newline added in case of it is missing in the previous output line
