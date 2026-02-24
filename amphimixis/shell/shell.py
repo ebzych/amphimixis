@@ -241,8 +241,8 @@ class Shell:
                 "--hard-links",
                 "--compress",
                 "--log-file=./amphimixis.log",
-                "--port",
-                str(port),
+                "-e",
+                f"ssh -p {port}",
                 source,
                 destination,
             ]
