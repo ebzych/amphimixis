@@ -111,7 +111,8 @@ class Profiler:
                 self.perf_stat_collect(executable)
 
             if record_collect:
-                self.perf_record_collect(executable)
+                if self.perf_record_collect(executable):
+                    self.script_perf_record(self.get_record_filename(executable))
 
         return True
 
@@ -343,6 +344,8 @@ class Profiler:
                 "".join(stderr[0]),
                 extra={"executable": executable},
             )
+
+            self.shell.run(f"rm {self.get_record_filename(executable)}")
             return False
 
         error, stdout, stderr = self.shell.run("pwd")
@@ -374,6 +377,59 @@ class Profiler:
         )
 
         return True
+
+    def script_perf_record(self, filename: str) -> tuple[bool, str]:
+        """
+        Runs `perf script` on the provided perf data file and saves to `filename`.txt
+
+        :return: error code and perf script output file name
+        :rtype: tuple[int,str]
+        """
+
+        error, _, stderr = self.shell.run(
+            f"cd {self.build_path}",
+        )
+
+        if error != 0:
+            self.logger.error("".join(stderr[0]))
+            return False, ""
+
+        command, perf_script_file = self._get_script_command(filename)
+        error, _, stderr = self.shell.run(command)
+
+        if error != 0:
+            self.logger.error(
+                "Perf script fail STDERR:\n%s",
+                "".join(stderr[0]),
+                extra={"RECORD_FILE": filename},
+            )
+
+            return False, ""
+
+        error, stdout, stderr = self.shell.run("pwd")
+
+        if error != 0:
+            self.logger.error(
+                "Perf script fail STDERR:\n%s",
+                "".join(stderr[0]),
+                extra={"RECORD_FILE": filename},
+            )
+
+            return False, ""
+
+        remote_workdir = stdout[0][0].strip()
+        if not self.shell.copy_to_host(
+            os.path.join(remote_workdir, perf_script_file),
+            os.path.join(os.getcwd(), perf_script_file),
+        ):
+            self.logger.error(
+                "Perf script fail. Can't copy perf script file",
+                extra={"PERF_SCRIPT_FILE": perf_script_file},
+            )
+
+            return False, ""
+
+        return True, perf_script_file
 
     def save_stats(self):
         """Save collected statistics to a file."""
@@ -418,6 +474,21 @@ class Profiler:
     ):
         full_prefix = f"perf record {user_options}"
         return self._build_cmd(full_prefix.strip(), executable, **kwargs)
+
+    def _get_script_command(
+        self,
+        perf_record_file: str,
+        perf_script_output_file: str = "",
+        user_options: str = "-F comm,event,ip,sym,dso,period",
+    ) -> tuple[str, str]:
+        fixed_options = f"-G -i {perf_record_file}"
+        if not perf_script_output_file:
+            perf_script_output_file = perf_record_file + ".scriptout"
+
+        return (
+            f"perf --no-pager script {user_options} {fixed_options} > {perf_script_output_file}",
+            perf_script_output_file,
+        )
 
     def _time_command(self, executable: str, **kwargs):
         fixed_format = '-f"%e\\n%U\\n%S"'
