@@ -34,7 +34,7 @@ class Profiler:
             build_prefix = self.extra.get("build")
 
             extra = kwargs.get("extra", {})
-            exe_prefix = extra.get("executable") if isinstance(extra, dict) else None
+            exe_prefix = extra.get("target") if isinstance(extra, dict) else None
 
             if exe_prefix:
                 prefix = f"{build_prefix} | {exe_prefix} |"
@@ -128,7 +128,7 @@ class Profiler:
 
         self.logger.info(
             "Measuring execution time started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         if executable not in self.stats:
@@ -138,7 +138,7 @@ class Profiler:
         if error != 0:
             self.logger.error(
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -147,7 +147,7 @@ class Profiler:
         self.logger.info(
             "Measure execution time\n\tCommand: %s",
             command,
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, stdout, stderr = self.shell.run(command)
@@ -157,13 +157,13 @@ class Profiler:
             self.logger.error(
                 "Measure execution time fail\n%s",
                 stderr_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             self.logger.error(
                 "Measure execution time fail\n%s",
                 stdout_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -178,7 +178,7 @@ class Profiler:
 
         self.logger.info(
             "Measuring execution time finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return True
@@ -197,7 +197,7 @@ class Profiler:
 
         self.logger.info(
             "Smoke test started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         if executable not in self.stats:
@@ -212,14 +212,14 @@ class Profiler:
             self.logger.error(
                 "Smoke test fail STDERR:\n%s",
                 stderr_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             stdout_message = "".join(line for cmd in stdout for line in cmd)
             self.logger.error(
                 "Smoke test fail STDOUT:\n%s",
                 stdout_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
         self.stats[executable].update(
@@ -228,7 +228,7 @@ class Profiler:
 
         self.logger.info(
             "Smoke test finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return error == 0
@@ -248,7 +248,7 @@ class Profiler:
 
         self.logger.info(
             "Perf stat started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         if executable not in self.stats:
@@ -262,7 +262,7 @@ class Profiler:
             self.logger.error(
                 "Perf stat fail STDERR:\n%s",
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -271,7 +271,7 @@ class Profiler:
         self.logger.info(
             "Perf stat command:\n\t%s",
             command,
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, _, stderr = self.shell.run(command)
@@ -281,7 +281,7 @@ class Profiler:
                 "Perf stat fail. Executable returned %d code\n%s",
                 error,
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -290,7 +290,7 @@ class Profiler:
 
         self.logger.info(
             "Perf stat finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return True
@@ -316,7 +316,7 @@ class Profiler:
 
         self.logger.info(
             "Perf record started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, _, stderr = self.shell.run(
@@ -332,7 +332,7 @@ class Profiler:
         self.logger.info(
             "Perf record command:\n\t%s",
             command,
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, _, stderr = self.shell.run(command)
@@ -342,7 +342,7 @@ class Profiler:
                 "Perf record fail. Executable returned %d code\n%s",
                 error,
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             self.shell.run(f"rm {self.get_record_filename(executable)}")
@@ -354,7 +354,7 @@ class Profiler:
             self.logger.error(
                 "Perf record fail STDERR:\n%s",
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -366,14 +366,14 @@ class Profiler:
         ):
             self.logger.error(
                 "Perf record fail. Can't copy perf.data file",
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
 
         self.logger.info(
             "Perf record collecting finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return True
@@ -401,7 +401,7 @@ class Profiler:
             self.logger.error(
                 "Perf script fail STDERR:\n%s",
                 "".join(stderr[0]),
-                extra={"RECORD_FILE": filename},
+                extra={"target": filename},
             )
 
             return False, ""
@@ -412,7 +412,7 @@ class Profiler:
             self.logger.error(
                 "Perf script fail STDERR:\n%s",
                 "".join(stderr[0]),
-                extra={"RECORD_FILE": filename},
+                extra={"target": filename},
             )
 
             return False, ""
@@ -424,7 +424,7 @@ class Profiler:
         ):
             self.logger.error(
                 "Perf script fail. Can't copy perf script file",
-                extra={"PERF_SCRIPT_FILE": perf_script_file},
+                extra={"target": perf_script_file},
             )
 
             return False, ""
