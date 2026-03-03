@@ -36,11 +36,24 @@ class Shell:
         """Connect to the shell of the machine."""
 
         if self.machine.address is None:
-            self._shell = _LocalShellHandler()
-            self._is_connected = True
-            self._is_local = True
-            return self
+            self._create_local_shell()
+        else:
+            self._create_remote_shell()
 
+        self._is_connected = True
+        level, _ = self.set_paranoid(-1)
+        if level != 1:
+            self.logger.error(
+                "Can't set /proc/sys/kernel/perf_event_paranoid to -1. Set it manually"
+            )
+
+        return self
+
+    def _create_local_shell(self) -> None:
+        self._shell = _LocalShellHandler()
+        self._is_local = True
+
+    def _create_remote_shell(self) -> None:
         if self.machine.auth is None:
             self.logger.error(
                 "Remote machine [%s] has no authentication info", self.machine.address
@@ -59,10 +72,7 @@ class Shell:
             ) from exception
 
         self._shell = _SSHHandler(self.machine, self.connect_timeout)
-        self._is_connected = True
         self._is_local = False
-
-        return self
 
     def run(self, *commands: str) -> Tuple[int, List[List[str]], List[List[str]]]:
         """Run the commands through the shell.
