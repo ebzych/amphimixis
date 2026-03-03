@@ -91,7 +91,7 @@ class _SSHHandler(IShellHandler):
 
     def stderr_readline(self) -> str:
         if self.ssh.stderr is None:
-            raise BrokenPipeError("Can't read from process' stdout")
+            raise BrokenPipeError("Can't read from process' stderr")
 
         line_bytes = self.ssh.stderr.readline()
         line = line_bytes.decode("UTF-8")

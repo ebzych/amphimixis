@@ -221,6 +221,40 @@ class Shell:
         self._homedir = stdout[0][0].strip()
         return self._homedir
 
+    def set_paranoid(self, level: int) -> tuple[int, bool]:
+        """
+        Sets perf_event_paranoid to the given level.
+
+        :param int level: The level to set perf_event_paranoid to.
+                          Should be an integer between -1 and 3.
+
+        :return: A tuple of two elements: \n
+            - int: The current level of perf_event_paranoid.
+            - bool: True if the level was set successfully, False otherwise.
+        :rtype: tuple[int, bool]
+        """
+
+        if not self._is_connected:
+            self.connect()
+
+        error, _, stderr = self.run(
+            f"echo '{level}' > /proc/sys/kernel/perf_event_paranoid"
+        )
+
+        if error != 0:
+            self.logger.error("Can't set perf_event_paranoid: %s", "".join(stderr[0]))
+
+        error, stdout, stderr = self.run("cat /proc/sys/kernel/perf_event_paranoid")
+
+        set_code = 0
+        if error != 0:
+            self.logger.error("Can't read perf_event_paranoid: %s", "".join(stderr[0]))
+            return (0, False)
+
+        set_code = int(stdout[0][0])
+
+        return (set_code, set_code == level)
+
     def _copy(self, source: str, destination: str) -> bool:
         if self.machine.auth is None:
             port = -1  # should be OK with local copying
