@@ -112,14 +112,20 @@ class Shell:
             while line := self._shell.stdout_readline():
                 if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
                     error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
-                    del cmd_stdout[-1]
+                    if cmd_stdout[-1] == "\n":
+                        del cmd_stdout[-1]
+                    else:
+                        cmd_stdout[-1] = cmd_stdout[-1][:-1]
                     break
                 cmd_stdout.append(line)
             stdout.append(cmd_stdout)
 
             while line := self._shell.stderr_readline():
                 if line[:-1] == _READING_BARRIER_FLAG:
-                    del cmd_stderr[-1]
+                    if cmd_stderr[-1] == "\n":
+                        del cmd_stderr[-1]
+                    else:
+                        cmd_stderr[-1] = cmd_stderr[-1][:-1]
                     break
                 cmd_stderr.append(line)
             stderr.append(cmd_stderr)
