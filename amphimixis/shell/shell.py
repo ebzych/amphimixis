@@ -36,11 +36,24 @@ class Shell:
         """Connect to the shell of the machine."""
 
         if self.machine.address is None:
-            self._shell = _LocalShellHandler()
-            self._is_connected = True
-            self._is_local = True
-            return self
+            self._create_local_shell()
+        else:
+            self._create_remote_shell()
 
+        self._is_connected = True
+        level, _ = self.set_paranoid(-1)
+        if level != 1:
+            self.logger.error(
+                "Can't set /proc/sys/kernel/perf_event_paranoid to -1. Set it manually"
+            )
+
+        return self
+
+    def _create_local_shell(self) -> None:
+        self._shell = _LocalShellHandler()
+        self._is_local = True
+
+    def _create_remote_shell(self) -> None:
         if self.machine.auth is None:
             self.logger.error(
                 "Remote machine [%s] has no authentication info", self.machine.address
@@ -59,10 +72,7 @@ class Shell:
             ) from exception
 
         self._shell = _SSHHandler(self.machine, self.connect_timeout)
-        self._is_connected = True
         self._is_local = False
-
-        return self
 
     def run(self, *commands: str) -> Tuple[int, List[List[str]], List[List[str]]]:
         """Run the commands through the shell.
@@ -88,6 +98,10 @@ class Shell:
         for cmd in commands:
             if error_code:
                 break
+
+            # Close stdin since reading from stdin
+            # leads to blocking if the command is waiting for input.
+            cmd += " 0<&-"
             self._shell.run(cmd)
 
             # newline added in case of it is missing in the previous output line
@@ -98,14 +112,20 @@ class Shell:
             while line := self._shell.stdout_readline():
                 if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
                     error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
-                    del cmd_stdout[-1]
+                    if cmd_stdout[-1] == "\n":
+                        del cmd_stdout[-1]
+                    else:
+                        cmd_stdout[-1] = cmd_stdout[-1][:-1]
                     break
                 cmd_stdout.append(line)
             stdout.append(cmd_stdout)
 
             while line := self._shell.stderr_readline():
                 if line[:-1] == _READING_BARRIER_FLAG:
-                    del cmd_stderr[-1]
+                    if cmd_stderr[-1] == "\n":
+                        del cmd_stderr[-1]
+                    else:
+                        cmd_stderr[-1] = cmd_stderr[-1][:-1]
                     break
                 cmd_stderr.append(line)
             stderr.append(cmd_stderr)
@@ -217,6 +237,40 @@ class Shell:
         self._homedir = stdout[0][0].strip()
         return self._homedir
 
+    def set_paranoid(self, level: int) -> tuple[int, bool]:
+        """
+        Sets perf_event_paranoid to the given level.
+
+        :param int level: The level to set perf_event_paranoid to.
+                          Should be an integer between -1 and 3.
+
+        :return: A tuple of two elements: \n
+            - int: The current level of perf_event_paranoid.
+            - bool: True if the level was set successfully, False otherwise.
+        :rtype: tuple[int, bool]
+        """
+
+        if not self._is_connected:
+            self.connect()
+
+        error, _, stderr = self.run(
+            f"echo '{level}' > /proc/sys/kernel/perf_event_paranoid"
+        )
+
+        if error != 0:
+            self.logger.error("Can't set perf_event_paranoid: %s", "".join(stderr[0]))
+
+        error, stdout, stderr = self.run("cat /proc/sys/kernel/perf_event_paranoid")
+
+        set_code = 0
+        if error != 0:
+            self.logger.error("Can't read perf_event_paranoid: %s", "".join(stderr[0]))
+            return (0, False)
+
+        set_code = int(stdout[0][0])
+
+        return (set_code, set_code == level)
+
     def _copy(self, source: str, destination: str) -> bool:
         if self.machine.auth is None:
             port = -1  # should be OK with local copying
@@ -241,8 +295,8 @@ class Shell:
                 "--hard-links",
                 "--compress",
                 "--log-file=./amphimixis.log",
-                "--port",
-                str(port),
+                "-e",
+                f"ssh -p {port}",
                 source,
                 destination,
             ]

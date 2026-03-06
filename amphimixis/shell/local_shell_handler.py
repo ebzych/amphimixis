@@ -9,7 +9,7 @@ class _LocalShellHandler(IShellHandler):
     def __init__(self) -> None:
         # pylint: disable=consider-using-with
         self.shell = subprocess.Popen(
-            ["bash"],
+            ["bash", "--noprofile", "--norc"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

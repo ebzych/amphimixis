@@ -21,21 +21,6 @@ class Stats(Enum):
 ProfilerStats = dict[Stats, str]
 
 
-_commands_args: dict[str, dict[str, str]] = {
-    "stat": {
-        "cmd": "perf stat",
-        "opt": "-ddd -x,",
-        "cpu_affinity": "taskset -c 0",
-    },
-    "record": {"cmd": "perf record", "cpu_affinity": "taskset -c 0"},
-    "time": {
-        "cmd": "/bin/time",
-        "format": '-f"%e\\n%U\\n%S"',
-        "cpu_affinity": "taskset -c 0",
-    },
-}
-
-
 class Profiler:
     """Class for profiling a build within a project."""
 
@@ -49,7 +34,7 @@ class Profiler:
             build_prefix = self.extra.get("build")
 
             extra = kwargs.get("extra", {})
-            exe_prefix = extra.get("executable") if isinstance(extra, dict) else None
+            exe_prefix = extra.get("target") if isinstance(extra, dict) else None
 
             if exe_prefix:
                 prefix = f"{build_prefix} | {exe_prefix} |"
@@ -126,7 +111,8 @@ class Profiler:
                 self.perf_stat_collect(executable)
 
             if record_collect:
-                self.perf_record_collect(executable)
+                if self.perf_record_collect(executable):
+                    self.script_perf_record(self.get_record_filename(executable))
 
         return True
 
@@ -142,7 +128,7 @@ class Profiler:
 
         self.logger.info(
             "Measuring execution time started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         if executable not in self.stats:
@@ -152,16 +138,16 @@ class Profiler:
         if error != 0:
             self.logger.error(
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
 
-        command = self._command(executable, "time", stderr_clear=False)
+        command = self._time_command(executable, stderr_clear=False)
         self.logger.info(
             "Measure execution time\n\tCommand: %s",
             command,
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, stdout, stderr = self.shell.run(command)
@@ -171,13 +157,13 @@ class Profiler:
             self.logger.error(
                 "Measure execution time fail\n%s",
                 stderr_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             self.logger.error(
                 "Measure execution time fail\n%s",
                 stdout_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -192,7 +178,7 @@ class Profiler:
 
         self.logger.info(
             "Measuring execution time finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return True
@@ -211,7 +197,7 @@ class Profiler:
 
         self.logger.info(
             "Smoke test started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         if executable not in self.stats:
@@ -226,14 +212,14 @@ class Profiler:
             self.logger.error(
                 "Smoke test fail STDERR:\n%s",
                 stderr_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             stdout_message = "".join(line for cmd in stdout for line in cmd)
             self.logger.error(
                 "Smoke test fail STDOUT:\n%s",
                 stdout_message,
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
         self.stats[executable].update(
@@ -242,19 +228,19 @@ class Profiler:
 
         self.logger.info(
             "Smoke test finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return error == 0
 
-    def perf_stat_collect(self, executable: str, options: str = "") -> bool:
+    def perf_stat_collect(self, executable: str, options: str = "-ddd") -> bool:
         """
         Collect performance statistics using `perf stat`.\n
         Updates `self.stats[EXECUTABLE]` dictionary with `Stats.PERF_STAT` key
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
-        :param options: `perf stat` additional options
+        :param options: `perf stat` additional options. Default `"-ddd"`
         :type options: str
         :return: `False` if `perf stat` return non-zero error code. Otherwise `True`
         :rtype: bool
@@ -262,7 +248,7 @@ class Profiler:
 
         self.logger.info(
             "Perf stat started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         if executable not in self.stats:
@@ -276,16 +262,16 @@ class Profiler:
             self.logger.error(
                 "Perf stat fail STDERR:\n%s",
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
 
-        command = self._command(executable, "stat", options)
+        command = self._perf_stat_command(executable, options)
         self.logger.info(
             "Perf stat command:\n\t%s",
             command,
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, _, stderr = self.shell.run(command)
@@ -295,7 +281,7 @@ class Profiler:
                 "Perf stat fail. Executable returned %d code\n%s",
                 error,
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -304,19 +290,25 @@ class Profiler:
 
         self.logger.info(
             "Perf stat finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return True
 
-    def perf_record_collect(self, executable: str, options: str = "") -> bool:
+    def perf_record_collect(
+        self,
+        executable: str,
+        options: str = "-g -F 1000 -e cycles,cache-misses,branch-misses",
+    ) -> bool:
         """
         Collect performance records using `perf record`.\n
         Saves `perf.data` into `self.get_record_filename()` file in the working directory.
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
-        :param options: `perf record` additional options
+        :param options: `perf record` additional options.
+         Default: `"-g -F 1000 -e cycles,cache-misses,branch-misses"`
+
         :type options: str
         :return: `False` if can't collect samples. Otherwise `True`
         :rtype: bool
@@ -324,7 +316,7 @@ class Profiler:
 
         self.logger.info(
             "Perf record started",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, _, stderr = self.shell.run(
@@ -335,12 +327,12 @@ class Profiler:
             self.logger.error("".join(stderr[0]))
             return False
 
-        options += f"-o {self.get_record_filename(executable)}"
-        command = self._command(executable, "record", options)
+        options += f" -o {self.get_record_filename(executable)}"
+        command = self._perf_record_command(executable, options)
         self.logger.info(
             "Perf record command:\n\t%s",
             command,
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         error, _, stderr = self.shell.run(command)
@@ -350,8 +342,10 @@ class Profiler:
                 "Perf record fail. Executable returned %d code\n%s",
                 error,
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
+
+            self.shell.run(f"rm {self.get_record_filename(executable)}")
             return False
 
         error, stdout, stderr = self.shell.run("pwd")
@@ -360,7 +354,7 @@ class Profiler:
             self.logger.error(
                 "Perf record fail STDERR:\n%s",
                 "".join(stderr[0]),
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
@@ -372,17 +366,70 @@ class Profiler:
         ):
             self.logger.error(
                 "Perf record fail. Can't copy perf.data file",
-                extra={"executable": executable},
+                extra={"target": executable},
             )
 
             return False
 
         self.logger.info(
             "Perf record collecting finished",
-            extra={"executable": executable},
+            extra={"target": executable},
         )
 
         return True
+
+    def script_perf_record(self, filename: str) -> tuple[bool, str]:
+        """
+        Runs `perf script` on the provided perf data file and saves to `filename`.txt
+
+        :return: error code and perf script output file name
+        :rtype: tuple[int,str]
+        """
+
+        error, _, stderr = self.shell.run(
+            f"cd {self.build_path}",
+        )
+
+        if error != 0:
+            self.logger.error("".join(stderr[0]))
+            return False, ""
+
+        command, perf_script_file = self._get_script_command(filename)
+        error, _, stderr = self.shell.run(command)
+
+        if error != 0:
+            self.logger.error(
+                "Perf script fail STDERR:\n%s",
+                "".join(stderr[0]),
+                extra={"target": filename},
+            )
+
+            return False, ""
+
+        error, stdout, stderr = self.shell.run("pwd")
+
+        if error != 0:
+            self.logger.error(
+                "Perf script fail STDERR:\n%s",
+                "".join(stderr[0]),
+                extra={"target": filename},
+            )
+
+            return False, ""
+
+        remote_workdir = stdout[0][0].strip()
+        if not self.shell.copy_to_host(
+            os.path.join(remote_workdir, perf_script_file),
+            os.path.join(os.getcwd(), perf_script_file),
+        ):
+            self.logger.error(
+                "Perf script fail. Can't copy perf script file",
+                extra={"target": perf_script_file},
+            )
+
+            return False, ""
+
+        return True, perf_script_file
 
     def save_stats(self):
         """Save collected statistics to a file."""
@@ -394,43 +441,59 @@ class Profiler:
         """Gets perf record output file name."""
 
         executable_path_flatten = os.path.normpath(executable).replace("/", "_")
-
-        return f"{self.build.build_name}_{executable_path_flatten}.data"
+        return f"{self.build.build_name}_{executable_path_flatten}.perfdata"
 
     def _get_stats_filename(self) -> str:
         return f"{self.build.build_name}.stats"
 
-    # pylint: disable=too-many-positional-arguments,too-many-arguments
-    def _command(
+    def _build_cmd(
         self,
+        tool_base: str,
         executable: str,
-        module: str,
-        options: str = "",
         stdout_clear: bool = False,
         stderr_clear: bool = True,
     ) -> str:
-        if module not in _commands_args:
-            return ""
-
-        command: list[str] = []
-        command.append(_commands_args[module]["cmd"])
-        if options:
-            command.append(options)
-
-        for arg in _commands_args[module]:
-            if arg != "cmd":
-                command.append(_commands_args[module][arg])
-
-        command.append(f"sh -c './{executable}")
+        redirects = ""
         if stdout_clear:
-            command.append("1>/dev/null")
-
+            redirects += " 1>/dev/null"
         if stderr_clear:
-            command.append("2>/dev/null")
+            redirects += " 2>/dev/null"
 
-        command.append("'")
+        return f"{tool_base} taskset -c 0 sh -c './{executable}{redirects}'"
 
-        return " ".join(command)
+    def _perf_stat_command(self, executable: str, user_options: str, **kwargs):
+        fixed_options = "-x,"
+        full_prefix = f"perf stat {user_options} {fixed_options}"
+        return self._build_cmd(full_prefix.strip(), executable, **kwargs)
+
+    def _perf_record_command(
+        self,
+        executable: str,
+        user_options: str,
+        **kwargs,
+    ):
+        full_prefix = f"perf record {user_options}"
+        return self._build_cmd(full_prefix.strip(), executable, **kwargs)
+
+    def _get_script_command(
+        self,
+        perf_record_file: str,
+        perf_script_output_file: str = "",
+        user_options: str = "-F comm,event,ip,sym,dso,period",
+    ) -> tuple[str, str]:
+        fixed_options = f"-G -i {perf_record_file}"
+        if not perf_script_output_file:
+            perf_script_output_file = perf_record_file + ".scriptout"
+
+        return (
+            f"perf --no-pager script {user_options} {fixed_options} > {perf_script_output_file}",
+            perf_script_output_file,
+        )
+
+    def _time_command(self, executable: str, **kwargs):
+        fixed_format = '-f"%e\\n%U\\n%S"'
+        full_prefix = f"/bin/time {fixed_format}"
+        return self._build_cmd(full_prefix.strip(), executable, **kwargs)
 
     def _find_executables(self, max_number_of_executables=1) -> list[str]:
         error, stdout, stderr = self.shell.run(

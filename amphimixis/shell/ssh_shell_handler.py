@@ -60,7 +60,7 @@ class _SSHHandler(IShellHandler):
         # if connected -> poll() is None, if ssh failed -> poll() is some number
         # if r is empty -> timeout exceeded
         if not r or self.ssh.poll() is not None:
-            raise ConnectionError("can't connect to ssh")
+            raise ConnectionError(f"can't connect to ssh: {machine}")
 
         # clearing ssh banners
         for i in self.ssh.stdout:
@@ -91,7 +91,7 @@ class _SSHHandler(IShellHandler):
 
     def stderr_readline(self) -> str:
         if self.ssh.stderr is None:
-            raise BrokenPipeError("Can't read from process' stdout")
+            raise BrokenPipeError("Can't read from process' stderr")
 
         line_bytes = self.ssh.stderr.readline()
         line = line_bytes.decode("UTF-8")

@@ -1,6 +1,5 @@
 # pylint: skip-file
 import subprocess
-from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -65,7 +64,17 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
             amphimixis.build_systems_dict["cmake"],
         )
 
-        return Profiler(project, build)
+        profiler_instance = Profiler(project, build)
+        perf_record_collect_original = profiler_instance.perf_record_collect
+
+        def wrap(executable, options=None):
+            return perf_record_collect_original(
+                executable, options="-g -F1000 -e cycles"
+            )
+
+        mocker.patch.object(profiler_instance, "perf_record_collect", side_effect=wrap)
+
+        return profiler_instance
 
     return _profiler
 
@@ -73,12 +82,12 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
 @pytest.mark.unit
 class TestProfiler:
     @pytest.mark.parametrize(
-        "method",
+        "method_name",
         [
-            Profiler.test_executable,
-            Profiler.execution_time,
-            Profiler.perf_stat_collect,
-            Profiler.perf_record_collect,
+            "test_executable",
+            "execution_time",
+            "perf_stat_collect",
+            "perf_record_collect",
         ],
     )
     @pytest.mark.parametrize(
@@ -93,7 +102,7 @@ class TestProfiler:
         proj_path,
         get_profiler,
         build_executable,
-        method: Callable[[Profiler, str], bool],
+        method_name: str,
         program: str,
         expected: bool,
     ):
@@ -102,7 +111,9 @@ class TestProfiler:
             proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
         )
 
-        assert method(profiler, EXECUTABLE_FILENAME) == expected
+        method = getattr(profiler, method_name)
+
+        assert method(EXECUTABLE_FILENAME) == expected
 
     @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
     def test_execution_time_updates_dictionary_with_correct_data(
