@@ -40,6 +40,7 @@ class _SSHHandler(IShellHandler):
                 "-o",
                 "StrictHostKeychecking=no",
                 f"-p{str(machine.auth.port)}",
+                "bash -l",
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
