@@ -59,6 +59,7 @@ class Profiler:
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def profile_all(
         self,
+        working_directory: str,
         test_executable: bool = True,
         execution_time: bool = True,
         stat_collect: bool = True,
@@ -68,6 +69,9 @@ class Profiler:
         """
         Run profiling on every executable.\n
         If `build.executables` is empty, finds executables in `build.build_path`.
+
+        :param working_directory: absolute path to set working directory.
+        :type working_directory: str
 
         :type test_executable: bool
         :param test_executable: Run an executable smoke test if `True`.
@@ -101,27 +105,33 @@ class Profiler:
 
         for executable in self.executables:
             if test_executable:
-                if not self.test_executable(executable):
+                if not self.test_executable(executable, working_directory):
                     continue
 
             if execution_time:
-                self.execution_time(executable)
+                self.execution_time(executable, working_directory)
 
             if stat_collect:
-                self.perf_stat_collect(executable)
+                self.perf_stat_collect(executable, working_directory)
 
             if record_collect:
-                if self.perf_record_collect(executable):
-                    self.script_perf_record(self.get_record_filename(executable))
+                if self.perf_record_collect(executable, working_directory):
+                    self.script_perf_record(
+                        self.get_record_filename(executable), working_directory
+                    )
 
         return True
 
-    def execution_time(self, executable: str) -> bool:
+    def execution_time(self, executable: str, working_directory: str) -> bool:
         """
         Measure execution time: real, user, kernel
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
+
+        :param working_directory: absolute path to set working directory.
+        :type working_directory: str
+
         :return: `False` if non-zero error code is returned. Otherwise `True`
         :rtype: bool
         """
@@ -134,7 +144,7 @@ class Profiler:
         if executable not in self.stats:
             self.stats.update({executable: {}})
 
-        error, _, stderr = self.shell.run(f"cd {self.build_path}")
+        error, _, stderr = self.shell.run(f"cd {working_directory}")
         if error != 0:
             self.logger.error(
                 "".join(stderr[0]),
@@ -143,7 +153,9 @@ class Profiler:
 
             return False
 
-        command = self._time_command(executable, stderr_clear=False)
+        command = self._time_command(
+            os.path.join(self.build_path, executable), stderr_clear=False
+        )
         self.logger.info(
             "Measure execution time\n\tCommand: %s",
             command,
@@ -183,13 +195,17 @@ class Profiler:
 
         return True
 
-    def test_executable(self, executable: str) -> bool:
+    def test_executable(self, executable: str, working_directory: str) -> bool:
         """
         Checks if executable runs and returns no errors.\n
         Updates `self.stats[EXECUTABLE]` dictionary with `Stats.EXECUTABLE_RUN_SUCCESS` key
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
+
+        :param working_directory: absolute path to set working directory.
+        :type working_directory: str
+
         :return: True if the executable return 0. False if can't run the executable or
                  non-zero error code is returned.
         :rtype: bool
@@ -204,7 +220,7 @@ class Profiler:
             self.stats.update({executable: {}})
 
         error, stdout, stderr = self.shell.run(
-            f"cd {self.build_path}", f"./{executable}"
+            f"cd {working_directory}", f"{os.path.join(self.build_path, executable)}"
         )
 
         if error != 0:
@@ -233,15 +249,22 @@ class Profiler:
 
         return error == 0
 
-    def perf_stat_collect(self, executable: str, options: str = "-ddd") -> bool:
+    def perf_stat_collect(
+        self, executable: str, working_directory: str, options: str = "-ddd"
+    ) -> bool:
         """
         Collect performance statistics using `perf stat`.\n
         Updates `self.stats[EXECUTABLE]` dictionary with `Stats.PERF_STAT` key
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
+
         :param options: `perf stat` additional options. Default `"-ddd"`
         :type options: str
+
+        :param working_directory: absolute path to set working directory.
+        :type working_directory: str
+
         :return: `False` if `perf stat` return non-zero error code. Otherwise `True`
         :rtype: bool
         """
@@ -255,7 +278,7 @@ class Profiler:
             self.stats.update({executable: {}})
 
         error, _, stderr = self.shell.run(
-            f"cd {self.build_path}",
+            f"cd {working_directory}",
         )
 
         if error != 0:
@@ -267,7 +290,9 @@ class Profiler:
 
             return False
 
-        command = self._perf_stat_command(executable, options)
+        command = self._perf_stat_command(
+            os.path.join(self.build_path, executable), options
+        )
         self.logger.info(
             "Perf stat command:\n\t%s",
             command,
@@ -298,6 +323,7 @@ class Profiler:
     def perf_record_collect(
         self,
         executable: str,
+        working_directory: str,
         options: str = "-g -F 1000 -e cycles,cache-misses,branch-misses",
     ) -> bool:
         """
@@ -306,10 +332,14 @@ class Profiler:
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
+
         :param options: `perf record` additional options.
          Default: `"-g -F 1000 -e cycles,cache-misses,branch-misses"`
-
         :type options: str
+
+        :param working_directory: absolute path to set working directory.
+        :type working_directory: str
+
         :return: `False` if can't collect samples. Otherwise `True`
         :rtype: bool
         """
@@ -320,7 +350,7 @@ class Profiler:
         )
 
         error, _, stderr = self.shell.run(
-            f"cd {self.build_path}",
+            f"cd {working_directory}",
         )
 
         if error != 0:
@@ -328,7 +358,10 @@ class Profiler:
             return False
 
         options += f" -o {self.get_record_filename(executable)}"
-        command = self._perf_record_command(executable, options)
+        command = self._perf_record_command(
+            os.path.join(self.build_path, executable), options
+        )
+
         self.logger.info(
             "Perf record command:\n\t%s",
             command,
@@ -378,16 +411,25 @@ class Profiler:
 
         return True
 
-    def script_perf_record(self, filename: str) -> tuple[bool, str]:
+    def script_perf_record(
+        self, filename: str, working_directory: str
+    ) -> tuple[bool, str]:
         """
         Runs `perf script` on the provided perf data file and saves to `filename`.txt
+
+        :param filename: the name of perf record file.
+        :type working_directory: str
+
+        :param working_directory: absolute path to set working directory.
+        Should contain perf record file.
+        :type working_directory: str
 
         :return: error code and perf script output file name
         :rtype: tuple[int,str]
         """
 
         error, _, stderr = self.shell.run(
-            f"cd {self.build_path}",
+            f"cd {working_directory}",
         )
 
         if error != 0:
@@ -459,7 +501,7 @@ class Profiler:
         if stderr_clear:
             redirects += " 2>/dev/null"
 
-        return f"{tool_base} taskset -c 0 sh -c './{executable}{redirects}'"
+        return f"{tool_base} taskset -c 0 sh -c '{executable}{redirects}'"
 
     def _perf_stat_command(self, executable: str, user_options: str, **kwargs):
         fixed_options = "-x,"

@@ -69,7 +69,7 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
 
         def wrap(executable, options=None):
             return perf_record_collect_original(
-                executable, options="-g -F1000 -e cycles"
+                executable, profiler_instance.build_path, options="-g -F1000 -e cycles"
             )
 
         mocker.patch.object(profiler_instance, "perf_record_collect", side_effect=wrap)
@@ -113,7 +113,7 @@ class TestProfiler:
 
         method = getattr(profiler, method_name)
 
-        assert method(EXECUTABLE_FILENAME) == expected
+        assert method(EXECUTABLE_FILENAME, profiler.build_path) == expected
 
     @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
     def test_execution_time_updates_dictionary_with_correct_data(
@@ -124,7 +124,7 @@ class TestProfiler:
             proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
         )
 
-        assert profiler.execution_time(EXECUTABLE_FILENAME)
+        assert profiler.execution_time(EXECUTABLE_FILENAME, profiler.build_path)
 
         for time_counter in (
             amphimixis.profiler.Stats.KERNEL_TIME,
@@ -148,7 +148,7 @@ class TestProfiler:
             proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
         )
 
-        assert profiler.execution_time(EXECUTABLE_FILENAME)
+        assert profiler.execution_time(EXECUTABLE_FILENAME, profiler.build_path)
 
         assert (
             float(
@@ -166,7 +166,7 @@ class TestProfiler:
             proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
         )
 
-        assert profiler.perf_stat_collect(EXECUTABLE_FILENAME)
+        assert profiler.perf_stat_collect(EXECUTABLE_FILENAME, profiler.build_path)
 
         assert (
             profiler.stats[EXECUTABLE_FILENAME].get(amphimixis.profiler.Stats.PERF_STAT)
@@ -182,7 +182,7 @@ class TestProfiler:
             proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
         )
 
-        assert profiler.perf_record_collect(EXECUTABLE_FILENAME)
+        assert profiler.perf_record_collect(EXECUTABLE_FILENAME, profiler.build_path)
 
         result = subprocess.run(
             ["perf", "report", "-i", profiler.get_record_filename(EXECUTABLE_FILENAME)],
@@ -202,6 +202,7 @@ class TestProfiler:
         )
 
         assert profiler.profile_all(
+            profiler.build_path,
             test_executable=False,
             execution_time=False,
             stat_collect=False,
@@ -217,6 +218,7 @@ class TestProfiler:
         profiler.executables.clear()
 
         assert not profiler.profile_all(
+            profiler.build_path,
             test_executable=False,
             execution_time=False,
             stat_collect=False,
@@ -248,6 +250,7 @@ class TestProfiler:
         )
 
         assert profiler.profile_all(
+            profiler.build_path,
             test_executable=True,
             execution_time=True,
             stat_collect=True,
@@ -295,6 +298,7 @@ class TestProfiler:
         )
 
         assert profiler.profile_all(
+            profiler.build_path,
             test_executable=True,
             execution_time=True,
             stat_collect=True,

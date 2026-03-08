@@ -153,6 +153,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if len(sys.argv) == 3:
-        print("start")
         main(sys.argv[1], sys.argv[2])
-    print("end")
+    else:
+        main(sys.argv[1], sys.argv[2], None, int(sys.argv[3]))
