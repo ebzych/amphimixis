@@ -9,8 +9,8 @@ from typing import List, Self, Tuple
 from amphimixis import logger
 from amphimixis.general import IUI, MachineInfo, NullUI, Project, constants
 from amphimixis.shell.local_shell_handler import _LocalShellHandler
+from amphimixis.shell.paramiko_shell_handler import _ParamikoHandler
 from amphimixis.shell.shell_interface import IShellHandler
-from amphimixis.shell.ssh_shell_handler import _SSHHandler
 
 _READING_BARRIER_FLAG = "READING_BARRIER_FLAG"
 
@@ -77,7 +77,7 @@ class Shell:
                 f"{self.machine.address} is unknown address"
             ) from exception
 
-        self._shell = _SSHHandler(self.machine, self.connect_timeout)
+        self._shell = _ParamikoHandler(self.machine, self.connect_timeout)
         self._is_local = False
 
     def run(self, *commands: str) -> Tuple[int, List[List[str]], List[List[str]]]:
