@@ -188,7 +188,7 @@ def main():
             for build in project.builds:
                 print(f"Profiling {build.build_name}")
                 profiler_ = Profiler(project, build)
-                if profiler_.profile_all():
+                if profiler_.profile_all(project.path):
                     print(profiler_.stats)
                 else:
                     print("Executables not found")
@@ -205,7 +205,7 @@ def main():
             for build in project.builds:
                 print(f"Profiling {build.build_name}")
                 profiler_ = Profiler(project, build)
-                if profiler_.profile_all():
+                if profiler_.profile_all(project.path):
                     print(profiler_.stats)
                 else:
                     print("Executables not found")
