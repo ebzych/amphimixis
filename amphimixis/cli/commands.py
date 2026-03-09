@@ -18,9 +18,8 @@ def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
     if analyze(project):
         ui.mark_success("Analysis completed!")
         return True
-    else:
-        ui.mark_failed("Analysis failed. See amphimixis.log for details")
-        return False
+    ui.mark_failed("Analysis failed. See amphimixis.log for details")
+    return False
 
 
 def run_build(
