@@ -30,6 +30,6 @@ jobs:
       run: |
         sudo apt update
         echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid
-        sudo apt install -y ruby-mdl u-boot-qemu xz-utils sshpass
-        sudo apt install -y qemu-system qemu-utils
+        sudo apt install ruby-mdl u-boot-qemu xz-utils sshpass
+        sudo apt install qemu-system qemu-utils
         ci/runner.sh
