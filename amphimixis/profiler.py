@@ -414,11 +414,16 @@ class Profiler:
             self.shell.run(f"rm {self.get_record_filename(executable)}")
             return False
 
-        error, _, stderr = self.shell.run(
+        error, stdout, stderr = self.shell.run(
             f"perf archive {self.get_record_filename(executable)}"
         )
 
         if error != 0:
+            self.logger.error(
+                "Perf archive fail STDOUT:\n%s",
+                "".join(stdout[0]),
+                extra={"target": executable},
+            )
             self.logger.error(
                 "Perf archive fail STDERR:\n%s",
                 "".join(stderr[0]),
