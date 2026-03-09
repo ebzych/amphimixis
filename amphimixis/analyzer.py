@@ -47,7 +47,7 @@ def analyze(project: general.Project):
     _search_build_systems(proj_path, results)
     _search_dependencies(proj_path, results)
 
-    _file_output(results["build_systems"])
+    _file_output(results)
 
     _logger.info("Analyzing done")
 

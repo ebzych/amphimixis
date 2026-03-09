@@ -286,11 +286,27 @@ def _get_analyzed_build_system() -> str | None:
         with open(ANALYZED_FILE_NAME, "r", encoding="UTF-8") as file:
             analyzed = yaml.safe_load(file)
             if analyzed:
-                build_system = analyzed[0].lower()
+                if not isinstance(analyzed, dict):
+                    raise TypeError("Incorrect amphimixis.analyzed")
+
+                if "build_systems" not in analyzed:
+                    raise TypeError(
+                        "Missing 'build_systems' key in amphimixis.analyzed"
+                    )
+
+                build_systems = analyzed["build_systems"]
+                if not isinstance(build_systems, list) or not build_systems:
+                    raise TypeError("'Build_systems' must be a non-empty list")
+
+                if not isinstance(build_systems[0], str):
+                    raise TypeError("Incorrect build systems list")
+
+                build_system = build_systems[0].lower()
                 if (
                     build_system in build_systems_dict
                 ):  # take first (in priority) found build system
                     return build_system
+
             return None
 
     except FileNotFoundError:
