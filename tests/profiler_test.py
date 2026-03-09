@@ -191,6 +191,28 @@ class TestProfiler:
         assert result.returncode == 0
 
     @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
+    def test_perf_record_collect_creates_valid_perf_archive_file(
+        self, proj_path, get_profiler, build_executable, program: str
+    ):
+        profiler: Profiler = get_profiler(proj_path, EXECUTABLE_FILENAME)
+        build_executable(
+            proj_path, program, EXECUTABLE_FILENAME, profiler.build.build_name
+        )
+
+        assert profiler.perf_record_collect(EXECUTABLE_FILENAME, profiler.build_path)
+
+        result = subprocess.run(
+            [
+                "perf",
+                "archive",
+                "--unpack",
+                profiler.get_record_filename(EXECUTABLE_FILENAME),
+            ],
+        )
+
+        assert result.returncode == 0
+
+    @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
     def test_profile_all_finds_executables_on_empty_list_in_build(
         self, proj_path, get_profiler, build_executable, program: str
     ):

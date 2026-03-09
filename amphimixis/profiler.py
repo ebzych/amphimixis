@@ -148,7 +148,7 @@ class Profiler:
             if record_collect:
                 self.ui.update_message(self.build.build_name, "Perf data recording ...")
                 if self.perf_record_collect(executable, working_directory):
-                    self.script_perf_record(
+                    self.perf_script(
                         self.get_record_filename(executable), working_directory
                     )
 
@@ -360,7 +360,8 @@ class Profiler:
     ) -> bool:
         """
         Collect performance records using `perf record`.\n
-        Saves `perf.data` into `self.get_record_filename()` file in the working directory.
+        Saves `perf.data` with archive of object files into `self.get_record_filename()`
+        and `self.get_record_filename()`.tar.bz2 file in the working directory.
 
         :param executable: relative to `build_path` path to executable
         :type executable: str
@@ -413,6 +414,17 @@ class Profiler:
             self.shell.run(f"rm {self.get_record_filename(executable)}")
             return False
 
+        error, _, stderr = self.shell.run(
+            f"perf archive {self.get_record_filename(executable)}"
+        )
+
+        if error != 0:
+            self.logger.error(
+                "Perf archive fail STDERR:\n%s",
+                "".join(stderr[0]),
+                extra={"target": executable},
+            )
+
         error, stdout, stderr = self.shell.run("pwd")
 
         if error != 0:
@@ -436,6 +448,17 @@ class Profiler:
 
             return False
 
+        if not self.shell.copy_to_host(
+            os.path.join(remote_workdir, self.get_archive_filename(executable)),
+            os.path.join(os.getcwd(), self.get_archive_filename(executable)),
+        ):
+            self.logger.error(
+                "Perf record fail. Can't copy perf archive file",
+                extra={"target": executable},
+            )
+
+            return False
+
         self.logger.info(
             "Perf record collecting finished",
             extra={"target": executable},
@@ -443,9 +466,7 @@ class Profiler:
 
         return True
 
-    def script_perf_record(
-        self, filename: str, working_directory: str
-    ) -> tuple[bool, str]:
+    def perf_script(self, filename: str, working_directory: str) -> tuple[bool, str]:
         """
         Runs `perf script` on the provided perf data file and saves to `filename`.txt
 
@@ -516,6 +537,10 @@ class Profiler:
 
         executable_path_flatten = os.path.normpath(executable).replace("/", "_")
         return f"{self.build.build_name}_{executable_path_flatten}.perfdata"
+
+    def get_archive_filename(self, executable: str) -> str:
+        """Gets perf archive file name."""
+        return self.get_record_filename(executable) + ".tar.bz2"
 
     def _get_stats_filename(self) -> str:
         return f"{self.build.build_name}.stats"
