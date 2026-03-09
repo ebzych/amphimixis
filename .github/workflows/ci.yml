@@ -29,6 +29,7 @@ jobs:
     - name: Run CI
       run: |
         echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid
-        sudo apt install ruby-mdl u-boot-qemu xz-utils sshpass
-        sudo apt install qemu-system --fix-missing
+        sudo apt update
+        sudo apt install -y ruby-mdl u-boot-qemu xz-utils sshpass
+        sudo apt install -y qemu-system --fix-missing
         ci/runner.sh
