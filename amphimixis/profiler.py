@@ -133,20 +133,16 @@ class Profiler:
 
         for executable in self.executables:
             if test_executable:
-                self.ui.update_message(self.build.build_name, "Testing...")
                 if not self.test_executable(executable, working_directory):
                     continue
 
             if execution_time:
-                self.ui.update_message(self.build.build_name, "Measuring time...")
                 self.execution_time(executable, working_directory)
 
             if stat_collect:
-                self.ui.update_message(self.build.build_name, "Perf stat collecting..")
                 self.perf_stat_collect(executable, working_directory)
 
             if record_collect:
-                self.ui.update_message(self.build.build_name, "Perf data recording ...")
                 if self.perf_record_collect(executable, working_directory):
                     self.perf_script(
                         self.get_record_filename(executable), working_directory
@@ -168,6 +164,7 @@ class Profiler:
         :rtype: bool
         """
 
+        self.ui.update_message(self.build.build_name, "Measuring time...")
         self.logger.info(
             "Measuring execution time started",
             extra={"target": executable},
@@ -243,6 +240,7 @@ class Profiler:
         :rtype: bool
         """
 
+        self.ui.update_message(self.build.build_name, "Testing...")
         self.logger.info(
             "Smoke test started",
             extra={"target": executable},
@@ -301,6 +299,7 @@ class Profiler:
         :rtype: bool
         """
 
+        self.ui.update_message(self.build.build_name, "Perf stat collecting...")
         self.logger.info(
             "Perf stat started",
             extra={"target": executable},
@@ -377,6 +376,7 @@ class Profiler:
         :rtype: bool
         """
 
+        self.ui.update_message(self.build.build_name, "Perf data recording...")
         self.logger.info(
             "Perf record started",
             extra={"target": executable},
@@ -436,6 +436,9 @@ class Profiler:
 
             return False
 
+        self.ui.update_message(
+            self.build.build_name, "Getting all data from the machine..."
+        )
         remote_workdir = stdout[0][0].strip()
         if not self.shell.copy_to_host(
             os.path.join(remote_workdir, self.get_record_filename(executable)),
@@ -481,6 +484,7 @@ class Profiler:
         :rtype: tuple[int,str]
         """
 
+        self.ui.update_message(self.build.build_name, "Perf script processing...")
         error, _, stderr = self.shell.run(
             f"cd {working_directory}",
         )
