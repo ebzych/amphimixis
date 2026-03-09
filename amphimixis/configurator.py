@@ -188,7 +188,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     else:
         run_machine = create_machine(run_machine_info)
 
-    if not _has_valid_arch(run_machine):
+    if not _has_valid_arch(run_machine, ui):
         return False
 
     config_flags = recipe_info.get("config_flags", "")
