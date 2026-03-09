@@ -6,7 +6,7 @@ from amphimixis import Builder, Profiler, analyze, general, parse_config
 from amphimixis.general import IUI, NullUI
 
 
-def run_analyze(project: general.Project, ui: IUI = NullUI()):
+def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
     """Execute project analysis.
 
     :param Project project: Project instance to analyze
@@ -17,11 +17,15 @@ def run_analyze(project: general.Project, ui: IUI = NullUI()):
 
     if analyze(project):
         ui.mark_success("Analysis completed!")
+        return True
     else:
         ui.mark_failed("Analysis failed. See amphimixis.log for details")
+        return False
 
 
-def run_build(project: general.Project, config_file_path: str, ui: IUI = NullUI()):
+def run_build(
+    project: general.Project, config_file_path: str, ui: IUI = NullUI()
+) -> bool:
     """Execute project build.
 
     :param Project project: Project instance to build
@@ -35,9 +39,13 @@ def run_build(project: general.Project, config_file_path: str, ui: IUI = NullUI(
             ui.mark_success("Build passed!")
         else:
             ui.mark_failed()
+            return False
+    return True
 
 
-def run_profile(project: general.Project, config_file_path: str, ui: IUI = NullUI()):
+def run_profile(
+    project: general.Project, config_file_path: str, ui: IUI = NullUI()
+) -> bool:
     """Execute project profiling.
 
     :param project: Project instance to profiler
@@ -55,3 +63,5 @@ def run_profile(project: general.Project, config_file_path: str, ui: IUI = NullU
             ui.mark_success("Profiling completed!")
         else:
             ui.mark_failed()
+            return False
+    return True

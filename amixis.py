@@ -30,15 +30,15 @@ def main():
         config_file = DEFAULT_CONFIG_PATH
 
     if args.validate:
-        if validate(args.validate):
-            print(f"{args.validate} is correct!!")
-            return 0
-        print(f"{args.validate} is incorrect!!")
-        return 1
+        if not validate(args.validate):
+            print(f"{args.validate} is incorrect!!")
+            sys.exit(1)
+        print(f"{args.validate} is correct!!")
+        sys.exit(0)
 
     if not args.path:
         print("Error: please provide path to the project directory.")
-        return 1
+        sys.exit(1)
 
     project = general.Project(
         str(Path(args.path).expanduser().resolve()),
@@ -51,24 +51,34 @@ def main():
 
     try:
         if not any([args.analyze, args.build, args.profile]):
-            run_analyze(project, ui)
-            run_build(project, config_file_path=str(config_file), ui=ui)
-            run_profile(project, config_file_path=str(config_file), ui=ui)
+            if not run_analyze(project, ui):
+                sys.exit(1)
+
+            if not run_build(project, config_file_path=str(config_file), ui=ui):
+                sys.exit(1)
+
+            if not run_profile(project, config_file_path=str(config_file), ui=ui):
+                sys.exit(1)
+
+            sys.exit(0)
 
         if args.analyze:
-            run_analyze(project, ui)
+            if not run_analyze(project, ui):
+                sys.exit(1)
 
         if args.build:
-            run_build(project, config_file_path=str(config_file), ui=ui)
+            if not run_build(project, config_file_path=str(config_file), ui=ui):
+                sys.exit(1)
 
         if args.profile:
-            run_profile(project, config_file_path=str(config_file), ui=ui)
+            if not run_profile(project, config_file_path=str(config_file), ui=ui):
+                sys.exit(1)
 
-        return 0
+        sys.exit(0)
 
     except (FileNotFoundError, ValueError, RuntimeError, LookupError, TypeError) as e:
         print(f"Error: {e}")
-        return 1
+        sys.exit(1)
 
 
 if __name__ == "__main__":
