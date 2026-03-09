@@ -5,7 +5,7 @@ import sys
 from amphimixis.general import IUI
 
 
-class PrintAnimationToConsole(IUI):
+class ConsoleAnimationPrinter(IUI):
     """Single-line console spinner implementation of IUI."""
 
     braille: list[str] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]

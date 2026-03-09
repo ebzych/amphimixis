@@ -13,7 +13,7 @@ from amphimixis.cli import (
     run_build,
     run_profile,
 )
-from amphimixis.cli.print_animation_to_console import PrintAnimationToConsole
+from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
 
 
 # pylint: disable=too-many-branches,too-many-statements
@@ -47,7 +47,7 @@ def main():
         build_systems_dict["cmake"],
     )
 
-    ui = PrintAnimationToConsole()
+    ui = ConsoleAnimationPrinter()
 
     try:
         if not any([args.analyze, args.build, args.profile]):
