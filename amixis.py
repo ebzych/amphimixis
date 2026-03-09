@@ -16,7 +16,7 @@ from amphimixis.cli import (
 from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
 
 
-# pylint: disable=too-many-branches,too-many-statements
+# pylint: disable=too-many-branches,too-many-statements,too-many-return-statements
 def main():
     """Main function for the Amphimixis CLI tool."""
 
@@ -32,13 +32,13 @@ def main():
     if args.validate:
         if not validate(args.validate):
             print(f"{args.validate} is incorrect!!")
-            sys.exit(1)
+            return 1
         print(f"{args.validate} is correct!!")
-        sys.exit(0)
+        return 0
 
     if not args.path:
         print("Error: please provide path to the project directory.")
-        sys.exit(1)
+        return 1
 
     project = general.Project(
         str(Path(args.path).expanduser().resolve()),
@@ -52,33 +52,33 @@ def main():
     try:
         if not any([args.analyze, args.build, args.profile]):
             if not run_analyze(project, ui):
-                sys.exit(1)
+                return 1
 
             if not run_build(project, config_file_path=str(config_file), ui=ui):
-                sys.exit(1)
+                return 1
 
             if not run_profile(project, config_file_path=str(config_file), ui=ui):
-                sys.exit(1)
+                return 1
 
-            sys.exit(0)
+            return 0
 
         if args.analyze:
             if not run_analyze(project, ui):
-                sys.exit(1)
+                return 1
 
         if args.build:
             if not run_build(project, config_file_path=str(config_file), ui=ui):
-                sys.exit(1)
+                return 1
 
         if args.profile:
             if not run_profile(project, config_file_path=str(config_file), ui=ui):
-                sys.exit(1)
+                return 1
 
-        sys.exit(0)
+        return 0
 
     except (FileNotFoundError, ValueError, RuntimeError, LookupError, TypeError) as e:
         print(f"Error: {e}")
-        sys.exit(1)
+        return 1
 
 
 if __name__ == "__main__":

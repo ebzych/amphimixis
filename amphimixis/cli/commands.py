@@ -15,11 +15,11 @@ def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
     project_name = path.basename(path.normpath(project.path))
     ui.update_message(project_name, "Analyzing project...")
 
-    if analyze(project):
-        ui.mark_success("Analysis completed!")
-        return True
-    ui.mark_failed("Analysis failed. See amphimixis.log for details")
-    return False
+    if not analyze(project):
+        ui.mark_failed("Analysis failed. See amphimixis.log for details")
+        return False
+    ui.mark_success("Analysis completed!")
+    return True
 
 
 def run_build(
@@ -34,11 +34,10 @@ def run_build(
 
     parse_config(project, config_file_path=str(config_file_path), ui=ui)
     for build in project.builds:
-        if Builder.build_for_linux(project, build, ui):
-            ui.mark_success("Build passed!")
-        else:
+        if not Builder.build_for_linux(project, build, ui):
             ui.mark_failed()
             return False
+        ui.mark_success("Build passed!")
     return True
 
 
@@ -57,10 +56,9 @@ def run_profile(
 
     for build in project.builds:
         profiler_ = Profiler(project, build, ui)
-        if profiler_.profile_all(project.path):
-            profiler_.save_stats()
-            ui.mark_success("Profiling completed!")
-        else:
+        if not profiler_.profile_all(project.path):
             ui.mark_failed()
             return False
+        profiler_.save_stats()
+        ui.mark_success("Profiling completed!")
     return True
