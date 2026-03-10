@@ -26,7 +26,7 @@ class Shell:
         self,
         machine: MachineInfo,
         ui: IUI = NullUI(),
-        connect_timeout=5,
+        connect_timeout=15,
     ):
         self.logger = logger.setup_logger("SHELL")
         self._shell: IShellHandler
