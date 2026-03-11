@@ -4,4 +4,4 @@ NC='\e[0m'
 
 echo -e "${BLUE}Running PyTest...${NC}"
 root=$(git rev-parse --show-toplevel)
-PYTHONPATH=$root CI=1 uv run pytest -s --verbose --force-short-summary "$root"
+PYTHONPATH=$root CI=1 uv run pytest "$root"
