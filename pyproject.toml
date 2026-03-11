@@ -9,6 +9,7 @@ dependencies = [
     "pandas",
     "pyyaml",
     "paramiko",
+    "openai",
 ]
 
 [tool.setuptools]
