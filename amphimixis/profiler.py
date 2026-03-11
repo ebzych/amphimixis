@@ -63,6 +63,7 @@ class Profiler:
     def __init__(
         self, project: general.Project, build: general.Build, ui: IUI = NullUI()
     ):
+        self.project = project
         self.logger = self.CustomLogger(
             logger.setup_logger("PROFILER"), {"build": build.build_name}
         )
@@ -79,7 +80,7 @@ class Profiler:
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def profile_all(
         self,
-        working_directory: str,
+        working_directory: str = "",
         test_executable: bool = True,
         execution_time: bool = True,
         stat_collect: bool = True,
@@ -114,6 +115,9 @@ class Profiler:
         :return: False if no executable is found. Otherwise True.
         :rtype: bool
         """
+
+        if working_directory == "":
+            working_directory = self.shell.get_source_dir(self.project)
 
         if not self.executables:
             self.executables = self._find_executables(max_number_of_executables)
