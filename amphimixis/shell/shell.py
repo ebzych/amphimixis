@@ -245,6 +245,15 @@ class Shell:
         self._homedir = stdout[0][0].strip()
         return self._homedir
 
+    def get_source_dir(self, project: Project):
+        """Gets a directory for the project source code on the target machine."""
+        if self._is_local:
+            return project.path
+
+        return os.path.join(
+            self.get_project_workdir(project), "..", os.path.basename(project.path)
+        )
+
     def set_paranoid(self, level: int) -> tuple[int, bool]:
         """
         Sets perf_event_paranoid to the given level.
