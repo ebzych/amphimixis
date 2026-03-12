@@ -13,7 +13,7 @@ def test_e2e_local_machine(clone_repo, create_working_space):
     """This end-to-end test validates that the pipeline can successfully process
     the yaml-cpp repository using the configuration file input_local.yaml.
     """
-    repo_path = clone_repo("https://github.com/jbeder/yaml-cpp.git")
+    repo_path = clone_repo("https://github.com/leethomason/tinyxml2.git")
     working_dir = create_working_space()
     orig_dir = Path.cwd()
     try:
