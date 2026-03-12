@@ -4,4 +4,5 @@ NC='\e[0m'
 
 echo -e "${BLUE}Running PyTest...${NC}"
 root=$(git rev-parse --show-toplevel)
-PYTHONPATH=$root uv run pytest "$root"
+PYTHONPATH=$root uv run pytest "$root" -m unit
+PYTHONPATH=$root uv run pytest "$root" -m integration
