@@ -52,7 +52,7 @@ def test_e2e_remote_machine_between_containers(clone_repo, _docker_compose):
     exit_code = client_container.exec_run(add_ip_cmd)[0]
     assert exit_code == 0
 
-    repo_path = clone_repo("https://github.com/Microsoft/vcpkg.git")
+    repo_path = clone_repo("https://github.com/leethomason/tinyxml2.git")
     copy_cmd = ["docker", "cp", repo_path, "build-client:/workspace/tinyxml2"]
     subprocess.run(copy_cmd, check=True)
 
