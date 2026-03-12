@@ -6,8 +6,11 @@ from os import listdir, path
 
 import yaml
 
+from amphimixis.analyzer_agent import analyze_with_agent
 from amphimixis.general import general
 from amphimixis.logger import setup_logger
+
+ANALYSIS_FILE = "amphimixis.analyzed"
 
 _logger = setup_logger("analyzer")
 
@@ -23,7 +26,7 @@ build_systems_list = {
 }
 
 
-def analyze(project: general.Project):
+def analyze(project: general.Project, use_llm=False):
     """Analyzes project and collects its information"""
 
     results: dict[str, list[str] | str | None] = {
@@ -47,6 +50,11 @@ def analyze(project: general.Project):
     _search_build_systems(proj_path, results)
     _search_dependencies(proj_path, results)
 
+    if use_llm is True:
+        _logger.info("Analyzing with llm")
+        analyze_with_agent(proj_path)
+        _logger.info("Analyzing with llm done")
+
     _file_output(results)
 
     _logger.info("Analyzing done")
@@ -59,7 +67,7 @@ def _rel_path(proj_path, p):
     return path.relpath(p, parent_dir)
 
 
-def _find_paths(proj_path, pattern, dirs_only=True):
+def _find_paths(proj_path, pattern, dirs_only=False):
     paths = glob.glob(path.join(proj_path, pattern), recursive=True)
     return [p for p in paths if path.isdir(p)] if dirs_only else paths
 
@@ -74,7 +82,7 @@ def _logger_results(proj_path, results, key, paths):
         _logger.info("%s: not found", key)
 
 
-def _file_output(results, file_name="amphimixis.analyzed"):
+def _file_output(results, file_name=ANALYSIS_FILE):
     with open(
         file_name,
         "w",
@@ -96,7 +104,7 @@ def _search_benchmarks(proj_path, results):
 def _search_ci(proj_path, results):
     paths = []
     for pattern in ci_list:
-        paths.extend(_find_paths(proj_path, pattern))
+        paths.extend(_find_paths(proj_path, pattern, dirs_only=True))
 
     _logger_results(proj_path, results, "ci", paths)
 
@@ -106,7 +114,7 @@ def _search_build_systems(proj_path, results):
     found = False
     for system, patterns in build_systems_list.items():
         for pat in patterns:
-            matched_paths = _find_paths(proj_path, pat, dirs_only=False)
+            matched_paths = _find_paths(proj_path, pat)
             matched_files = [p for p in matched_paths if path.isfile(p)]
             if matched_files:
                 if system not in results["build_systems"]:
