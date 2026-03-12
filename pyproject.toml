@@ -9,6 +9,8 @@ dependencies = [
     "pandas",
     "pyyaml",
     "paramiko",
+    "langchain-core",
+    "langchain-gigachat",
 ]
 
 [tool.setuptools]
