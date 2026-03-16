@@ -8,7 +8,6 @@ from os import listdir, path
 
 import yaml
 
-from amphimixis.build_systems import build_systems_dict
 from amphimixis.general import general
 from amphimixis.logger import setup_logger
 
