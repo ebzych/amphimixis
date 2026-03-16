@@ -9,8 +9,6 @@ import yaml
 from amphimixis.core.general import general
 from amphimixis.core.logger import setup_logger
 
-_logger = setup_logger("analyzer")
-
 ci_list = ["**/ci", "**/.github/workflows"]
 
 build_systems_list = {
@@ -22,9 +20,22 @@ build_systems_list = {
     "autoconf": ["**/configure.ac", "**/configure.in"],
 }
 
+_logger = setup_logger("analyzer")
 
-def analyze(project: general.Project):
-    """Analyzes project and collects its information"""
+
+def analyze(project: general.Project, generating_files: bool = True) -> dict | None:
+    """Analyzes project and collects its information
+
+    :param Project project: Project to analyze
+    :param bool generating_files: Option for creating file with analyzing output
+    :rtype: dict | None
+    :return: None if path to project not found, otherwise dictionary with:\n
+        \t`tests`: list of paths to tests
+        \t`benchmarks`: list of paths to benchmarks
+        \t`ci`: list of paths to CI directories and files
+        \t`build_systems`: list of build system names that the project has
+        \t`dependencies`: list of paths to dependency directories
+    """
 
     results: dict[str, list[str] | str | None] = {
         "tests": [],
@@ -37,7 +48,7 @@ def analyze(project: general.Project):
     proj_path = project.path
     if not path.exists(proj_path):
         _logger.error("Directory '%s' not found", proj_path)
-        return False
+        return None
 
     _logger.info("Analyzing %s", path.basename(path.normpath(proj_path)))
 
@@ -47,11 +58,12 @@ def analyze(project: general.Project):
     _search_build_systems(proj_path, results)
     _search_dependencies(proj_path, results)
 
-    _file_output(results)
+    if generating_files:
+        _file_output(results["build_systems"])
 
     _logger.info("Analyzing done")
 
-    return True
+    return results
 
 
 def _rel_path(proj_path, p):
