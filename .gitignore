@@ -9,7 +9,7 @@ dist/
 amphimixis.egg-info/
 config.json
 config.yaml
-input.yml
+/input.yml
 .coverage
 amphimixis.log
 amphimixis.analyzed
