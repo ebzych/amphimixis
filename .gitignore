@@ -1,6 +1,15 @@
 .venv/
 __pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.opencode/
 .vscode/
+dist/
+amphimixis.egg-info/
 config.json
 config.yaml
-/input.yml
+input.yml
+.coverage
+amphimixis.log
+amphimixis.analyzed
