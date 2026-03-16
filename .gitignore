@@ -10,3 +10,4 @@ amphimixis.analyzed
 *.egg-info/
 *.perfdata*
 .uv-cache/
+.coverage
