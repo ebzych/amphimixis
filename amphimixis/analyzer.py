@@ -2,14 +2,15 @@
 
 import glob
 import re
+import sys
+from logging import Logger
 from os import listdir, path
 
 import yaml
 
+from amphimixis.build_systems import build_systems_dict
 from amphimixis.general import general
 from amphimixis.logger import setup_logger
-
-_logger = setup_logger("analyzer")
 
 ci_list = ["**/ci", "**/.github/workflows"]
 
@@ -23,8 +24,12 @@ build_systems_list = {
 }
 
 
-def analyze(project: general.Project):
+def analyze(
+    project: general.Project, generating_files: bool = True, logging: bool = True
+) -> dict | None:
     """Analyzes project and collects its information"""
+
+    logger = setup_logger("analyzer", dummy_logging=logging)
 
     results: dict[str, list[str] | str | None] = {
         "tests": [],
@@ -36,22 +41,23 @@ def analyze(project: general.Project):
 
     proj_path = project.path
     if not path.exists(proj_path):
-        _logger.error("Directory '%s' not found", proj_path)
-        return False
+        logger.error("Directory '%s' not found", proj_path)
+        return None
 
-    _logger.info("Analyzing %s", path.basename(path.normpath(proj_path)))
+    logger.info("Analyzing %s", path.basename(path.normpath(proj_path)))
 
-    _search_tests(proj_path, results)
-    _search_benchmarks(proj_path, results)
-    _search_ci(proj_path, results)
-    _search_build_systems(proj_path, results)
-    _search_dependencies(proj_path, results)
+    _search_tests(proj_path, results, logger)
+    _search_benchmarks(proj_path, results, logger)
+    _search_ci(proj_path, results, logger)
+    _search_build_systems(proj_path, results, logger)
+    _search_dependencies(proj_path, results, logger)
 
-    _file_output(results)
+    if generating_files:
+        _file_output(results["build_systems"])
 
-    _logger.info("Analyzing done")
+    logger.info("Analyzing done")
 
-    return True
+    return results
 
 
 def _rel_path(proj_path, p):
@@ -64,14 +70,14 @@ def _find_paths(proj_path, pattern, dirs_only=True):
     return [p for p in paths if path.isdir(p)] if dirs_only else paths
 
 
-def _logger_results(proj_path, results, key, paths):
+def _logger_results(proj_path, results, key, paths, logger: Logger):
     if paths:
         first_path = paths[0]
         rel_path = _rel_path(proj_path, first_path)
         results[key] = rel_path
-        _logger.info("found %s: %s", key, rel_path)
+        logger.info("found %s: %s", key, rel_path)
     else:
-        _logger.info("%s: not found", key)
+        logger.info("%s: not found", key)
 
 
 def _file_output(results, file_name="amphimixis.analyzed"):
@@ -83,26 +89,26 @@ def _file_output(results, file_name="amphimixis.analyzed"):
         yaml.dump(results, file, sort_keys=False)
 
 
-def _search_tests(proj_path, results):
+def _search_tests(proj_path, results, logger: Logger):
     paths = _find_paths(proj_path, "**/*test*")
-    _logger_results(proj_path, results, "tests", paths)
+    _logger_results(proj_path, results, "tests", paths, logger)
 
 
-def _search_benchmarks(proj_path, results):
+def _search_benchmarks(proj_path, results, logger: Logger):
     paths = _find_paths(proj_path, "**/*bench*")
-    _logger_results(proj_path, results, "benchmarks", paths)
+    _logger_results(proj_path, results, "benchmarks", paths, logger)
 
 
-def _search_ci(proj_path, results):
+def _search_ci(proj_path, results, logger: Logger):
     paths = []
     for pattern in ci_list:
         paths.extend(_find_paths(proj_path, pattern))
 
-    _logger_results(proj_path, results, "ci", paths)
+    _logger_results(proj_path, results, "ci", paths, logger)
 
 
-def _search_build_systems(proj_path, results):
-    _logger.info("build systems:")
+def _search_build_systems(proj_path, results, logger: Logger):
+    logger.info("build systems:")
     found = False
     for system, patterns in build_systems_list.items():
         for pat in patterns:
@@ -111,43 +117,43 @@ def _search_build_systems(proj_path, results):
             if matched_files:
                 if system not in results["build_systems"]:
                     results["build_systems"].append(system)
-                    _logger.info("  %s", system)
+                    logger.info("  %s", system)
 
                 found = True
                 break
 
     if not found:
-        _logger.info("  not found")
+        logger.info("  not found")
 
 
-def _search_dependencies(proj_path, results):
-    _logger.info("dependencies:")
+def _search_dependencies(proj_path, results, logger: Logger):
+    logger.info("dependencies:")
 
-    _third_party_dependencies(proj_path, results)
-    _cmake_dependencies(proj_path, results)
+    _third_party_dependencies(proj_path, results, logger)
+    _cmake_dependencies(proj_path, results, logger)
 
     # no dependencies
     if not results["dependencies"]:
-        _logger.info("  not found")
+        logger.info("  not found")
 
 
-def _third_party_dependencies(proj_path, results):
+def _third_party_dependencies(proj_path, results, logger):
     dep_path = path.join(proj_path, "third_party")
     if path.exists(dep_path):
         dirs = [d for d in listdir(dep_path) if path.isdir(path.join(dep_path, d))]
         for d in dirs:
             if d not in results["dependencies"]:
                 results["dependencies"].append(d)
-                _logger.info("  %s", d)
+                logger.info("  %s", d)
 
 
-def _cmake_dependencies(proj_path, results):
+def _cmake_dependencies(proj_path, results, logger):
     if "cmake" not in results["build_systems"]:
         return
 
     file_path = path.join(proj_path, "CMakeLists.txt")
     if not path.isfile(file_path):
-        _logger.info("  no CMakeLists.txt in project root")
+        logger.info("  no CMakeLists.txt in project root")
         return
 
     with open(file_path, "r", encoding="utf8") as file:
@@ -159,4 +165,14 @@ def _cmake_dependencies(proj_path, results):
     for package in packages:
         if package not in results["dependencies"]:
             results["dependencies"].append(package)
-            _logger.info("  %s", package)
+            logger.info("  %s", package)
+
+
+if __name__ == "__main__":
+    print(
+        analyze(
+            general.Project(sys.argv[1]),
+            generating_files=False,
+            logging=False,
+        )
+    )
