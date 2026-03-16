@@ -168,6 +168,15 @@ def _cmake_dependencies(proj_path, results, logger):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2 or "-h" in sys.argv or "--help" in sys.argv:
+        print(
+            "Usage: python3 analyzer.py /path/to/project/repo\n"
+            "Analyze project repository: find build systems, CI, "
+            "tests, benchmarks, dependencies."
+        )
+
+        sys.exit(1)
+
     print(
         analyze(
             general.Project(sys.argv[1]),
