@@ -190,7 +190,7 @@ if __name__ == "__main__":
     build_ = Build(
         build_machine=build_machine,
         run_machine=run_machine,
-        build_name="temp_building",
+        build_name=".",
         executables=[],
         toolchain=toolchain,
         sysroot=sysroot,
