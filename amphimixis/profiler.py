@@ -682,4 +682,83 @@ class Profiler:
 
 
 if __name__ == "__main__":
-    raise NotImplementedError
+    import sys
+
+    from amphimixis.general import Arch, Build, MachineInfo, NullUI, Project
+
+    if len(sys.argv) < 2:
+        print(
+            f"Usage: python profiler.py <project path> [executable] [--no-test] [--no-time] [--no-stat] [--no-record] [--max-exec N]"
+        )
+        sys.exit(1)
+
+    args = sys.argv[1:]
+
+    arch = Arch.X86
+    run_machine_address = None
+    executables = []
+    test_executable = True
+    execution_time = True
+    stat_collect = True
+    record_collect = True
+    max_number_of_executables = 1
+
+    working_directory = args[0]
+
+    i = 1
+    while i < len(args):
+        if args[i] == "--no-test":
+            test_executable = False
+            i += 1
+        elif args[i] == "--no-time":
+            execution_time = False
+            i += 1
+        elif args[i] == "--no-stat":
+            stat_collect = False
+            i += 1
+        elif args[i] == "--no-record":
+            record_collect = False
+            i += 1
+        elif args[i] == "--max-exec":
+            max_number_of_executables = int(args[i + 1])
+            i += 2
+        elif args[i].startswith("--"):
+            i += 1
+        else:
+            executables = [args[i]]
+            i += 1
+
+    build_machine = MachineInfo(arch=arch, address=None, auth=None)
+    run_machine = MachineInfo(arch=arch, address=None, auth=None)
+
+    build = Build(
+        build_machine=build_machine,
+        run_machine=run_machine,
+        build_name=".",
+        executables=executables,
+        toolchain=None,
+        sysroot=None,
+        compiler_flags=None,
+        config_flags=None,
+    )
+
+    project = Project(path=working_directory, builds=[build])
+
+    ui = NullUI()
+    profiler = Profiler(project, build, ui)
+
+    result = profiler.profile_all(
+        working_directory=working_directory,
+        test_executable=test_executable,
+        execution_time=execution_time,
+        stat_collect=stat_collect,
+        record_collect=record_collect,
+        max_number_of_executables=max_number_of_executables,
+    )
+
+    if result:
+        profiler.save_stats()
+        print("Profiling completed successfully")
+    else:
+        print("Profiling failed")
+        sys.exit(1)
