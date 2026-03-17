@@ -2,12 +2,19 @@
 
 import os
 import pickle
+import sys
 
 from amphimixis.core import logger
 from amphimixis.core.general import IUI, NullUI
 from amphimixis.core.general.general import (
+    Arch,
     Build,
+    CompilerFlags,
+    CompilerFlagsAttrs,
+    MachineInfo,
     Project,
+    Toolchain,
+    ToolchainAttrs,
 )
 from amphimixis.core.shell.shell import Shell
 
@@ -140,3 +147,62 @@ class Builder:
     @staticmethod
     def _normbase(path: str) -> str:
         return os.path.basename(os.path.normpath(path))
+
+
+if __name__ == "__main__":
+    # import logging
+
+    # logging.basicConfig(
+    #     level=logging.INFO,
+    #     format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+    #     handlers=[logging.StreamHandler()],
+    # )
+    # _logger = logging.getLogger("BUILDER")
+
+    if len(sys.argv) < 4:
+        print(
+            "Usage: python builder.py <project_path> <build_system> <runner> "
+            "<config_flags> [ [ --<lang>_flags <flags>] ... ] [ [ --<lang | "
+            "tool>[_compiler] </path/to/attribute>] ... ] <sysroot>"
+        )
+        sys.exit(1)
+
+    project_path = sys.argv[1]
+    build_system_name = sys.argv[2]
+    runner_name = sys.argv[3]
+    config_flags = sys.argv[4]
+
+    compiler_flags = CompilerFlags()
+    toolchain = Toolchain()
+    for i in range(5, len(sys.argv) - 1):
+        if sys.argv[i][2:].lower() in CompilerFlagsAttrs and i + 1 < len(sys.argv):
+            compiler_flags.set(
+                CompilerFlagsAttrs(sys.argv[i][2:].lower()), sys.argv[i + 1]
+            )
+        if sys.argv[i][2:].lower() in ToolchainAttrs and i + 1 < len(sys.argv):
+            toolchain.set(ToolchainAttrs(sys.argv[i][2:].lower()), sys.argv[i + 1])
+
+    sysroot = sys.argv[-1]
+
+    build_machine = MachineInfo(arch=Arch.X86, address=None, auth=None)
+    run_machine = MachineInfo(arch=Arch.X86, address=None, auth=None)
+
+    build_ = Build(
+        build_machine=build_machine,
+        run_machine=run_machine,
+        build_name="temp_building",
+        executables=[],
+        toolchain=toolchain,
+        sysroot=sysroot,
+        compiler_flags=compiler_flags,
+        config_flags=config_flags,
+    )
+
+    project_ = Project(
+        path=project_path,
+    )
+
+    if Builder.build_for_linux(project_, build_):
+        print("Successfully builded!")
+    else:
+        print("Build failed!")
