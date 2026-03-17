@@ -691,76 +691,78 @@ class Profiler:
 if __name__ == "__main__":
     import sys
 
-    from amphimixis.general import Arch, Build, MachineInfo, NullUI, Project
+    from amphimixis.general import Arch, Build, MachineInfo, Project
 
     if len(sys.argv) < 2:
         print(
-            f"Usage: python profiler.py <project path> [executable] [--no-test] [--no-time] [--no-stat] [--no-record] [--max-exec N]"
+            "Usage: python profiler.py <project path> [executable] \
+[--no-test] [--no-time] [--no-stat] [--no-record] [--max-exec N]"
         )
         sys.exit(1)
 
     args = sys.argv[1:]
 
-    arch = Arch.X86
+    arch_ = Arch.X86
+    # pylint: disable=C0103
     run_machine_address = None
-    executables = []
-    test_executable = True
-    execution_time = True
-    stat_collect = True
-    record_collect = True
-    max_number_of_executables = 1
+    executables_ = []
+    test_executable_ = True
+    execution_time_ = True
+    stat_collect_ = True
+    record_collect_ = True
+    max_number_of_executables_ = 1
 
-    working_directory = args[0]
+    working_directory_ = args[0]
 
     i = 1
     while i < len(args):
         if args[i] == "--no-test":
-            test_executable = False
+            test_executable_ = False
             i += 1
         elif args[i] == "--no-time":
-            execution_time = False
+            execution_time_ = False
             i += 1
         elif args[i] == "--no-stat":
-            stat_collect = False
+            stat_collect_ = False
             i += 1
         elif args[i] == "--no-record":
-            record_collect = False
+            record_collect_ = False
             i += 1
         elif args[i] == "--max-exec":
-            max_number_of_executables = int(args[i + 1])
+            max_number_of_executables_ = int(args[i + 1])
             i += 2
         elif args[i].startswith("--"):
             i += 1
         else:
-            executables = [args[i]]
+            executables_ = [args[i]]
             i += 1
 
-    build_machine = MachineInfo(arch=arch, address=None, auth=None)
-    run_machine = MachineInfo(arch=arch, address=None, auth=None)
+    build_machine_ = MachineInfo(arch=arch_, address=None, auth=None)
+    run_machine_ = MachineInfo(arch=arch_, address=None, auth=None)
 
-    build = Build(
-        build_machine=build_machine,
-        run_machine=run_machine,
+    build_ = Build(
+        build_machine=build_machine_,
+        run_machine=run_machine_,
         build_name=".",
-        executables=executables,
+        executables=executables_,
         toolchain=None,
         sysroot=None,
         compiler_flags=None,
         config_flags=None,
     )
 
-    project = Project(path=working_directory, builds=[build])
+    project_ = Project(path=working_directory_, builds=[build_])
 
-    ui = NullUI()
-    profiler = Profiler(project, build, ui)
+    ui_ = NullUI()
+    profiler = Profiler(project_, build_, ui_)
 
     result = profiler.profile_all(
-        working_directory=working_directory,
-        test_executable=test_executable,
-        execution_time=execution_time,
-        stat_collect=stat_collect,
-        record_collect=record_collect,
-        max_number_of_executables=max_number_of_executables,
+        working_directory=working_directory_,
+        test_executable=test_executable_,
+        execution_time=execution_time_,
+        stat_collect=stat_collect_,
+        record_collect=record_collect_,
+        max_number_of_executables=max_number_of_executables_,
     )
 
     if result:
