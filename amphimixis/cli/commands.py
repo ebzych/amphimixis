@@ -1,10 +1,11 @@
 """CLI command implementations for Amphimixis."""
 
 import glob
-import os
+import shutil
+import tempfile
 from os import path
 
-from amphimixis import Builder, Profiler, analyze, general, parse_config
+from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
 from amphimixis.general import IUI, NullUI
 from amphimixis.perf_analyzer import main as compare_perf
 
@@ -57,10 +58,12 @@ def run_profile(
     if not project.builds:
         parse_config(project, config_file_path=str(config_file_path), ui=ui)
 
+    setup_profiling_environment(project, ui)
+
     for build in project.builds:
         profiler_ = Profiler(project, build, ui)
         if not profiler_.profile_all(
-            os.path.join("~/amphimixis", os.path.basename(project.path))
+            path.join("~/amphimixis", path.basename(project.path))
         ):
             ui.mark_failed()
             return False
@@ -112,9 +115,47 @@ def show_profiling_result():
         print("\tOnce you have two .scriptout files, compare them with:")
         print("\tamixis --compare <file1.scriptout> <file2.scriptout>")
     else:
-        file1 = os.path.basename(scriptout_files[0])
-        file2 = os.path.basename(scriptout_files[1])
+        file1 = path.basename(scriptout_files[0])
+        file2 = path.basename(scriptout_files[1])
         print("\n[>] To compare two profiling results, use:")
         print(f"\tamixis --compare {file1} {file2}")
         if len(scriptout_files) > 2:
             print("\t(or pick the files you want)")
+
+
+def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bool:
+    """
+    Set up the profiling environment by copying the built binaries to the run machines.
+    """
+    success = True
+    tmpdir = tempfile.mkdtemp("_amphimixis")
+    for build in project.builds:
+        if build.build_machine != build.run_machine:
+            ui.update_message(build.build_name, "Copying built files to run machine")
+            shell_build_machine = Shell(project, build.build_machine, ui=ui)
+            shell_run_machine = Shell(project, build.run_machine, ui=ui)
+
+            # copy builds
+            build_path = path.join(
+                shell_build_machine.get_project_workdir(), build.build_name
+            )
+            if not shell_build_machine.copy_to_host(build_path, tmpdir):
+                ui.mark_failed("Can't download built files from build machine")
+                success = False
+
+            if not shell_run_machine.copy_to_remote(
+                path.join(tmpdir, build.build_name),
+                shell_run_machine.get_project_workdir(),
+            ):
+                ui.mark_failed("Can't transfer built files to run machine")
+                success = False
+
+            # copy source
+            if not shell_run_machine.copy_to_remote(
+                project.path, path.dirname(shell_run_machine.get_source_dir())
+            ):
+                ui.mark_failed("Can't transfer source code to run machine")
+                success = False
+
+    shutil.rmtree(tmpdir)
+    return success
