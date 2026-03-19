@@ -73,12 +73,13 @@ The **platforms** section describes the machines on which the project will be bu
 
 The **recipes** section describes the build configuration and compiler flags.
 
-|                  Field                          |  Type   | Description                                   |
-| :---------------------------------------------: | :-----: | --------------------------------------------- |
-| id                                              | integer | Unique id of the recipes                      |
-| config_flags                                    | string  | Build configuration options                   |
-| compiler_flags<sup><a href="#note5">5</a></sup> | dict    | Compiler flags used during the build process  |
-| script<sup><a href="#note6">6</a></sup>         | string  | Custom build script                           |
+|                  Field                          |  Type   | Description                                                                |
+| :---------------------------------------------: | :-----: | -------------------------------------------------------------------------: |
+| id                                              | integer | Unique id of the recipes                                                   |
+| config_flags                                    | string  | Build configuration options                                                |
+| compiler_flags<sup><a href="#note5">5</a></sup> | dict    | Compiler flags used during the build process                               |
+| toolchain<sup><a href="#note6">6</a></sup>      |  dict   | Path to the toolchain used for building the project                        |
+| sysroot                                         | string  | Path to the folder with system headers and libraries used by the toolchain |
 
 <p id="note5">
 
@@ -107,26 +108,8 @@ The **recipes** section describes the build configuration and compiler flags.
 
 <p id="note6">
 
-6. **Optional field**.
-
-</p>
-
-### Builds
-
-The **builds** section links platforms and recipes, defining which configurations should be built on which machines.
-
-|     Field                                      |  Type   | Description                                                                |
-| :--------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
-| build_machine                                  | integer | `platform_id` of the machine where the project will be built               |
-| toolchain<sup><a href="#note7">7</a></sup>     |  dict   | Path to the toolchain used for building the project                        |
-| sysroot                                        | string  | Path to the folder with system headers and libraries used by the toolchain |
-| run_machine                                    | integer | `platform_id` of the machine where the built project will be executed      |
-| recipe_id                                      | integer | Id of the `recipe`                                                         |
-
-<p id="note7">
-
 <details>
-<summary>7. Possible attributes of a toolchain:</summary>
+<summary>6. Possible attributes of a toolchain:</summary>
 
 - ar
 - as
@@ -177,5 +160,15 @@ The **builds** section links platforms and recipes, defining which configuration
 </details>
 
 </p>
+
+### Builds
+
+The **builds** section links platforms and recipes, defining which configurations should be built on which machines.
+
+|     Field                                      |  Type   | Description                                                                |
+| :--------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
+| build_machine                                  | integer | `platform_id` of the machine where the project will be built               |
+| run_machine                                    | integer | `platform_id` of the machine where the built project will be executed      |
+| recipe_id                                      | integer | Id of the `recipe`                                                         |
 
 ---
