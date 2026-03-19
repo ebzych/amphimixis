@@ -1,10 +1,12 @@
 """CLI command implementations for Amphimixis."""
 
 import os
+import tempfile
 from os import path
 
 from amphimixis import Builder, Profiler, analyze, general, parse_config
 from amphimixis.general import IUI, NullUI
+from amphimixis.shell.shell import Shell
 
 
 def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
@@ -55,6 +57,8 @@ def run_profile(
     if not project.builds:
         parse_config(project, config_file_path=str(config_file_path), ui=ui)
 
+    setup_profiling_environment(project, ui)
+
     for build in project.builds:
         profiler_ = Profiler(project, build, ui)
         if not profiler_.profile_all(
@@ -65,3 +69,41 @@ def run_profile(
         profiler_.save_stats()
         ui.mark_success("Profiling completed!")
     return True
+
+
+def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bool:
+    """
+    Set up the profiling environment by copying the built binaries to the run machines.
+    """
+    success = True
+    tmpdir = tempfile.mkdtemp("_amphimixis")
+    for build in project.builds:
+        if build.build_machine != build.run_machine:
+            ui.update_message(build.build_name, "Copying built files to run machine")
+            shell_build_machine = Shell(project, build.build_machine, ui=ui)
+            shell_run_machine = Shell(project, build.run_machine, ui=ui)
+
+            # copy builds
+            build_path = os.path.join(
+                shell_build_machine.get_project_workdir(), build.build_name
+            )
+            if not shell_build_machine.copy_to_host(build_path, tmpdir):
+                ui.mark_failed("Can't download built files from build machine")
+                success = False
+
+            if not shell_run_machine.copy_to_remote(
+                os.path.join(tmpdir, build.build_name),
+                shell_run_machine.get_project_workdir(),
+            ):
+                ui.mark_failed("Can't transfer built files to run machine")
+                success = False
+
+            # copy source
+            if not shell_run_machine.copy_to_remote(
+                project.path, os.path.dirname(shell_run_machine.get_source_dir())
+            ):
+                ui.mark_failed("Can't transfer source code to run machine")
+                success = False
+
+    os.rmdir(tmpdir)
+    return success
