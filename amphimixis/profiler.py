@@ -71,10 +71,10 @@ class Profiler:
         self.build = build
         self.ui = ui
         self.executables = build.executables.copy()
-        self.shell = shell.Shell(self.machine, ui).connect()
+        self.shell = shell.Shell(self.project, self.machine, ui).connect()
         self.stats: dict[str, ProfilerStats] = {}
         self.build_path = os.path.join(
-            self.shell.get_project_workdir(project), build.build_name
+            self.shell.get_project_workdir(), build.build_name
         )
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -117,7 +117,7 @@ class Profiler:
         """
 
         if working_directory == "":
-            working_directory = self.shell.get_source_dir(self.project)
+            working_directory = self.shell.get_source_dir()
 
         if not self.executables:
             self.executables = self._find_executables(max_number_of_executables)
