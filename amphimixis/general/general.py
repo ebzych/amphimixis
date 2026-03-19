@@ -222,6 +222,34 @@ class CompilerFlags:
         return self.__attrs
 
 
+class IBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system"""
+
+    @staticmethod
+    @abstractmethod
+    def get_build_system_prompt(project: "Project", build: "Build") -> str:
+        """Generate build system prompt with all specified flags"""
+
+    @staticmethod
+    @abstractmethod
+    def get_runner_prompt(project: "Project", build: "Build") -> str:
+        """Generate runner prompt"""
+
+
+class DummyBuildSystem(IBuildSystem):
+    """Build system that does nothing"""
+
+    @staticmethod
+    def get_build_system_prompt(project: "Project", build: "Build") -> str:
+        """Generate build system prompt with all specified flags"""
+        return ""
+
+    @staticmethod
+    def get_runner_prompt(project: "Project", build: "Build") -> str:
+        """Generate runner prompt"""
+        return ""
+
+
 @dataclass
 class Build:
     """Class with information about one build of project
@@ -255,24 +283,23 @@ class Project:
     :var list[Build] builds: List of project configurations to be build.
     """
 
-    path: str
     builds: list[Build]
-    build_system: "type[IBuildSystem]"
-    runner: "type[IBuildSystem]"
 
-
-class IBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system"""
-
-    @staticmethod
-    @abstractmethod
-    def get_build_system_prompt(project: Project, build: Build) -> str:
-        """Generate build system prompt with all specified flags"""
-
-    @staticmethod
-    @abstractmethod
-    def get_runner_prompt(project: Project, build: Build) -> str:
-        """Generate runner prompt"""
+    def __init__(
+        self,
+        path,
+        builds=None,
+        build_system: type[IBuildSystem] = DummyBuildSystem,
+        runner: type[IBuildSystem] = DummyBuildSystem,
+    ):
+        self.path: str = path
+        self.builds = builds
+        if builds is None:  # what is wrong with python?? (pylint W0102)
+            self.builds = []
+        if not isinstance(self.builds, list):
+            raise TypeError("class Project: 'builds' must have a list type")
+        self.build_system = build_system
+        self.runner = runner
 
 
 # pylint: disable=too-few-public-methods

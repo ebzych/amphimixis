@@ -5,7 +5,7 @@
 import sys
 from pathlib import Path
 
-from amphimixis import build_systems_dict, general, validate
+from amphimixis import general, validate
 from amphimixis.cli import (
     DEFAULT_CONFIG_PATH,
     create_parser,
@@ -63,12 +63,7 @@ def main():
         print("Error: please provide path to the project directory.")
         return 1
 
-    project = general.Project(
-        str(Path(args.path).expanduser().resolve()),
-        [],
-        build_systems_dict["make"],
-        build_systems_dict["cmake"],
-    )
+    project = general.Project(str(Path(args.path).expanduser().resolve()))
 
     ui = ConsoleAnimationPrinter()
 
