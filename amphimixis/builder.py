@@ -30,10 +30,10 @@ class Builder:
         """The method build program on Linux"""
 
         ui.update_message(build.build_name, "Connecting...")
-        shell = Shell(build.build_machine, ui).connect()
+        shell = Shell(project, build.build_machine, ui).connect()
 
         # path to build on the machine
-        path: str = os.path.join(shell.get_project_workdir(project), build.build_name)
+        path: str = os.path.join(shell.get_project_workdir(), build.build_name)
 
         if build.build_machine.address is not None:  # if building on the remote machine
             ui.update_message(

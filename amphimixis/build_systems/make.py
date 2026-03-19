@@ -17,7 +17,7 @@ class Make(IBuildSystem):
     @staticmethod
     def get_runner_prompt(project: Project, build: Build) -> str:
         """Generate runner prompt"""
-        shell = Shell(build.build_machine).connect()
+        shell = Shell(project, build.build_machine).connect()
         err, stdout, _ = shell.run("nproc")
         nproc = int(stdout[0][0])
 
