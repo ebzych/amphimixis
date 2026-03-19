@@ -128,7 +128,7 @@ class Profiler:
 
         if not self.executables:
             self.logger.error("Can't find any executables")
-            self.ui.update_message(self.build.build_name, "No executables found")
+            self.ui.mark_failed("No executables found")
             return False
 
         for executable in self.executables:
@@ -179,6 +179,7 @@ class Profiler:
                 "".join(stderr[0]),
                 extra={"target": executable},
             )
+            self.ui.mark_failed("Execution time measure error. Check the logs")
 
             return False
 
@@ -207,6 +208,7 @@ class Profiler:
                 extra={"target": executable},
             )
 
+            self.ui.mark_failed("Execution time measure error. Check the logs")
             return False
 
         self.stats[executable].update(
@@ -267,6 +269,7 @@ class Profiler:
                 stdout_message,
                 extra={"target": executable},
             )
+            self.ui.mark_failed("Smoke test error. Check the logs")
 
         self.stats[executable].update(
             {Stats.EXECUTABLE_RUN_SUCCESS: "true" if error == 0 else "false"}
@@ -319,6 +322,7 @@ class Profiler:
                 extra={"target": executable},
             )
 
+            self.ui.mark_failed("Perf stat error. Check the logs")
             return False
 
         command = self._perf_stat_command(
@@ -340,6 +344,7 @@ class Profiler:
                 extra={"target": executable},
             )
 
+            self.ui.mark_failed("Perf stat error. Check the logs")
             return False
 
         self.stats[executable].update({Stats.PERF_STAT: "".join(stderr[0])})
@@ -388,6 +393,7 @@ class Profiler:
 
         if error != 0:
             self.logger.error("".join(stderr[0]))
+            self.ui.mark_failed("Perf record error. Check the logs")
             return False
 
         options += f" -o {self.get_record_filename(executable)}"
@@ -412,6 +418,7 @@ class Profiler:
             )
 
             self.shell.run(f"rm {self.get_record_filename(executable)}")
+            self.ui.mark_failed("Perf record error. Check the logs")
             return False
 
         error, stdout, stderr = self.shell.run(
@@ -439,6 +446,7 @@ class Profiler:
                 extra={"target": executable},
             )
 
+            self.ui.mark_failed("Perf record error. Check the logs")
             return False
 
         self.ui.update_message(
@@ -454,6 +462,7 @@ class Profiler:
                 extra={"target": executable},
             )
 
+            self.ui.mark_failed("Perf recordfile copy error. Check the logs")
             return False
 
         if not self.shell.copy_to_host(
@@ -496,6 +505,7 @@ class Profiler:
 
         if error != 0:
             self.logger.error("".join(stderr[0]))
+            self.ui.mark_failed("Perf script error. Check the logs")
             return False, ""
 
         command, perf_script_file = self._get_script_command(filename)
@@ -508,6 +518,7 @@ class Profiler:
                 extra={"target": filename},
             )
 
+            self.ui.mark_failed("Perf script error. Check the logs")
             return False, ""
 
         error, stdout, stderr = self.shell.run("pwd")
@@ -519,6 +530,7 @@ class Profiler:
                 extra={"target": filename},
             )
 
+            self.ui.mark_failed("Perf script error. Check the logs")
             return False, ""
 
         remote_workdir = stdout[0][0].strip()
