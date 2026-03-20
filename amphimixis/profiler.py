@@ -421,11 +421,11 @@ class Profiler:
             self.ui.mark_failed("Perf record error. Check the logs")
             return False
 
-        error, stdout, stderr = self.shell.run(
+        perf_archive_error, stdout, stderr = self.shell.run(
             f"perf archive {self.get_record_filename(executable)}"
         )
 
-        if error != 0:
+        if perf_archive_error != 0:
             self.logger.error(
                 "Perf archive fail STDOUT:\n%s",
                 "".join(stdout[0]),
@@ -465,7 +465,7 @@ class Profiler:
             self.ui.mark_failed("Perf recordfile copy error. Check the logs")
             return False
 
-        if not self.shell.copy_to_host(
+        if perf_archive_error == 0 and not self.shell.copy_to_host(
             os.path.join(remote_workdir, self.get_archive_filename(executable)),
             os.path.join(os.getcwd(), self.get_archive_filename(executable)),
         ):
