@@ -62,7 +62,13 @@ def run_profile(
 
     for build in project.builds:
         profiler_ = Profiler(project, build, ui)
-        if not profiler_.profile_all():
+        successful_execs = profiler_.profile_all()
+        # if empty return -> error
+        # if build.executables is not empty, return not equal build.executables -> error
+        # if build.executables is empty, return(found executables for profiling) not empty -> passed
+        if not successful_execs or (
+            build.executables and successful_execs != build.executables
+        ):
             ui.mark_failed()
             return False
         profiler_.save_stats()

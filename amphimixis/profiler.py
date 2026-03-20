@@ -86,7 +86,7 @@ class Profiler:
         stat_collect: bool = True,
         record_collect: bool = True,
         max_number_of_executables=1,
-    ) -> bool:
+    ) -> list[str]:
         """
         Run profiling on every executable.\n
         If `build.executables` is empty, finds executables in `build.build_path`.
@@ -112,12 +112,14 @@ class Profiler:
             Saves `perf.data` into `self.get_record_filename()`
             file in the working directory.
 
-        :return: False if no executable is found. Otherwise True.
-        :rtype: bool
+        :return: List of executables for which all profiler steps were completed successfully.
+        :rtype: list[str]
         """
 
         if working_directory == "":
             working_directory = self.shell.get_source_dir()
+
+        success_executables = []
 
         if not self.executables:
             self.executables = self._find_executables(max_number_of_executables)
@@ -129,26 +131,33 @@ class Profiler:
         if not self.executables:
             self.logger.error("Can't find any executables")
             self.ui.mark_failed("No executables found")
-            return False
+            return []
 
         for executable in self.executables:
-            if test_executable:
-                if not self.test_executable(executable, working_directory):
-                    continue
+            success = True
+            if test_executable and not self.test_executable(
+                executable, working_directory
+            ):
+                continue
 
             if execution_time:
-                self.execution_time(executable, working_directory)
+                success &= self.execution_time(executable, working_directory)
 
             if stat_collect:
-                self.perf_stat_collect(executable, working_directory)
+                success &= self.perf_stat_collect(executable, working_directory)
 
             if record_collect:
                 if self.perf_record_collect(executable, working_directory):
-                    self.perf_script(
+                    success &= self.perf_script(
                         self.get_record_filename(executable), working_directory
-                    )
+                    )[0]
+                else:
+                    success = False
 
-        return True
+            if success:
+                success_executables.append(executable)
+
+        return success_executables
 
     def execution_time(self, executable: str, working_directory: str) -> bool:
         """
