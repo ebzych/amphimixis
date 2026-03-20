@@ -11,7 +11,9 @@ from amphimixis.cli import (
     create_parser,
     run_analyze,
     run_build,
+    run_compare,
     run_profile,
+    show_profiling_result,
 )
 from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
 
@@ -21,7 +23,6 @@ def main():
     """Main function for the Amphimixis CLI tool."""
 
     parser = create_parser()
-
     args = parser.parse_args()
 
     if args.config is not None:
@@ -34,6 +35,25 @@ def main():
             print(f"{args.validate} is incorrect!!")
             return 1
         print(f"{args.validate} is correct!!")
+        return 0
+
+    if args.compare:
+        if args.events == []:
+            target_events = None
+        else:
+            target_events = args.events
+
+        filename1, filename2 = args.compare
+        ui = ConsoleAnimationPrinter()
+
+        if not run_compare(
+            filename1,
+            filename2,
+            target_events=target_events,
+            max_rows=args.max_rows,
+            ui=ui,
+        ):
+            return 1
         return 0
 
     if not args.path:
@@ -60,6 +80,7 @@ def main():
             if not run_profile(project, config_file_path=str(config_file), ui=ui):
                 return 1
 
+            show_profiling_result(str(project.path))
             return 0
 
         if args.analyze:
@@ -74,9 +95,19 @@ def main():
             if not run_profile(project, config_file_path=str(config_file), ui=ui):
                 return 1
 
+        show_profiling_result(str(project.path))
         return 0
 
-    except (FileNotFoundError, ValueError, RuntimeError, LookupError, TypeError) as e:
+    except (
+        FileNotFoundError,
+        ValueError,
+        RuntimeError,
+        LookupError,
+        TypeError,
+        KeyError,
+        OSError,
+        UnicodeDecodeError,
+    ) as e:
         print(f"Error: {e}")
         return 1
 

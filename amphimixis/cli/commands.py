@@ -1,9 +1,12 @@
 """CLI command implementations for Amphimixis."""
 
+import glob
+import os
 from os import path
 
 from amphimixis import Builder, Profiler, analyze, general, parse_config
 from amphimixis.general import IUI, NullUI
+from amphimixis.perf_analyzer import main as compare_perf
 
 
 def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
@@ -62,3 +65,55 @@ def run_profile(
         profiler_.save_stats()
         ui.mark_success("Profiling completed!")
     return True
+
+
+def run_compare(
+    filename1: str,
+    filename2: str,
+    target_events: None | list[str] = None,
+    max_rows=20,
+    ui: IUI = NullUI(),
+) -> bool:
+    """Compare two perf output files and print the top `max_rows`
+    symbols with the most significant changes for specified events.
+
+    :param str filename1: Path to first perf output file
+    :param str filename2: Path to second perf output file
+    :param list[str] target_events: List of event names to compare (or None for all)
+    :param int max_rows: Maximum number of rows to display per event
+    :param IUI ui: User interface for progress display
+    """
+
+    if not path.isfile(filename1):
+        ui.mark_failed(f"File not found: {filename1}")
+        return False
+    if not path.isfile(filename2):
+        ui.mark_failed(f"File not found: {filename2}")
+        return False
+
+    compare_perf(filename1, filename2, target_events=target_events, max_rows=max_rows)
+    ui.mark_success("Comparison completed!")
+    return True
+
+
+def show_profiling_result(project_path):
+    """Show hint or warning after profiling.
+
+    :param str project_path: Path to the project directory"""
+
+    scriptout_files = glob.glob(os.path.join(project_path, "*.scriptout"))
+    if not scriptout_files:
+        print("No profiling data (.scriptout files) were generated.")
+        print("Please check amphimixis.log for details.")
+
+    elif len(scriptout_files) == 1:
+        print("Only one profiling result was generated.")
+        print("To compare two results, run profiling again with a different build.")
+        print("Once you have two .scriptout files, you can compare them with:")
+        print("amixis --compare <file1.scriptout> <file2.scriptout>")
+
+    else:
+        print(
+            "For comparison, use only two scriptout files, you can compare them with:"
+        )
+        print("amixis --compare <file1.scriptout> <file2.scriptout>")
