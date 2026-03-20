@@ -62,9 +62,7 @@ def run_profile(
 
     for build in project.builds:
         profiler_ = Profiler(project, build, ui)
-        if not profiler_.profile_all(
-            path.join("~/amphimixis", path.basename(project.path))
-        ):
+        if not profiler_.profile_all():
             ui.mark_failed()
             return False
         profiler_.save_stats()
