@@ -11,7 +11,8 @@ jobs:
     steps:
       - name: Install perf
         run: |
-          sudo apt-get install -y linux-tools-common linux-tools-generic linux-tools-azure linux-cloud-tools-azure
+          sudo apt update
+          sudo apt-get install -y linux-tools-azure
           if ! perf --version; then
               export PERF_PATH=$(find -L /usr/lib/linux-tools/ -name perf -type f | head -n 1)
               if [ -n "$PERF_PATH" ]; then
