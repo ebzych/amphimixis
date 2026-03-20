@@ -7,8 +7,15 @@ from typing import Any
 
 import yaml
 
-from amphimixis.build_systems import build_systems_dict
-from amphimixis.general import IUI, NullUI, general, tools
+from amphimixis.build_systems import build_systems_dict, runners_dict
+from amphimixis.general import (
+    IUI,
+    IHighLevelBuildSystem,
+    ILowLevelBuildSystem,
+    NullUI,
+    general,
+    tools,
+)
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -32,7 +39,7 @@ def parse_config(
          False if configuration failed
     """
 
-    ui.update_message("config", "Parsing configuration file...")
+    ui.update_message("Config", "Parsing configuration file...")
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
@@ -60,14 +67,18 @@ def parse_config(
                 _logger.error("Did not find any proper build_system")
                 ui.mark_failed("No build system found")
                 return False
-
-        runner = input_config.get("runner")
-
-        project.build_system = build_systems_dict[build_system.lower()]
-        project.runner = build_systems_dict[runner.lower()]
+        runner_name = input_config.get("runner", None)
+        if runner_name:
+            runner = build_systems_dict[str(runner_name).lower()][0](project, ui)
+        elif len(build_systems_dict[build_system.lower()]) > 1:
+            runner = build_systems_dict[build_system.lower()][1](project, ui)
+        else:  # if build system doesn't have runners (like Make)
+            runner = runners_dict[build_system.lower()](project, ui)
+        project.build_system = IHighLevelBuildSystem(
+            build_systems_dict[build_system.lower()][0](project, ui, runner)
+        )
 
         for build in input_config["builds"]:
-
             (
                 executables,
                 build_machine_info,
@@ -75,19 +86,19 @@ def parse_config(
                 recipe_info,
             ) = _configure_build(input_config, build)
 
-            if build_machine_info == {} or run_machine_info == {} or recipe_info == {}:
-                return False
+        if build_machine_info == {} or run_machine_info == {} or recipe_info == {}:
+            return False
 
-            if not _create_build(
-                project,
-                build_machine_info,
-                run_machine_info,
-                recipe_info,
-                executables,
-                ui,
-            ):
-                ui.mark_failed("Failed to create build")
-                return False
+        if not _create_build(
+            project,
+            build_machine_info,
+            run_machine_info,
+            recipe_info,
+            executables,
+            ui,
+        ):
+            ui.mark_failed("Failed to create build")
+            return False
 
     config_path = path.join(getcwd(), tools.project_name(project) + ".project")
     with open(config_path, "wb") as file:
@@ -236,14 +247,14 @@ def _has_valid_arch(
             return False
 
     else:
-        ui.update_message("config", "Checking remote architecture for validity...")
+        ui.update_message("Config", "Checking remote architecture for validity...")
         shell = Shell(project, machine, ui).connect()
         error_code, stdout, _ = shell.run("uname -m")
         if error_code != 0:
             _logger.error(
                 "An error occured during reading remote machine arch, check remote machine"
             )
-            ui.update_message("config", "Failed to check remote architecture")
+            ui.mark_failed("Config: failed to check remote architecture")
             return False
 
         remote_arch = stdout[0][0]
@@ -253,7 +264,7 @@ def _has_valid_arch(
                 machine.arch.name.lower(),
                 remote_arch.lower(),
             )
-            ui.update_message("Config", "Invalid remote architecture")
+            ui.mark_failed("Config: invalid remote architecture")
             return False
 
     return True

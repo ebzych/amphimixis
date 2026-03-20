@@ -3,9 +3,15 @@
 
 from amphimixis.build_systems.cmake import CMake
 from amphimixis.build_systems.make import Make
-from amphimixis.general.general import IBuildSystem
+from amphimixis.general.general import BuildSystem, ILowLevelBuildSystem
 
-build_systems_dict: dict[str, "type[IBuildSystem]"] = {
-    "cmake": CMake,
+# First element -- class of matched build system,
+# other are runners for this build system in priority
+build_systems_dict: dict[str, list[type[BuildSystem]]] = {
+    "cmake": [CMake, Make],
+    "make": [Make],
+}
+
+runners_dict: dict[str, type[ILowLevelBuildSystem]] = {
     "make": Make,
 }

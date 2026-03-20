@@ -1,23 +1,28 @@
 "Make IBuildSystem implementation"
 
-from amphimixis.general import Build, IBuildSystem, Project
+import os
+
+from amphimixis.general import (
+    Build,
+    BuildSystem,
+    IHighLevelBuildSystem,
+    ILowLevelBuildSystem,
+    Project,
+)
 from amphimixis.shell import Shell
 
 
-class Make(IBuildSystem):
+class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     """The Make implementation of IBuildSystem"""
 
-    @staticmethod
-    def get_build_system_prompt(project: Project, build: Build) -> str:
-        """Generate build system prompt with all specified flags"""
-
+    def build(self, build: Build) -> tuple[int, list[str], list[str]]:
+        """Build via build system"""
         raise NotImplementedError
 
     # pylint: disable=unused-argument
-    @staticmethod
-    def get_runner_prompt(project: Project, build: Build) -> str:
-        """Generate runner prompt"""
-        shell = Shell(project, build.build_machine).connect()
+    def run_building(self, build: Build) -> tuple[int, list[str], list[str]]:
+        """Run building via build system"""
+        shell = Shell(self._project, build.build_machine).connect()
         err, stdout, _ = shell.run("nproc")
         nproc = int(stdout[0][0])
 
@@ -27,4 +32,8 @@ class Make(IBuildSystem):
                 nproc -= 1  # to prevent OM
             prompt += " -j" + str(nproc)
 
-        return prompt
+        return (0, [], [])
+
+    @staticmethod
+    def _normbase(path: str) -> str:
+        return os.path.basename(os.path.normpath(path))

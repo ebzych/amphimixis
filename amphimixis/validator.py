@@ -36,18 +36,17 @@ def validate(config_file_path: str) -> bool:
         return False
 
     with open(config_file_path, "r", encoding="UTF-8") as file:
-
         file_dict = yaml.safe_load(file)
 
         build_system = file_dict.get("build_system")
         if (
             isinstance(build_system, str)
-            and build_system.lower() not in build_systems_dict
+            and str(build_system).lower() not in build_systems_dict
         ):
             _warn(f"Invalid build_system: {build_system}")
 
         runner = file_dict.get("runner")
-        if not isinstance(runner, str) or runner.lower() not in build_systems_dict:
+        if isinstance(runner, str) and str(runner).lower() not in build_systems_dict:
             _warn(f"Invalid runner: {runner}")
 
         # validate platforms
