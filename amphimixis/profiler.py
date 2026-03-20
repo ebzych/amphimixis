@@ -76,6 +76,12 @@ class Profiler:
         self.build_path = os.path.join(
             self.shell.get_project_workdir(), build.build_name
         )
+        self.cleanup_files: list[str] = []
+
+    def cleanup(self):
+        """Cleanup generated files from profiling."""
+        for file in self.cleanup_files:
+            self.shell.run(f"rm {file}")
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def profile_all(
@@ -417,6 +423,9 @@ class Profiler:
         )
 
         error, _, stderr = self.shell.run(command)
+        self.cleanup_files.append(
+            os.path.join(working_directory, self.get_record_filename(executable))
+        )
 
         if error != 0:
             self.logger.error(
@@ -432,6 +441,10 @@ class Profiler:
 
         perf_archive_error, stdout, stderr = self.shell.run(
             f"perf archive {self.get_record_filename(executable)}"
+        )
+
+        self.cleanup_files.append(
+            os.path.join(working_directory, self.get_archive_filename(executable))
         )
 
         if perf_archive_error != 0:
@@ -519,6 +532,7 @@ class Profiler:
 
         command, perf_script_file = self._get_script_command(filename)
         error, _, stderr = self.shell.run(command)
+        self.cleanup_files.append(os.path.join(working_directory, perf_script_file))
 
         if error != 0:
             self.logger.error(
