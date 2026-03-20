@@ -58,7 +58,7 @@ class _ParamikoHandler(IShellHandler):
 
     def stdout_readline(self) -> str:
         line = ""
-        while char := self.chan.recv(1).decode("UTF-8", "ignore"):
+        while char := self.chan.recv(1).decode("UTF-8", "replace"):
             line += char
             if char == "\n":
                 break
@@ -67,7 +67,7 @@ class _ParamikoHandler(IShellHandler):
 
     def stderr_readline(self) -> str:
         line = ""
-        while char := self.chan.recv_stderr(1).decode("UTF-8", "ignore"):
+        while char := self.chan.recv_stderr(1).decode("UTF-8", "replace"):
             line += char
             if char == "\n":
                 break
