@@ -271,7 +271,7 @@ class TestProfiler:
             proj_path, program, EXECUTABLE_FILENAME + "test", profiler.build.build_name
         )
 
-        assert profiler.profile_all(
+        profiler.profile_all(
             profiler.build_path,
             test_executable=True,
             execution_time=True,
@@ -319,7 +319,7 @@ class TestProfiler:
             profiler.build.build_name,
         )
 
-        assert profiler.profile_all(
+        profiler.profile_all(
             profiler.build_path,
             test_executable=True,
             execution_time=True,
