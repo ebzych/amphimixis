@@ -7,8 +7,14 @@ from typing import Any
 
 import yaml
 
-from amphimixis.build_systems import build_systems_dict
-from amphimixis.general import IUI, NullUI, general
+from amphimixis.build_systems import build_systems_dict, runners_dict
+from amphimixis.general import (
+    IUI,
+    IHighLevelBuildSystem,
+    ILowLevelBuildSystem,
+    NullUI,
+    general,
+)
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -32,18 +38,18 @@ def parse_config(
          False if configuration failed
     """
 
-    ui.update_message("config", "Parsing configuration file...")
+    ui.update_message("Config", "Parsing configuration file...")
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
-        ui.update_message("config", "Project path not found")
+        ui.mark_failed("Config: project path not found")
         return False
 
     project.builds = []
 
     if not validate(config_file_path):
         _logger.error("Incorrect input file")
-        ui.update_message("config", "Incorrect input file")
+        ui.mark_failed("Config: incorrect input file")
         return False
 
     try:
@@ -54,16 +60,22 @@ def parse_config(
             if build_system is None:
                 if not (build_system := _get_analyzed_build_system()):
                     _logger.error("Did not find any proper build_system")
-                    ui.update_message("config", "No build system found")
+                    ui.mark_failed("Config: no build system found")
                     return False
 
-            runner = input_config.get("runner")
+            runner_name = input_config.get("runner", None)
+            if runner_name:
+                runner = build_systems_dict[str(runner_name).lower()][0](project, ui)
+            elif len(build_systems_dict[build_system.lower()]) > 1:
+                runner = build_systems_dict[build_system.lower()][1](project, ui)
+            else:  # if build system doesn't have runners (like Make)
+                runner = runners_dict[build_system.lower()](project, ui)
 
-            project.build_system = build_systems_dict[build_system.lower()]
-            project.runner = build_systems_dict[runner.lower()]
+            project.build_system = IHighLevelBuildSystem(
+                build_systems_dict[build_system.lower()][0](project, ui, runner)
+            )
 
             for build in input_config["builds"]:
-
                 (
                     executables,
                     build_machine_info,
@@ -86,12 +98,12 @@ def parse_config(
                     executables,
                     ui,
                 ):
-                    ui.update_message("config", "Failed to create build")
+                    ui.mark_failed("Config: failed to create build")
                     return False
 
     except FileNotFoundError:
         _logger.error("Error opening file, check input data")
-        ui.update_message("config", "Config file not found")
+        ui.mark_failed("Config: config file not found")
         return False
 
     _logger.info("Configuration completed successfully!")
@@ -239,14 +251,14 @@ def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
             return False
 
     else:
-        ui.update_message("config", "Checking remote architecture for validity...")
+        ui.update_message("Config", "Checking remote architecture for validity...")
         shell = Shell(machine, ui).connect()
         error_code, stdout, _ = shell.run("uname -m")
         if error_code != 0:
             _logger.error(
                 "An error occured during reading remote machine arch, check remote machine"
             )
-            ui.update_message("config", "Failed to check remote architecture")
+            ui.mark_failed("Config: failed to check remote architecture")
             return False
 
         remote_arch = stdout[0][0]
@@ -256,7 +268,7 @@ def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
                 machine.arch.name.lower(),
                 remote_arch.lower(),
             )
-            ui.update_message("Config", "Invalid remote architecture")
+            ui.mark_failed("Config: invalid remote architecture")
             return False
 
     return True

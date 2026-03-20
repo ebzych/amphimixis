@@ -43,26 +43,12 @@ class Builder:
                 os.path.normpath(project.path), "~/amphimixis/"
             ):
                 _logger.error("Error in copying source files")
-                ui.update_message(build.build_name, "Error in copying source files")
+                ui.mark_failed(f"{build.build_name}: error in copying source files")
                 return False
 
         try:
-            configuration_prompt = project.build_system.get_build_system_prompt(
-                project, build
-            )
-
-            _logger.info("Configuration with: %s", configuration_prompt)
-
-            runner_prompt = project.runner.get_runner_prompt(project, build)
-            _logger.info("Run building with: %s", runner_prompt)
-
             ui.update_message(build.build_name, "Building...")
-            err, stdout, stderr = shell.run(
-                f"mkdir -p {path}",
-                f"cd {path}",
-                configuration_prompt,
-                runner_prompt,
-            )
+            err, _, stderr = shell.run(f"mkdir -p {path}")
 
             if len(stderr) >= 1 and len(stderr[0]) != 0:
                 _logger.error(
@@ -70,28 +56,18 @@ class Builder:
                     "".join(stderr[0]),
                 )
 
-            if len(stderr) >= 2 and len(stderr[1]) != 0:
-                _logger.error(
-                    "Error in changing current working directory on current machine: %s",
-                    "".join(stderr[1]),
-                )
-
-            if len(stdout) >= 3:
-                _logger.info("Configuration output:\n%s", "".join(stdout[2]))
-                _logger.info("Configuration stderr:\n%s", "".join(stderr[2]))
-
-            if len(stdout) >= 4:
-                _logger.info("Building output:\n%s", "".join(stdout[3]))
-                _logger.info("Building stderr:\n%s", "".join(stderr[3]))
+            err, sstdout, sstderr = project.build_system.build(build)
+            _logger.info("Building output:\n%s", sstdout)
+            _logger.info("Building stderr:\n%s", sstderr)
 
             if err != 0:
-                ui.update_message(build.build_name, "Build failed")
+                ui.mark_failed(f"{build.build_name}: build failed")
                 return False
 
             return True
 
         except FileNotFoundError:
-            ui.update_message(build.build_name, "Build system not found")
+            ui.mark_failed(f"{build.build_name}: build system not found")
             return False
 
     @staticmethod

@@ -1,5 +1,7 @@
 """The common module that is used in most other modules"""
 
+import os
+import queue
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
@@ -189,86 +191,6 @@ class CompilerFlags:
         return self.__attrs
 
 
-class IBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system"""
-
-    @staticmethod
-    @abstractmethod
-    def get_build_system_prompt(project: "Project", build: "Build") -> str:
-        """Generate build system prompt with all specified flags"""
-
-    @staticmethod
-    @abstractmethod
-    def get_runner_prompt(project: "Project", build: "Build") -> str:
-        """Generate runner prompt"""
-
-
-class DummyBuildSystem(IBuildSystem):
-    """Build system that does nothing"""
-
-    @staticmethod
-    def get_build_system_prompt(project: "Project", build: "Build") -> str:
-        """Generate build system prompt with all specified flags"""
-        return ""
-
-    @staticmethod
-    def get_runner_prompt(project: "Project", build: "Build") -> str:
-        """Generate runner prompt"""
-        return ""
-
-
-@dataclass
-class Build:
-    """Class with information about one build of project
-
-    :var MachineInfo build_machine: Information about the machine to build at
-    :var MachineInfo run_machine: Information about the machine to profile at
-    :var str build_name: Unique name of the build
-    :var Toolchain | None toolchain: Toolchain used to building
-    :var str | None sysroot: Path to sysroot or name of sysroot used to building
-    :var list[str] executables: List of relative to `build path` paths to executables
-    :var str compiler_flags: Compiler flags for the build
-    """
-
-    build_machine: MachineInfo
-    run_machine: MachineInfo
-    build_name: str
-    executables: list[str]
-    toolchain: Toolchain | None
-    sysroot: str | None
-    compiler_flags: CompilerFlags | None
-    config_flags: None | str
-
-
-@dataclass
-class Project:
-    """Class with information about project and his builds
-
-    :var str path: Path to project for research.
-    :var type[IBuildSystem] build_system: High-level build system interface.
-    :var type[IBuildSystem] runner: Low-level build system interface.
-    :var list[Build] builds: List of project configurations to be build.
-    """
-
-    builds: list[Build]
-
-    def __init__(
-        self,
-        path,
-        builds=None,
-        build_system: type[IBuildSystem] = DummyBuildSystem,
-        runner: type[IBuildSystem] = DummyBuildSystem,
-    ):
-        self.path: str = path
-        self.builds = builds
-        if builds is None:  # what is wrong with python?? (pylint W0102)
-            self.builds = []
-        if not isinstance(self.builds, list):
-            raise TypeError("class Project: 'builds' must have a list type")
-        self.build_system = build_system
-        self.runner = runner
-
-
 # pylint: disable=too-few-public-methods
 class IUI(ABC):
     """Interface for User Interface (UI) classes"""
@@ -314,3 +236,130 @@ class NullUI(IUI):
 
     def mark_failed(self, error_message: str = "") -> None:
         pass
+
+
+# pylint: disable=too-few-public-methods
+class IHighLevelBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system (high-level build-system)"""
+
+    @abstractmethod
+    def build(self, build: "Build") -> tuple[int, str, str]:
+        """Build via build system"""
+
+
+# pylint: disable=too-few-public-methods
+class ILowLevelBuildSystem(ABC):
+    """Interface for classes implementing interaction with runner (low-level build-system)"""
+
+    @abstractmethod
+    def run_building(self, build: "Build") -> tuple[int, str, str]:
+        """Run building via build system"""
+
+
+class DummyRunner(ILowLevelBuildSystem):
+    """Runner that does nothing"""
+
+    def run_building(self, build: "Build") -> tuple[int, str, str]:
+        return (0, "", "")
+
+
+# pylint: disable=too-few-public-methods
+class BuildSystem:
+    """Common class for build systems"""
+
+    _MAX_DEPTH = 3
+
+    def __init__(
+        self,
+        project: "Project",
+        runner: ILowLevelBuildSystem = DummyRunner(),
+        ui: IUI = NullUI(),
+    ):
+        self._project = project
+        self._ui = ui
+        self.runner = runner
+
+    def find_relative_path(self, file_name: str) -> str:
+        """Find first <name> file relative to project root.
+        :param str proj_path: Path to project root
+        :param int max_depth: Max depth of search
+        :rtype: str
+        :return: Path to <name> relative to project root
+        """
+        q_dirs: queue.Queue[tuple[str, int]] = queue.Queue()
+        q_dirs.put((self._project.path, 0))
+        while not q_dirs.empty():
+            curr_dir = q_dirs.get()
+            if curr_dir[1] >= self._MAX_DEPTH:
+                continue
+            if os.path.exists(os.path.join(curr_dir[0], file_name)):
+                return curr_dir[0]
+            for el in os.scandir(curr_dir[0]):
+                if el.is_dir():
+                    q_dirs.put((el.path, curr_dir[1] + 1))
+        raise FileNotFoundError(f"Can't find {file_name}")
+
+
+# pylint: disable=too-few-public-methods
+class DummyBuildSystem(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
+    """Build system that does nothing"""
+
+    def __init__(self):
+        super().__init__(Project(""))
+
+    def build(self, build: "Build") -> tuple[int, str, str]:
+        """Build via build system"""
+        return (0, "", "")
+
+    def run_building(self, build: "Build") -> tuple[int, str, str]:
+        """Run building via build system"""
+        return (0, "", "")
+
+
+@dataclass
+class Build:
+    """Class with information about one build of project
+
+    :var MachineInfo build_machine: Information about the machine to build at
+    :var MachineInfo run_machine: Information about the machine to profile at
+    :var str build_name: Unique name of the build
+    :var Toolchain | None toolchain: Toolchain used to building
+    :var str | None sysroot: Path to sysroot or name of sysroot used to building
+    :var list[str] executables: List of relative to `build path` paths to executables
+    :var str compiler_flags: Compiler flags for the build
+    """
+
+    build_machine: MachineInfo
+    run_machine: MachineInfo
+    build_name: str
+    executables: list[str]
+    toolchain: Toolchain | None
+    sysroot: str | None
+    compiler_flags: CompilerFlags | None
+    config_flags: None | str
+
+
+@dataclass
+class Project:
+    """Class with information about project and his builds
+
+    :var str path: Path to project for research.
+    :var type[IHighLevelBuildSystem] build_system: High-level build system.
+    :var list[Build] builds: List of project configurations to be build.
+    """
+
+    builds: list[Build]
+
+    def __init__(
+        self,
+        path,
+        builds=None,
+        build_system: IHighLevelBuildSystem = DummyBuildSystem(),
+    ):
+        self.path: str = path
+        self.builds = builds
+        if builds is None:  # what is wrong with python?? (pylint W0102)
+            self.builds = []
+        if not isinstance(self.builds, list):
+            raise TypeError("class Project: 'builds' must have a list type")
+        self.build_system = build_system

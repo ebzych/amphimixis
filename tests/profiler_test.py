@@ -57,12 +57,7 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
         )
         (path / build.build_name).mkdir()
 
-        project = general.Project(
-            str(path),
-            [build],
-            amphimixis.build_systems_dict["cmake"],
-            amphimixis.build_systems_dict["cmake"],
-        )
+        project = general.Project(str(path), [build])
 
         profiler_instance = Profiler(project, build)
         perf_record_collect_original = profiler_instance.perf_record_collect
