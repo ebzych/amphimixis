@@ -46,7 +46,10 @@ def run_build(
 
 
 def run_profile(
-    project: general.Project, config_file_path: str, ui: IUI = NullUI()
+    project: general.Project,
+    config_file_path: str,
+    ui: IUI = NullUI(),
+    events: list[str] | None = None,
 ) -> bool:
     """Execute project profiling.
 
@@ -62,7 +65,7 @@ def run_profile(
 
     for build in project.builds:
         profiler_ = Profiler(project, build, ui)
-        successful_execs = profiler_.profile_all()
+        successful_execs = profiler_.profile_all(events=events)
         # if empty return -> error
         # if build.executables is not empty, return not equal build.executables -> error
         # if build.executables is empty, return(found executables for profiling) not empty -> passed

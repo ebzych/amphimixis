@@ -22,7 +22,13 @@ def test_e2e_local_machine(clone_repo, create_working_space):
         shutil.copy(orig_file, config_file)
 
         os.chdir(working_dir)
-        command = ["python3", orig_dir / "amixis.py", str(repo_path)]
+        command = [
+            "python3",
+            orig_dir / "amixis.py",
+            str(repo_path),
+            "--events",
+            "cycles",
+        ]
 
         result = subprocess.run(command, check=False)
 

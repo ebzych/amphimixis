@@ -92,6 +92,7 @@ class Profiler:
         stat_collect: bool = True,
         record_collect: bool = True,
         max_number_of_executables=1,
+        events: list[str] | None = None,
     ) -> list[str]:
         """
         Run profiling on every executable.\n
@@ -153,7 +154,9 @@ class Profiler:
                 success &= self.perf_stat_collect(executable, working_directory)
 
             if record_collect:
-                if self.perf_record_collect(executable, working_directory):
+                if self.perf_record_collect(
+                    executable, working_directory, events=events
+                ):
                     success &= self.perf_script(
                         self.get_record_filename(executable), working_directory
                     )[0]
@@ -375,7 +378,8 @@ class Profiler:
         self,
         executable: str,
         working_directory: str,
-        options: str = "-g -F 1000 -e cycles,cache-misses,branch-misses",
+        options: str = "-g -F 1000",
+        events: list[str] | None = None,
     ) -> bool:
         """
         Collect performance records using `perf record`.\n
@@ -386,15 +390,22 @@ class Profiler:
         :type executable: str
 
         :param options: `perf record` additional options.
-         Default: `"-g -F 1000 -e cycles,cache-misses,branch-misses"`
+         Default: `"-g -F 1000"`
         :type options: str
 
         :param working_directory: absolute path to set working directory.
         :type working_directory: str
 
+        :param events: perf events to record.
+         Default: [cycles, cache-misses, branch-misses]
+        :type events: list[str]
+
         :return: `False` if can't collect samples. Otherwise `True`
         :rtype: bool
         """
+
+        if not events:
+            events = ["cycles", "cache-misses", "branch-misses"]
 
         self.ui.update_message(self.build.build_name, "Perf data recording...")
         self.logger.info(
@@ -413,7 +424,7 @@ class Profiler:
 
         options += f" -o {self.get_record_filename(executable)}"
         command = self._perf_record_command(
-            os.path.join(self.build_path, executable), options
+            os.path.join(self.build_path, executable), options, events
         )
 
         self.logger.info(
@@ -612,9 +623,10 @@ class Profiler:
         self,
         executable: str,
         user_options: str,
+        events: list[str],
         **kwargs,
     ):
-        full_prefix = f"perf record {user_options}"
+        full_prefix = f"perf record {user_options}" + f" -e {','.join(events)}"
         return self._build_cmd(full_prefix.strip(), executable, **kwargs)
 
     def _get_script_command(

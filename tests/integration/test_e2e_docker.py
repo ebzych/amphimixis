@@ -62,7 +62,11 @@ def test_e2e_remote_machine_between_containers(clone_repo, _docker_compose):
     copy_cmd = ["docker", "cp", repo_path, "build-client:/workspace/yaml-cpp"]
     subprocess.run(copy_cmd, check=True)
 
-    build_cmd = ["bash", "-c", "python3 /app/amixis.py /workspace/yaml-cpp"]
+    build_cmd = [
+        "bash",
+        "-c",
+        "python3 /app/amixis.py /workspace/yaml-cpp --events cycles",
+    ]
     exit_code = client_container.exec_run(build_cmd, workdir="/workspace")[0]
 
     assert exit_code == 0
