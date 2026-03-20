@@ -13,11 +13,11 @@ recipes:
   config_flags: "-DCMAKE_BUILD_TYPE=Release -DYAML_CPP_BUILD_TESTS=ON"
   compiler_flags:
     cxx_flags: "-O2"
-
-builds:
-- build_machine: 1
   toolchain:
     cxx_compiler: "/usr/bin/g++"
   sysroot: "/"
+
+builds:
+- build_machine: 1
   run_machine: 1
   recipe_id: 1

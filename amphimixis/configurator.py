@@ -65,8 +65,6 @@ def parse_config(
             for build in input_config["builds"]:
 
                 (
-                    toolchain,
-                    sysroot,
                     executables,
                     build_machine_info,
                     run_machine_info,
@@ -86,8 +84,6 @@ def parse_config(
                     run_machine_info,
                     recipe_info,
                     executables,
-                    toolchain,
-                    sysroot,
                     ui,
                 ):
                     ui.update_message("config", "Failed to create build")
@@ -103,22 +99,12 @@ def parse_config(
 
 
 def _configure_build(input_config: dict[str, Any], build: dict[str, Any]) -> tuple[
-    general.Toolchain | None,
-    str | None,
     list[str],
     str | dict[str, int | str],
     str | dict[str, int | str],
     dict[str, Any],
 ]:
     """Function to configure fields of a single build"""
-
-    toolchain = None
-    if toolchain_info := build.get("toolchain"):
-        toolchain = create_toolchain(toolchain_info)
-
-    sysroot = build.get("sysroot")
-    if sysroot is None and toolchain is not None:
-        sysroot = toolchain.sysroot
 
     executables = build.get("executables", [])
 
@@ -135,8 +121,6 @@ def _configure_build(input_config: dict[str, Any], build: dict[str, Any]) -> tup
     recipe_info = _get_by_id(input_config["recipes"], build["recipe_id"])
 
     return (
-        toolchain,
-        sysroot,
         executables,
         build_machine_info,
         run_machine_info,
@@ -150,8 +134,6 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     run_machine_info: str | dict[str, int | str],
     recipe_info: dict[str, Any],
     executables: list[str],
-    toolchain: general.Toolchain | None,
-    sysroot: str | None,
     ui: IUI = NullUI(),
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
@@ -190,6 +172,14 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
 
     if not _has_valid_arch(run_machine, ui):
         return False
+
+    toolchain = None
+    if toolchain_info := recipe_info.get("toolchain"):
+        toolchain = create_toolchain(toolchain_info)
+
+    sysroot = recipe_info.get("sysroot")
+    if sysroot is None and toolchain is not None:
+        sysroot = toolchain.sysroot
 
     config_flags = recipe_info.get("config_flags", "")
     compiler_flags = create_flags(recipe_info.get("compiler_flags"))
