@@ -272,7 +272,7 @@ def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
                 machine.arch.name.lower(),
                 remote_arch.lower(),
             )
-            ui.update_message("Config", "Invalid remote architecture")
+            ui.update_message("config", "Invalid remote architecture")
             return False
 
     return True
