@@ -20,6 +20,28 @@ class ConsoleAnimationPrinter(IUI):
         self.message = ""
         self.status = "running"
 
+    def print_message(self, sender: str, message: str) -> None:
+        """Print message to user with status mark 'I'
+
+        :param str sender: Identifier name of sender module
+        :param str message: Message to user"""
+        self.status = "info"
+        self.build_id = sender
+        self.message = message
+        self.draw()
+        self.finalize()
+
+    def print_warning(self, sender: str, warning: str) -> None:
+        """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message
+
+        :param str sender: Identifier name of sender module
+        :param str warning: Warning to user"""
+        self.status = "warning"
+        self.build_id = sender
+        self.message = "WARNING: " + warning
+        self.draw()
+        self.finalize()
+
     def update_message(self, build_id: str, message: str) -> None:
         """Update build_id and message.
 
@@ -75,6 +97,10 @@ class ConsoleAnimationPrinter(IUI):
             symbol = "✓"
         elif self.status == "failed":
             symbol = "✗"
+        elif self.status == "info":
+            symbol = "I"
+        elif self.status == "warning":
+            symbol = "W"
         else:
             symbol = self.braille[self.index]
 
