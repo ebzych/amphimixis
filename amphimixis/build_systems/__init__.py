@@ -3,10 +3,12 @@
 from amphimixis.build_systems.build_systems import build_systems_dict, runners_dict
 from amphimixis.build_systems.cmake import CMake
 from amphimixis.build_systems.make import Make
+from amphimixis.build_systems.ninja import Ninja
 
 __all__ = [
     "build_systems_dict",
     "runners_dict",
     "CMake",
     "Make",
+    "Ninja",
 ]
