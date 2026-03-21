@@ -4,6 +4,7 @@ import os
 
 from amphimixis import logger
 from amphimixis.build_systems.make import Make
+from amphimixis.build_systems.ninja import Ninja
 from amphimixis.general.general import (
     Build,
     BuildSystem,
@@ -22,6 +23,7 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
 
     _generator_names_map: dict[type[ILowLevelBuildSystem], str] = {
         Make: '"Unix Makefiles"',
+        Ninja: "Ninja",
     }
 
     def _generate_lang_flags(self, flags: CompilerFlags):
