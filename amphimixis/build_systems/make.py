@@ -35,13 +35,14 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     )
 
     def _toolchain_attrs_map(self, tool: str) -> str:
-        value = tool.upper().strip("_").split("COMPILER")[0]
+        value = tool.upper().split("_COMPILER")[0].strip("_")
         match value:
             case "C":
                 return "CC"
             case _:
                 return value
 
+    # pylint: disable=duplicate-code
     def _generate_lang_flags(self, flags: CompilerFlags):
         ret_flags = []
         for flag, value in flags.data.items():
@@ -54,6 +55,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
             ret_flags.append(f"{self._toolchain_attrs_map(tool)}={value}")
         return " ".join(ret_flags)
 
+    # pylint: disable=too-many-locals
     def _build_install_clean(
         self, build: Build, configure: bool = False
     ) -> tuple[int, str, str]:
