@@ -8,14 +8,7 @@ from typing import Any
 import yaml
 
 from amphimixis.build_systems import build_systems_dict, runners_dict
-from amphimixis.general import (
-    IUI,
-    IHighLevelBuildSystem,
-    ILowLevelBuildSystem,
-    NullUI,
-    general,
-    tools,
-)
+from amphimixis.general import IUI, DummyRunner, NullUI, general, tools
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -61,22 +54,24 @@ def parse_config(
     with open(config_file_path, "r", encoding="UTF-8") as file:
         input_config = yaml.safe_load(file)
 
-        build_system = input_config.get("build_system")
-        if build_system is None:
+        build_system: str | None = str(input_config.get("build_system")).lower()
+        if build_system not in build_systems_dict:
             if not (build_system := _get_analyzed_build_system()):
                 _logger.error("Did not find any proper build_system")
-                ui.mark_failed("No build system found")
+                ui.mark_failed("Config: no build system found")
                 return False
-        runner_name = input_config.get("runner", None)
-        if runner_name:
-            runner = build_systems_dict[str(runner_name).lower()][0](project, ui)
-        elif len(build_systems_dict[build_system.lower()]) > 1:
-            runner = build_systems_dict[build_system.lower()][1](project, ui)
+        runner_name = str(input_config.get("runner", None)).lower()
+        if (
+            runner_name
+            and runner_name in runners_dict
+            and runners_dict[runner_name] in build_systems_dict[build_system][1]
+        ):
+            runner = runners_dict[runner_name](project, ui)
+        elif len(build_systems_dict[build_system][1]) > 0:
+            runner = build_systems_dict[build_system][1][0](project, ui)
         else:  # if build system doesn't have runners (like Make)
-            runner = runners_dict[build_system.lower()](project, ui)
-        project.build_system = IHighLevelBuildSystem(
-            build_systems_dict[build_system.lower()][0](project, ui, runner)
-        )
+            runner = DummyRunner()
+        project.build_system = build_systems_dict[build_system][0](project, runner, ui)
 
         for build in input_config["builds"]:
             (

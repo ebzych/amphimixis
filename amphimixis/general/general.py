@@ -294,27 +294,55 @@ class NullUI(IUI):
 
 
 # pylint: disable=too-few-public-methods
-class IHighLevelBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system (high-level build-system)"""
-
-    @abstractmethod
-    def build(self, build: "Build") -> tuple[int, str, str]:
-        """Build via build system"""
-
-
-# pylint: disable=too-few-public-methods
 class ILowLevelBuildSystem(ABC):
     """Interface for classes implementing interaction with runner (low-level build-system)"""
+
+    @abstractmethod
+    def __init__(self, project: "Project", ui: IUI = NullUI()):
+        pass
 
     @abstractmethod
     def run_building(self, build: "Build") -> tuple[int, str, str]:
         """Run building via build system"""
 
 
+# pylint: disable=too-few-public-methods
+class IHighLevelBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system (high-level build-system)"""
+
+    @abstractmethod
+    def __init__(
+        self,
+        project: "Project",
+        runner: ILowLevelBuildSystem,
+        ui: IUI = NullUI(),
+    ):
+        pass
+
+    @abstractmethod
+    def build(self, build: "Build") -> tuple[int, str, str]:
+        """Build via build system"""
+
+
 class DummyRunner(ILowLevelBuildSystem):
     """Runner that does nothing"""
 
+    def __init__(self):
+        pass
+
     def run_building(self, build: "Build") -> tuple[int, str, str]:
+        return (0, "", "")
+
+
+# pylint: disable=too-few-public-methods
+class DummyBuildSystem(IHighLevelBuildSystem):
+    """Build system that does nothing"""
+
+    def __init__(self):
+        pass
+
+    def build(self, build: "Build") -> tuple[int, str, str]:
+        """Build via build system"""
         return (0, "", "")
 
 
@@ -353,22 +381,6 @@ class BuildSystem:
                 if el.is_dir():
                     q_dirs.put((el.path, curr_dir[1] + 1))
         raise FileNotFoundError(f"Can't find {file_name}")
-
-
-# pylint: disable=too-few-public-methods
-class DummyBuildSystem(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
-    """Build system that does nothing"""
-
-    def __init__(self):
-        super().__init__(Project(""))
-
-    def build(self, build: "Build") -> tuple[int, str, str]:
-        """Build via build system"""
-        return (0, "", "")
-
-    def run_building(self, build: "Build") -> tuple[int, str, str]:
-        """Run building via build system"""
-        return (0, "", "")
 
 
 @dataclass
@@ -413,7 +425,7 @@ class Project:
     ):
         self.path: str = path
         self.builds = builds
-        if builds is None:  # what is wrong with python?? (pylint W0102)
+        if builds is None:  # what's wrong with python?? (pylint W0102)
             self.builds = []
         if not isinstance(self.builds, list):
             raise TypeError("class Project: 'builds' must have a list type")
