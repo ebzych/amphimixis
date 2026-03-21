@@ -141,6 +141,13 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
                     f"Recipe {re_id}: invalid compiler_flags: unknown attribute '{attr}'"
                 )
 
+    toolchain = recipe.get("toolchain")
+    _is_valid_toolchain(toolchain)
+
+    sysroot = recipe.get("sysroot")
+    if sysroot is not None and not isinstance(sysroot, str):
+        _warn(f"Invalid sysroot in build: {sysroot}")
+
 
 def _is_valid_build(build: dict[str, int | str]):
     """Function to check whether build is valid"""
@@ -166,13 +173,6 @@ def _is_valid_build(build: dict[str, int | str]):
     recipe_id = build.get("recipe_id")
     if not isinstance(recipe_id, int):
         _warn(f"Invalid recipe_id in build: {recipe_id}")
-
-    toolchain = build.get("toolchain")
-    _is_valid_toolchain(toolchain)
-
-    sysroot = build.get("sysroot")
-    if sysroot is not None and not isinstance(sysroot, str):
-        _warn(f"Invalid sysroot in build: {sysroot}")
 
     executables = build.get("executables")
     if executables is not None and not isinstance(executables, list):
