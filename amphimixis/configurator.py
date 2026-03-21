@@ -250,7 +250,12 @@ def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
 
     else:
         ui.update_message("config", "Checking remote architecture for validity...")
-        shell = Shell(machine, ui).connect()
+        try:
+            shell = Shell(machine, ui).connect()
+        except FileNotFoundError as e:
+            _logger.error("Shell error: %s", e)
+            return False
+
         error_code, stdout, _ = shell.run("uname -m")
         if error_code != 0:
             _logger.error(
