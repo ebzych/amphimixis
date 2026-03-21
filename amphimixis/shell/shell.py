@@ -54,7 +54,7 @@ class Shell:
 
         self._is_connected = True
         level, _ = self.set_paranoid(-1)
-        if level != 1:
+        if level != -1:
             self._logger.error(
                 "Can't set /proc/sys/kernel/perf_event_paranoid to -1. Set it manually"
             )
