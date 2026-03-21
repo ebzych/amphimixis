@@ -12,10 +12,13 @@ import yaml
 
 from amphimixis.build_systems import build_systems_dict
 from amphimixis.general import general
+from amphimixis.general.constants import (
+    DEFAULT_BUILD_SYSTEM,
+    DEFAULT_PORT,
+    DEFAULT_RUNNER,
+)
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
-
-DEFAULT_PORT = 22
 
 _errors_count = 0
 
@@ -36,14 +39,14 @@ def validate(config_file_path: str) -> bool:
 
             file_dict = yaml.safe_load(file)
 
-            build_system = file_dict.get("build_system")
+            build_system = file_dict.get("build_system", DEFAULT_BUILD_SYSTEM)
             if (
-                isinstance(build_system, str)
-                and build_system.lower() not in build_systems_dict
+                not isinstance(build_system, str)
+                or build_system.lower() not in build_systems_dict
             ):
                 _warn(f"Invalid build_system: {build_system}")
 
-            runner = file_dict.get("runner")
+            runner = file_dict.get("runner", DEFAULT_RUNNER)
             if not isinstance(runner, str) or runner.lower() not in build_systems_dict:
                 _warn(f"Invalid runner: {runner}")
 

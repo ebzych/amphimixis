@@ -9,13 +9,16 @@ import yaml
 
 from amphimixis.build_systems import build_systems_dict
 from amphimixis.general import IUI, NullUI, general
-from amphimixis.general.constants import ANALYZED_FILE_NAME
+from amphimixis.general.constants import (
+    ANALYZED_FILE_NAME,
+    DEFAULT_BUILD_SYSTEM,
+    DEFAULT_PORT,
+    DEFAULT_RUNNER,
+)
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
 from amphimixis.shell import Shell
 from amphimixis.validator import validate
-
-DEFAULT_PORT = 22
 
 _logger = setup_logger("configurator")
 
@@ -53,11 +56,9 @@ def parse_config(
             build_system = input_config.get("build_system")
             if build_system is None:
                 if not (build_system := _get_analyzed_build_system()):
-                    _logger.error("Did not find any proper build_system")
-                    ui.update_message("config", "No build system found")
-                    return False
+                    build_system = DEFAULT_BUILD_SYSTEM
 
-            runner = input_config.get("runner")
+            runner = input_config.get("runner", DEFAULT_RUNNER)
 
             project.build_system = build_systems_dict[build_system.lower()]
             project.runner = build_systems_dict[runner.lower()]
