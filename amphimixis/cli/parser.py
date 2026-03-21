@@ -65,7 +65,7 @@ class CustomFormatterClass(
                   → Compares two perf output files (.scriptout)
                     and displays the results in the console.
 
-              amixis --compare buildname1.scriptout buildname2.scriptout --max-rows=10
+              amixis --compare filename1.scriptout filename2.scriptout --max-rows=10
                   → Compares two perf output files (.scriptout)
                     and displays the top 10 rows per event in the console.
             """
@@ -86,8 +86,9 @@ def create_parser():
 
     parser.add_argument(
         "path",
+        nargs="?",
         type=str,
-        help="path to the project folder to process (required in main mode).",
+        help="project path (required for analyze/build/profile and main modes)",
     )
 
     parser.add_argument(

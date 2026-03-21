@@ -80,7 +80,7 @@ def main():
             if not run_profile(project, config_file_path=str(config_file), ui=ui):
                 return 1
 
-            show_profiling_result(str(project.path))
+            show_profiling_result()
             return 0
 
         if args.analyze:
@@ -95,7 +95,8 @@ def main():
             if not run_profile(project, config_file_path=str(config_file), ui=ui):
                 return 1
 
-        show_profiling_result(str(project.path))
+            show_profiling_result()
+
         return 0
 
     except (
