@@ -38,14 +38,12 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
 
     def build(self, build: Build) -> tuple[int, str, str]:
         """Generate build system prompt with all specified flags"""
-        shell = Shell(build.build_machine, self._ui)
+        shell = Shell(self._project, build.build_machine, self._ui)
 
-        build_path = os.path.join(
-            shell.get_project_workdir(self._project), build.build_name
-        )
+        build_path = os.path.join(shell.get_project_workdir(), build.build_name)
         command = (
             f"cmake -G {self._generator_names_map[type(self.runner)]} "
-            f"-B {build_path} -S {shell.get_source_dir(self._project)} "
+            f"-B {build_path} -S {shell.get_source_dir()} "
         )
         if build.config_flags is not None:
             command += f"{build.config_flags} "
@@ -56,7 +54,7 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
                 command += f"-DCMAKE_SYSROOT={build.toolchain.sysroot} "
             command += f"{self._generate_toolchain_flags(build.toolchain)} "
 
-        err, stdout, stderr = shell.run(f"cd {shell.get_source_dir(self._project)}")
+        err, stdout, stderr = shell.run(f"cd {shell.get_source_dir()}")
         if err != 0:
             return (err, "".join(stdout[0]), "".join(stderr[0]))
 
