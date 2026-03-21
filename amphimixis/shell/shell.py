@@ -320,7 +320,7 @@ class Shell:
                 "--compress",
                 "--log-file=./amphimixis.log",
                 "-e",
-                f"ssh -p {port}",
+                f"ssh -o StrictHostKeyChecking=no -p {port}",
                 source,
                 destination,
             ]
