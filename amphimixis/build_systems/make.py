@@ -35,7 +35,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     )
 
     def _toolchain_attrs_map(self, tool: str) -> str:
-        value = tool.upper().split("_COMPILER")[0].strip("_")
+        value = "".join(tool.upper().split("_")).split("COMPILER")[0]
         match value:
             case "C":
                 return "CC"
@@ -46,7 +46,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     def _generate_lang_flags(self, flags: CompilerFlags):
         ret_flags = []
         for flag, value in flags.data.items():
-            ret_flags.append(f"{flag.upper().strip("_")}='{value}'")
+            ret_flags.append(f"{"".join(flag.upper().split("_"))}='{value}'")
         return " ".join(ret_flags)
 
     def _generate_toolchain_flags(self, toolchain: Toolchain):
