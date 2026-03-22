@@ -84,7 +84,7 @@ class TestMake:
         ],
     )
     def test_toolchain_attrs_map(self, make_system, tool_attr, expected_tool):
-        result = make_system._toolchain_attrs_map(tool_attr.value)
+        result = make_system._attrs_map(tool_attr.value)
         assert result == expected_tool
 
     def test_generate_toolchain_flags(self, make_system):
@@ -181,9 +181,7 @@ class TestCMake:
             ),
         ],
     )
-    def test_generate_lang_flags(
-        self, cmake_system, flag_attr, flag_value, expected_flag
-    ):
+    def test_generate_flags(self, cmake_system, flag_attr, flag_value, expected_flag):
         compiler_flags = CompilerFlags()
         compiler_flags.set(flag_attr, flag_value)
         result = cmake_system._generate_lang_flags(compiler_flags)
