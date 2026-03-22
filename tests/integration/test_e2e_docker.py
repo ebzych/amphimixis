@@ -52,6 +52,12 @@ def test_e2e_remote_machine_between_containers(clone_repo, _docker_compose):
     exit_code = client_container.exec_run(add_ip_cmd)[0]
     assert exit_code == 0
 
+    pandas_install_cmd = [
+        "bash",
+        "-c",
+        "pip install --break-system-packages pandas openai",
+    ]
+    client_container.exec_run(pandas_install_cmd)
     repo_path = clone_repo("https://github.com/jbeder/yaml-cpp.git")
     copy_cmd = ["docker", "cp", repo_path, "build-client:/workspace/yaml-cpp"]
     subprocess.run(copy_cmd, check=True)
