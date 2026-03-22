@@ -29,13 +29,13 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
     def _generate_lang_flags(self, flags: CompilerFlags):
         ret_flags = []
         for flag, value in flags.data.items():
-            ret_flags.append(f"-DCMAKE_{flag.upper()}={value}")
+            ret_flags.append(f"-DCMAKE_{flag.upper()}='{value}'")
         return " ".join(ret_flags)
 
     def _generate_toolchain_flags(self, toolchain: Toolchain):
         ret_flags = []
         for tool, value in toolchain.data.items():
-            ret_flags.append(f"-DCMAKE_{tool.upper()}={value}")
+            ret_flags.append(f"-DCMAKE_{tool.upper()}='{value}'")
         return " ".join(ret_flags)
 
     def build(self, build: Build) -> tuple[int, str, str]:
