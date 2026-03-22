@@ -224,6 +224,7 @@ class Shell:
             if self._homedir == "":
                 self._logger.error("Can't get homedir for [local] machine")
                 raise RuntimeError("Can't get homedir for [local] machine")
+            return self._homedir
 
         error, stdout, _ = self.run("echo ~")
 
