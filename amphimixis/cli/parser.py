@@ -60,7 +60,14 @@ class CustomFormatterClass(
 
               amixis --validate=file_name
                   → Checks the config file correctness.
+                
+              amixis --compare buildname1.scriptout buildname2.scriptout
+                  → Compares two perf output files (.scriptout)
+                    and displays the results in the console.
 
+              amixis --compare filename1.scriptout filename2.scriptout --max-rows=10
+                  → Compares two perf output files (.scriptout)
+                    and displays the top 10 rows per event in the console.
             """
         )
 
@@ -79,8 +86,9 @@ def create_parser():
 
     parser.add_argument(
         "path",
+        nargs="?",
         type=str,
-        help="path to the project folder to process (required in main mode).",
+        help="project path (required for analyze/build/profile and main modes)",
     )
 
     parser.add_argument(
@@ -119,7 +127,29 @@ def create_parser():
         "-p",
         "--profile",
         action="store_true",
-        help="profile the performance of builds and compare execution traces",
+        help="profile the performance of builds.",
+    )
+
+    parser.add_argument(
+        "-с",
+        "--compare",
+        nargs=2,
+        metavar=("FILE1", "FILE2"),
+        help="compare two perf output files (.scriptout) and display the results.",
+    )
+
+    parser.add_argument(
+        "--max-rows",
+        type=int,
+        default=20,
+        help="maximum number of rows to display per event in comparison (default: 20).",
+    )
+
+    parser.add_argument(
+        "--events",
+        nargs="*",
+        help="list of specific events to compare (e.g., cpu-clock);\n"
+        "if not specified, all events are compared.",
     )
 
     return parser

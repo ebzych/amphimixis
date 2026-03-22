@@ -1,10 +1,12 @@
 """CLI command implementations for Amphimixis."""
 
+import glob
 import os
 from os import path
 
 from amphimixis import Builder, Profiler, analyze, general, parse_config
 from amphimixis.general import IUI, NullUI
+from amphimixis.perf_analyzer import main as compare_perf
 
 
 def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
@@ -17,9 +19,9 @@ def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
     ui.update_message(project_name, "Analyzing project...")
 
     if not analyze(project):
-        ui.mark_failed("Analysis failed. See amphimixis.log for details")
+        ui.mark_failed("Analysis failed. See amphimixis.log for details.")
         return False
-    ui.mark_success("Analysis completed!")
+    ui.mark_success("Analysis completed! See amphimixis.log for details.")
     return True
 
 
@@ -65,3 +67,54 @@ def run_profile(
         profiler_.save_stats()
         ui.mark_success("Profiling completed!")
     return True
+
+
+def run_compare(
+    filename1: str,
+    filename2: str,
+    target_events: None | list[str] = None,
+    max_rows=20,
+    ui: IUI = NullUI(),
+) -> bool:
+    """Compare two perf output files and print the top `max_rows`
+    symbols with the most significant changes for specified events.
+
+    :param str filename1: Path to first perf output file
+    :param str filename2: Path to second perf output file
+    :param list[str] target_events: List of event names to compare (or None for all)
+    :param int max_rows: Maximum number of rows to display per event
+    :param IUI ui: User interface for progress display
+    """
+
+    if not path.isfile(filename1):
+        ui.mark_failed(f"File not found: {filename1}")
+        return False
+    if not path.isfile(filename2):
+        ui.mark_failed(f"File not found: {filename2}")
+        return False
+
+    compare_perf(filename1, filename2, target_events=target_events, max_rows=max_rows)
+    ui.mark_success("Comparison completed!")
+    return True
+
+
+def show_profiling_result():
+    """Show hint or warning after profiling, based on .scriptout files in current directory."""
+
+    scriptout_files = glob.glob("*.scriptout")
+
+    if not scriptout_files:
+        print("\n[!] No profiling data (.scriptout files) were generated.")
+        print("\tPlease check amphimixis.log for details.")
+    elif len(scriptout_files) == 1:
+        print("\n[i] Only one profiling result was generated.")
+        print("\tTo compare two results, run profiling again with a different build.")
+        print("\tOnce you have two .scriptout files, compare them with:")
+        print("\tamixis --compare <file1.scriptout> <file2.scriptout>")
+    else:
+        file1 = os.path.basename(scriptout_files[0])
+        file2 = os.path.basename(scriptout_files[1])
+        print("\n[>] To compare two profiling results, use:")
+        print(f"\tamixis --compare {file1} {file2}")
+        if len(scriptout_files) > 2:
+            print("\t(or pick the files you want)")
