@@ -34,13 +34,17 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
         "them in the config_flags field in the format used by the current Makefile"
     )
 
-    def _toolchain_attrs_map(self, tool: str) -> str:
-        value = "".join(tool.upper().split("_")).split("COMPILER", maxsplit=1)[0]
-        match value:
+    def _attrs_map(self, tool: str) -> str:
+        value = tool.upper().split("_COMPILER", maxsplit=1)[0]
+        match value.split("_")[0]:
             case "C":
-                return "CC"
-            case _:
-                return value
+                if "FLAGS" not in value:
+                    value = value.replace("C", "CC", 1)
+            case "FORTRAN":
+                value = value.replace("FORTRAN", "FC", 1)
+            case "ASM":
+                value = value.replace("ASM", "AS", 1)
+        return "".join(value.split("_"))
 
     # pylint: disable=duplicate-code
     def _generate_lang_flags(self, flags: CompilerFlags):
@@ -52,7 +56,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     def _generate_toolchain_flags(self, toolchain: Toolchain):
         ret_flags = []
         for tool, value in toolchain.data.items():
-            ret_flags.append(f"{self._toolchain_attrs_map(tool)}='{value}'")
+            ret_flags.append(f"{self._attrs_map(tool)}='{value}'")
         return " ".join(ret_flags)
 
     # pylint: disable=too-many-locals
