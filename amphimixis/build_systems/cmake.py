@@ -40,7 +40,7 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
 
     def build(self, build: Build) -> tuple[int, str, str]:
         """Generate build system prompt with all specified flags"""
-        shell = Shell(self._project, build.build_machine, self._ui)
+        shell = Shell(self._project, build.build_machine, self._ui).connect()
 
         build_path = os.path.join(shell.get_project_workdir(), build.build_name)
         command = (
