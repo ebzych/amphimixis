@@ -297,13 +297,17 @@ class Shell:
 
     def _copy(self, source: str, destination: str) -> bool:
         if self.machine.auth is None:
-            port = -1  # should be OK with local copying
-            password = "nopasswd"
-        else:
-            port = self.machine.auth.port
-            # if None or empty string, ssh-agent is supposed
-            password = self.machine.auth.password or "nopasswd"
+            return self._copy_local(source, destination)
 
+        port = self.machine.auth.port
+        # if None or empty string, ssh-agent is supposed
+        password = self.machine.auth.password or "nopasswd"
+
+        return self._copy_remote(source, destination, password, port)
+
+    def _copy_remote(
+        self, source: str, destination: str, password: str, port: int
+    ) -> bool:
         self._logger.info("Copying %s -> %s", source, destination)
         error_code = subprocess.call(
             [
@@ -326,6 +330,16 @@ class Shell:
             ]
         )
 
+        if error_code != 0:
+            self._logger.error("Error %s -> %s", source, destination)
+            return False
+
+        self._logger.info("Success %s -> %s", source, destination)
+        return True
+
+    def _copy_local(self, source: str, destination: str) -> bool:
+        self._logger.info("Copying %s -> %s", source, destination)
+        error_code = subprocess.call(["cp", "-aL", source, destination])
         if error_code != 0:
             self._logger.error("Error %s -> %s", source, destination)
             return False
