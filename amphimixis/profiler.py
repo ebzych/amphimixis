@@ -469,24 +469,11 @@ class Profiler:
                 extra={"target": executable},
             )
 
-        error, stdout, stderr = self.shell.run("pwd")
-
-        if error != 0:
-            self.logger.error(
-                "Perf record fail STDERR:\n%s",
-                "".join(stderr[0]),
-                extra={"target": executable},
-            )
-
-            self.ui.mark_failed("Perf record error. Check the logs")
-            return False
-
         self.ui.update_message(
             self.build.build_name, "Getting all data from the machine..."
         )
-        remote_workdir = stdout[0][0].strip()
         if not self.shell.copy_to_host(
-            os.path.join(remote_workdir, self.get_record_filename(executable)),
+            os.path.join(working_directory, self.get_record_filename(executable)),
             os.path.join(os.getcwd(), self.get_record_filename(executable)),
         ):
             self.logger.error(
@@ -498,7 +485,7 @@ class Profiler:
             return False
 
         if perf_archive_error == 0 and not self.shell.copy_to_host(
-            os.path.join(remote_workdir, self.get_archive_filename(executable)),
+            os.path.join(working_directory, self.get_archive_filename(executable)),
             os.path.join(os.getcwd(), self.get_archive_filename(executable)),
         ):
             self.logger.error(
@@ -554,21 +541,8 @@ class Profiler:
             self.ui.mark_failed("Perf script error. Check the logs")
             return False, ""
 
-        error, stdout, stderr = self.shell.run("pwd")
-
-        if error != 0:
-            self.logger.error(
-                "Perf script fail STDERR:\n%s",
-                "".join(stderr[0]),
-                extra={"target": filename},
-            )
-
-            self.ui.mark_failed("Perf script error. Check the logs")
-            return False, ""
-
-        remote_workdir = stdout[0][0].strip()
         if not self.shell.copy_to_host(
-            os.path.join(remote_workdir, perf_script_file),
+            os.path.join(working_directory, perf_script_file),
             os.path.join(os.getcwd(), perf_script_file),
         ):
             self.logger.error(
