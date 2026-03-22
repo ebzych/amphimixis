@@ -103,7 +103,14 @@ def run_compare(
         ui.mark_failed(f"File not found: {filename2}")
         return False
 
-    compare_perf(filename1, filename2, target_events=target_events, max_rows=max_rows)
+    if (
+        compare_perf(
+            filename1, filename2, target_events=target_events, max_rows=max_rows
+        )
+        != 0
+    ):
+        ui.mark_failed("Comparison failed.")
+        return False
     ui.mark_success("Comparison completed!")
     return True
 
