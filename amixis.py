@@ -25,6 +25,9 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
+    if not args.compare and (args.max_rows != 20 or args.events is not None):
+        parser.error("--max-rows and --events can only be used with --compare")
+
     if args.config is not None:
         config_file = Path(args.config).expanduser().resolve()
     else:

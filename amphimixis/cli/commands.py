@@ -94,6 +94,7 @@ def run_compare(
         return False
 
     compare_perf(filename1, filename2, target_events=target_events, max_rows=max_rows)
+    ui.mark_success("Comparison completed!")
     return True
 
 
@@ -104,16 +105,16 @@ def show_profiling_result():
 
     if not scriptout_files:
         print("\n[!] No profiling data (.scriptout files) were generated.")
-        print("    Please check amphimixis.log for details.")
+        print("\tPlease check amphimixis.log for details.")
     elif len(scriptout_files) == 1:
         print("\n[i] Only one profiling result was generated.")
-        print("    To compare two results, run profiling again with a different build.")
-        print("    Once you have two .scriptout files, compare them with:")
-        print("    amixis --compare <file1.scriptout> <file2.scriptout>")
+        print("\tTo compare two results, run profiling again with a different build.")
+        print("\tOnce you have two .scriptout files, compare them with:")
+        print("\tamixis --compare <file1.scriptout> <file2.scriptout>")
     else:
         file1 = os.path.basename(scriptout_files[0])
         file2 = os.path.basename(scriptout_files[1])
         print("\n[>] To compare two profiling results, use:")
-        print(f"    amixis --compare {file1} {file2}")
+        print(f"\tamixis --compare {file1} {file2}")
         if len(scriptout_files) > 2:
-            print("    (or pick the files you want)")
+            print("\t(or pick the files you want)")
