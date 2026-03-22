@@ -1,5 +1,6 @@
 """Tests for the full launch of the application on a specific project"""
 
+import os
 import subprocess
 import time
 
@@ -8,7 +9,9 @@ import pytest
 
 
 @pytest.mark.integration
-def test_e2e_remote_machine_between_containers(clone_repo, _docker_compose):
+def test_e2e_remote_machine_between_containers(
+    clone_repo, create_working_space, _docker_compose
+):
     """End-to-end test for remote build between Docker containers.
     Validates that the pipeline can successfully run across separate
     containers (build-client and build-server).
@@ -68,5 +71,10 @@ def test_e2e_remote_machine_between_containers(clone_repo, _docker_compose):
         "python3 /app/amixis.py /workspace/yaml-cpp --events cycles",
     ]
     exit_code = client_container.exec_run(build_cmd, workdir="/workspace")[0]
+
+    if os.getenv("CI"):
+        artifacts_dir = create_working_space()
+        copy_artifacts_cmd = ["docker", "cp", "build-client:/workspace", artifacts_dir]
+        subprocess.run(copy_artifacts_cmd, check=False)
 
     assert exit_code == 0

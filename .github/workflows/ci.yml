@@ -36,3 +36,11 @@ jobs:
           echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid
           sudo apt install ruby-mdl
           ci/runner.sh
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: temp_folder
+          include-hidden-files: true
+          path: |
+            /tmp/test_workspace_*
