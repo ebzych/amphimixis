@@ -46,13 +46,13 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     def _generate_lang_flags(self, flags: CompilerFlags):
         ret_flags = []
         for flag, value in flags.data.items():
-            ret_flags.append(f"{flag.upper().strip("_")}={value}")
+            ret_flags.append(f"{flag.upper().strip("_")}='{value}'")
         return " ".join(ret_flags)
 
     def _generate_toolchain_flags(self, toolchain: Toolchain):
         ret_flags = []
         for tool, value in toolchain.data.items():
-            ret_flags.append(f"{self._toolchain_attrs_map(tool)}={value}")
+            ret_flags.append(f"{self._toolchain_attrs_map(tool)}='{value}'")
         return " ".join(ret_flags)
 
     # pylint: disable=too-many-locals
