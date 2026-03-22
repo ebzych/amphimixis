@@ -35,7 +35,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     )
 
     def _toolchain_attrs_map(self, tool: str) -> str:
-        value = "".join(tool.upper().split("_")).split("COMPILER")[0]
+        value = "".join(tool.upper().split("_")).split("COMPILER", maxsplit=1)[0]
         match value:
             case "C":
                 return "CC"
