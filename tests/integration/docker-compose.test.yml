@@ -13,8 +13,15 @@ services:
     container_name: build-client
     image: marianovik/build-client:latest
     volumes:
-      - ../../:/app:ro
+      - ../../:/tmp/src:ro
       - ./input_remote.yaml:/workspace/input_remote.yml:ro
+    command: >
+      bash -c "
+        mkdir -p /app &&
+        cp -r /tmp/src/. /app &&
+        touch secret_ishtar &&
+        tail -f /dev/null
+      "
     networks:
       - test-network
 networks:

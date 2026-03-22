@@ -68,7 +68,7 @@ def test_e2e_remote_machine_between_containers(
     build_cmd = [
         "bash",
         "-c",
-        "python3 /app/amixis.py /workspace/yaml-cpp --events cycles",
+        "/root/.local/bin/uv run --project /app /app/amixis.py /workspace/yaml-cpp --events cycles",
     ]
     exit_code = client_container.exec_run(build_cmd, workdir="/workspace")[0]
 
