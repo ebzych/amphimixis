@@ -8,29 +8,129 @@
 
 # Amphimixis
 
-Amphimixis is a tool that automates project builds and helps to analyze application performance. It is designed to simplify the build process and compare results across different platforms.
+Amphimixis is automated project intelligence and evaluation tool for perfomance and migration readiness. It helps inspect a project for existing infrastructure such as CI, tests, benchmarks, dependencies, and build scripts, then runs builds and collects performance data for further comparison.
 
-!!!Amphimixis in the pre-pre-pre-pre-pre-alpha version!!!
+> Amphimixis is currently in a very early pre-release state.
 
-- [Quick start](docs/quick_start.md)
-- [Config instruction](docs/config_instruction.md)
+## Installation
+
+### Install from GitHub
+
+```bash
+pip install git+https://github.com/ebzych/amphimixis.git
+```
+
+### Requirements
+
+- Python 3.13 or newer
+- Linux
+- `perf` available in `PATH` for profiling
+- A supported build setup in the target project: CMake as the build system and Make as the low-level runner
+
+### Install for development
+
+```bash
+git clone https://github.com/ebzych/amphimixis.git
+cd amphimixis
+uv sync
+```
+
+## What Amphimixis Does
 
 Amphimixis can:
 
-- Analyze a project for the presence of:
+- analyze a project for CI, tests, benchmarks, build system configuration, and dependencies
+- build the project with configured recipes and platforms
+- profile executable runs and collect timing and `perf`-based statistics
+- compare profiling outputs produced for different builds
 
-   - CI
-   - Tests
-   - Benchmarks
-   - Builds system
-   - Dependencies
+## Typical Usage
 
-- Automatically compile the project with various specified configurations. Amphimixis supports the following build systems:
+Prepare a working directory with an `input.yml` configuration file. The configuration format is described in [docs/config_instruction.md](docs/config_instruction.md).
 
-   - CMake
-   - Make
+Run the full workflow for a project:
 
-- Using known profiling methods such as perf, flamegraph, collect data on:
+```bash
+amixis /path/to/project
+```
 
-   - Functions that take the most time to execute
-   - Measure the execution time
+This command:
+
+1. analyzes the project
+1. builds it using the selected configuration
+1. profiles the resulting executables
+1. prints profiling results in the console
+
+You can also run individual steps:
+
+```bash
+amixis --analyze /path/to/project
+amixis --build /path/to/project
+amixis --profile /path/to/project
+amixis --validate ./input.yml
+```
+
+To use a custom configuration file:
+
+```bash
+amixis --config ./my_input.yml /path/to/project
+```
+
+To compare two collected `perf` outputs:
+
+```bash
+amixis --compare build1.scriptout build2.scriptout --max-rows 10
+```
+
+## Build And Run Notes
+
+The tool is distributed as a Python package with the `amixis` CLI entry point.
+
+For local development and reproducible checks, the repository uses `uv` and GitHub Actions. The CI configuration is available in [.github/workflows/ci.yml](.github/workflows/ci.yml).
+
+Useful commands during development:
+
+```bash
+uv run amixis --help
+uv run pytest
+```
+
+If you want a more step-by-step walkthrough, see [docs/quick_start.md](docs/quick_start.md).
+
+## Project Structure
+
+The repository is organized around a small CLI and several core modules:
+
+- [amixis.py](amixis.py) is the command-line entry point
+- [amphimixis/analyzer.py](amphimixis/analyzer.py) inspects a target project
+- [amphimixis/builder.py](amphimixis/builder.py) runs configured builds
+- [amphimixis/profiler.py](amphimixis/profiler.py) gathers execution and profiling data
+- [amphimixis/validator.py](amphimixis/validator.py) validates `input.yml`
+- [amphimixis/shell](amphimixis/shell) contains local and remote shell backends
+- [docs](docs) contains user-facing documentation
+
+## Documentation
+
+Additional documentation:
+
+- [docs/quick_start.md](docs/quick_start.md)
+- [docs/config_instruction.md](docs/config_instruction.md)
+
+## How To Help
+
+Contributions are welcome.
+
+- Report bugs and suggest improvements through GitHub Issues
+- Open a Pull Request with a clear description of the problem and the proposed change
+- Add or improve tests for new behavior
+- Update documentation when changing CLI behavior or configuration format
+
+Before contributing, make sure local checks pass:
+
+```bash
+uv run pytest
+```
+
+## License
+
+The project is distributed under the license in [LICENSE](LICENSE).
