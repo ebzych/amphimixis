@@ -59,6 +59,20 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
             ret_flags.append(f"{self._attrs_map(tool)}='{value}'")
         return " ".join(ret_flags)
 
+    def _get_makefile_name(self, config_flags: str) -> str:
+        options = config_flags.split()
+        path = "Makefile"
+        for i, opt in enumerate(options):
+            if i + 1 == len(options):
+                break
+            if opt == "-f":
+                path = options[i + 1]
+                break
+            elif "--file=" in opt or "--makefile=" in opt:
+                path = opt[opt.find("=") + 1 :]
+                break
+        return os.path.basename(path)
+
     # pylint: disable=too-many-locals
     def _build_install_clean(
         self, build: Build, configure: bool = False
@@ -76,7 +90,10 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
                 if build.toolchain.sysroot is not None:
                     command += f"SYSROOT={build.toolchain.sysroot} "
                 command += f"{self._generate_toolchain_flags(build.toolchain)} "
-            cd_dir = shell.get_source_dir()
+            cd_dir = self.find_relative_path(
+                shell.get_source_dir(),
+                self._get_makefile_name(str(build.config_flags)),
+            )
 
         err_nproc, stdout_nproc, _ = shell.run("nproc")
         nproc = 1
