@@ -27,7 +27,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     - get_build_path(): Determines build path based on machine address
     """
 
-    _GNU_standard_compability_warn_msg = (
+    _GNU_standard_compatibility_warn_msg = (
         "Amphimixis only uses GNU standard flags for Makefile, "
         "if Makefile does not meet this standard, then using your toolchains and"
         " compilation flags may not work, you can fix it manually by specifying "
@@ -111,9 +111,9 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
         :return: Tuple of error code, stdout and stderr"""
         self._ui.print_warning(
             build.build_name,
-            Make._GNU_standard_compability_warn_msg,
+            Make._GNU_standard_compatibility_warn_msg,
         )
-        _logger.warning(Make._GNU_standard_compability_warn_msg)
+        _logger.warning(Make._GNU_standard_compatibility_warn_msg)
 
         return self._build_install_clean(build, configure=True)
 
