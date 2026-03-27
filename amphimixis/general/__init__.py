@@ -11,6 +11,7 @@ from amphimixis.general.general import (
     MachineAuthenticationInfo,
     MachineInfo,
     NullUI,
+    ProfileStats,
     Project,
     Toolchain,
     ToolchainAttrs,
@@ -32,4 +33,5 @@ __all__ = [
     "ToolchainAttrs",
     "CompilerFlagsAttrs",
     "CompilerFlags",
+    "ProfileStats",
 ]

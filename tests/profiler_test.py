@@ -166,11 +166,13 @@ class TestProfiler:
         assert profiler.execution_time(EXECUTABLE_FILENAME, profiler.build_path)
 
         for time_counter in (
-            amphimixis.profiler.Stats.KERNEL_TIME,
-            amphimixis.profiler.Stats.USER_TIME,
-            amphimixis.profiler.Stats.REAL_TIME,
+            "kernel_time",
+            "user_time",
+            "real_time",
         ):
-            assert float(profiler.stats[EXECUTABLE_FILENAME][time_counter]) >= 0
+            assert (
+                float(getattr(profiler.stats[EXECUTABLE_FILENAME], time_counter)) >= 0
+            )
 
     @pytest.mark.parametrize(
         "program, expected",
@@ -188,13 +190,9 @@ class TestProfiler:
         )
 
         assert profiler.execution_time(EXECUTABLE_FILENAME, profiler.build_path)
-
-        assert (
-            float(
-                profiler.stats[EXECUTABLE_FILENAME][amphimixis.profiler.Stats.REAL_TIME]
-            )
-            > expected - 0.1
-        )
+        real_time = profiler.stats[EXECUTABLE_FILENAME].real_time
+        assert real_time is not None
+        assert float(real_time) > expected - 0.1
 
     @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
     def test_perf_data_collect_updates_dictionary_with_some_data_on_successful_run(
@@ -207,10 +205,7 @@ class TestProfiler:
 
         assert profiler.perf_stat_collect(EXECUTABLE_FILENAME, profiler.build_path)
 
-        assert (
-            profiler.stats[EXECUTABLE_FILENAME].get(amphimixis.profiler.Stats.PERF_STAT)
-            is not None
-        )
+        assert profiler.stats[EXECUTABLE_FILENAME].perf_stat is not None
 
     @pytest.mark.parametrize("program", [C_PROGRAM_SUCCESSFUL_RUN])
     def test_perf_record_collect_creates_valid_perf_data_file(
@@ -371,12 +366,22 @@ class TestProfiler:
 
         assert spies[0].call_count == 2
         assert all(s.call_count == 1 for s in spies[1:])
-        assert (
-            len(profiler.stats[EXECUTABLE_FILENAME + "fail_test"].keys()) == 1
-        ), "Executable that failed smoke test is not skipped"
-        assert (
-            len(profiler.stats[EXECUTABLE_FILENAME + "ok_test"].keys()) == 5
-        ), "Executable that passed smoke test is skipped"
+        failed_stats = profiler.stats[EXECUTABLE_FILENAME + "fail_test"]
+        assert failed_stats.executable_run_success is False
+        assert failed_stats.real_time is None
+        assert failed_stats.user_time is None
+        assert failed_stats.kernel_time is None
+        assert failed_stats.perf_stat is None
+        assert failed_stats.perf_record_name is None
+        assert failed_stats.perf_archive_name is None
+
+        passed_stats = profiler.stats[EXECUTABLE_FILENAME + "ok_test"]
+        assert passed_stats.executable_run_success is True
+        assert passed_stats.real_time is not None
+        assert passed_stats.user_time is not None
+        assert passed_stats.kernel_time is not None
+        assert passed_stats.perf_stat is not None
+        assert passed_stats.perf_record_name is not None
 
     def test_get_record_filename_flattens_nested_path(self, get_shellmocked_profiler):
         profiler: Profiler = get_shellmocked_profiler()

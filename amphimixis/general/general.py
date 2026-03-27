@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
 from os.path import isabs
+from typing import Optional
 
 
 class Arch(StrEnum):
@@ -12,6 +13,35 @@ class Arch(StrEnum):
     X86 = "x86"
     RISCV = "riscv"
     ARM = "arm"
+
+
+# pylint: disable=too-many-instance-attributes
+@dataclass
+class ProfileStats:
+    """Profiling and execution statistics for an executable
+
+    :var str | None build_name: Name of the build.
+    :var str | None executable: Path to the executable file (relative to build dir).
+    :var bool | None executable_run_success: Whether the executable finished successfully.
+    :var str | None real_time: Wall-clock (real) execution time.
+    :var str | None user_time: CPU time spent in user mode.
+    :var str | None kernel_time: CPU time spent in kernel mode.
+    :var str | None perf_stat: Output of `perf stat` command.
+    :var str | None perf_record_name: Filename of the recorded `perf record` data.
+    :var str | None perf_script_name: Filename of the processed `perf script` output.
+    :var str | None perf_script_name: Filename of the archive gathered using `perf archive`.
+    """
+
+    build_name: Optional[str] = None
+    executable: Optional[str] = None
+    executable_run_success: Optional[bool] = None
+    real_time: Optional[str] = None
+    user_time: Optional[str] = None
+    kernel_time: Optional[str] = None
+    perf_stat: Optional[str] = None
+    perf_record_name: Optional[str] = None
+    perf_script_name: Optional[str] = None
+    perf_archive_name: Optional[str] = None
 
 
 @dataclass

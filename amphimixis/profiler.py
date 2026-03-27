@@ -3,24 +3,9 @@
 import logging
 import os
 import pickle
-from enum import Enum
 
 from amphimixis import general, logger, shell
-from amphimixis.general import IUI, NullUI
-
-
-class Stats(Enum):
-    """Profiler stats fields"""
-
-    REAL_TIME = 0
-    USER_TIME = 1
-    KERNEL_TIME = 2
-    EXECUTABLE_RUN_SUCCESS = 3
-    PERF_STAT = 4
-
-
-ProfilerStats = dict[Stats, str]
-
+from amphimixis.general import IUI, NullUI, ProfileStats
 
 _commands_args: dict[str, dict[str, str]] = {
     "stat": {
@@ -72,7 +57,7 @@ class Profiler:
         self.ui = ui
         self.executables = build.executables.copy()
         self.shell = shell.Shell(self.project, self.machine, ui).connect()
-        self.stats: dict[str, ProfilerStats] = {}
+        self.stats: dict[str, ProfileStats] = {}
         self.build_path = os.path.join(
             self.shell.get_project_workdir(), build.build_name
         )
@@ -189,7 +174,10 @@ class Profiler:
         )
 
         if executable not in self.stats:
-            self.stats.update({executable: {}})
+            stats = general.ProfileStats(
+                build_name=self.build.build_name, executable=executable
+            )
+            self.stats.update({executable: stats})
 
         error, _, stderr = self.shell.run(f"cd {working_directory}")
         if error != 0:
@@ -229,13 +217,9 @@ class Profiler:
             self.ui.mark_failed("Execution time measure error. Check the logs")
             return False
 
-        self.stats[executable].update(
-            {
-                Stats.REAL_TIME: stderr[0][-3].strip(),
-                Stats.USER_TIME: stderr[0][-2].strip(),
-                Stats.KERNEL_TIME: stderr[0][-1].strip(),
-            }
-        )
+        self.stats[executable].real_time = stderr[0][-3].strip()
+        self.stats[executable].user_time = stderr[0][-2].strip()
+        self.stats[executable].kernel_time = stderr[0][-1].strip()
 
         self.logger.info(
             "Measuring execution time finished",
@@ -267,7 +251,10 @@ class Profiler:
         )
 
         if executable not in self.stats:
-            self.stats.update({executable: {}})
+            stats = general.ProfileStats(
+                build_name=self.build.build_name, executable=executable
+            )
+            self.stats.update({executable: stats})
 
         error, stdout, stderr = self.shell.run(
             f"cd {working_directory}", f"{os.path.join(self.build_path, executable)}"
@@ -289,9 +276,7 @@ class Profiler:
             )
             self.ui.mark_failed("Smoke test error. Check the logs")
 
-        self.stats[executable].update(
-            {Stats.EXECUTABLE_RUN_SUCCESS: "true" if error == 0 else "false"}
-        )
+        self.stats[executable].executable_run_success = error == 0
 
         self.logger.info(
             "Smoke test finished",
@@ -327,7 +312,10 @@ class Profiler:
         )
 
         if executable not in self.stats:
-            self.stats.update({executable: {}})
+            stats = general.ProfileStats(
+                build_name=self.build.build_name, executable=executable
+            )
+            self.stats.update({executable: stats})
 
         error, _, stderr = self.shell.run(
             f"cd {working_directory}",
@@ -365,7 +353,7 @@ class Profiler:
             self.ui.mark_failed("Perf stat error. Check the logs")
             return False
 
-        self.stats[executable].update({Stats.PERF_STAT: "".join(stderr[0])})
+        self.stats[executable].perf_stat = "".join(stderr[0])
 
         self.logger.info(
             "Perf stat finished",
@@ -472,6 +460,7 @@ class Profiler:
         self.ui.update_message(
             self.build.build_name, "Getting all data from the machine..."
         )
+
         if not self.shell.copy_to_host(
             os.path.join(working_directory, self.get_record_filename(executable)),
             os.path.join(os.getcwd(), self.get_record_filename(executable)),
@@ -484,6 +473,14 @@ class Profiler:
             self.ui.mark_failed("Perf recordfile copy error. Check the logs")
             return False
 
+        if executable not in self.stats:
+            stats = general.ProfileStats(
+                build_name=self.build.build_name, executable=executable
+            )
+            self.stats.update({executable: stats})
+
+        self.stats[executable].perf_record_name = self.get_record_filename(executable)
+
         if perf_archive_error == 0 and not self.shell.copy_to_host(
             os.path.join(working_directory, self.get_archive_filename(executable)),
             os.path.join(os.getcwd(), self.get_archive_filename(executable)),
@@ -494,6 +491,11 @@ class Profiler:
             )
 
             return False
+
+        if perf_archive_error == 0:
+            self.stats[executable].perf_archive_name = self.get_archive_filename(
+                executable
+            )
 
         self.logger.info(
             "Perf record collecting finished",
