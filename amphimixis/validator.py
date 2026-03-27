@@ -10,7 +10,7 @@ from typing import Any
 
 import yaml
 
-from amphimixis.build_systems import build_systems_dict
+from amphimixis.build_systems import build_systems_dict, runners_dict
 from amphimixis.general import general
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -46,7 +46,7 @@ def validate(config_file_path: str) -> bool:
             _warn(f"Invalid build_system: {build_system}")
 
         runner = file_dict.get("runner")
-        if isinstance(runner, str) and str(runner).lower() not in build_systems_dict:
+        if isinstance(runner, str) and runner.lower() not in runners_dict:
             _warn(f"Invalid runner: {runner}")
 
         # validate platforms
