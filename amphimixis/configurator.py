@@ -94,6 +94,12 @@ def parse_config(
         ui.update_message("config", "Config file not found")
         return False
 
+    config_path = path.join(
+        getcwd(), f"{path.basename(path.normpath(project.path))}.project"
+    )
+    with open(config_path, "wb") as file:
+        pickle.dump(project, file)
+
     _logger.info("Configuration completed successfully!")
     return True
 
@@ -196,10 +202,6 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     )
 
     project.builds.append(build)
-
-    config_path = path.join(getcwd(), f"{build_name}_config")
-    with open(config_path, "wb") as file:
-        pickle.dump(build, file)
 
     return True
 
