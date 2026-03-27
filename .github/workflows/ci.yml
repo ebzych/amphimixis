@@ -18,12 +18,13 @@ jobs:
               if [ -n "$PERF_PATH" ]; then
                   sudo ln -sf "$PERF_PATH" /usr/bin/perf
               fi
-
-              sudo mkdir -p /usr/libexec/perf-core
-              curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive >/dev/null
-              sudo chmod +x /usr/libexec/perf-core/perf-archive
           fi
 
+          if [ ! -f /usr/libexec/perf-core/perf-archive ]; then
+              sudo mkdir -p /usr/libexec/perf-core
+              curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive 
+              sudo chmod +x /usr/libexec/perf-core/perf-archive
+          fi
           perf --version
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
