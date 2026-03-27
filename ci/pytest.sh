@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 BLUE='\e[34m'
 NC='\e[0m'
 
