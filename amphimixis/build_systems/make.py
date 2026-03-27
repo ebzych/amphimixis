@@ -90,9 +90,11 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
                 if build.toolchain.sysroot is not None:
                     command += f"SYSROOT={build.toolchain.sysroot} "
                 command += f"{self._generate_toolchain_flags(build.toolchain)} "
-            cd_dir = self.find_relative_path(
+            cd_dir = os.path.join(
                 shell.get_source_dir(),
-                self._get_makefile_name(str(build.config_flags)),
+                self.find_relative_path(
+                    self._get_makefile_name(str(build.config_flags))
+                ),
             )
 
         err_nproc, stdout_nproc, _ = shell.run("nproc")
