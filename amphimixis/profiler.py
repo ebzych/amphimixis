@@ -5,7 +5,7 @@ import os
 import pickle
 
 from amphimixis import general, logger, shell
-from amphimixis.general import IUI, NullUI, ProfileStats
+from amphimixis.general import IUI, NullUI, ProfileStats, constants, tools
 
 _commands_args: dict[str, dict[str, str]] = {
     "stat": {
@@ -482,7 +482,9 @@ class Profiler:
         self.stats[executable].perf_record_name = self.get_record_filename(executable)
 
         if perf_archive_error == 0 and not self.shell.copy_to_host(
-            os.path.join(working_directory, self.get_archive_filename(executable)),
+            os.path.join(
+                working_directory, self.get_record_filename(executable) + ".tar.bz2"
+            ),
             os.path.join(os.getcwd(), self.get_archive_filename(executable)),
         ):
             self.logger.error(
@@ -565,15 +567,29 @@ class Profiler:
     def get_record_filename(self, executable: str) -> str:
         """Gets perf record output file name."""
 
-        executable_path_flatten = os.path.normpath(executable).replace("/", "_")
-        return f"{self.build.build_name}_{executable_path_flatten}.perfdata"
+        return (
+            tools.build_filename(self.build.build_name, executable)
+            + constants.PERF_RECORD_EXT
+        )
 
     def get_archive_filename(self, executable: str) -> str:
         """Gets perf archive file name."""
-        return self.get_record_filename(executable) + ".tar.bz2"
+        return (
+            tools.build_filename(self.build.build_name, executable)
+            + constants.PERF_ARCHIVE_EXT
+        )
+
+    def get_script_filename(self, executable: str) -> str:
+        """Gets perf script file name."""
+        return (
+            tools.build_filename(self.build.build_name, executable)
+            + constants.PERF_SCRIPT_EXT
+        )
 
     def _get_stats_filename(self) -> str:
-        return f"{self.build.build_name}.stats"
+        return (
+            tools.escape_filename_part(self.build.build_name) + constants.PERF_STATS_EXT
+        )
 
     def _build_cmd(
         self,
@@ -613,7 +629,9 @@ class Profiler:
     ) -> tuple[str, str]:
         fixed_options = f"-G -i {perf_record_file}"
         if not perf_script_output_file:
-            perf_script_output_file = perf_record_file + ".scriptout"
+            perf_script_output_file = self.get_script_filename(
+                tools.parse_filename(os.path.splitext(perf_record_file)[0])[1]
+            )
 
         return (
             f"perf --no-pager script {user_options} {fixed_options} > {perf_script_output_file}",

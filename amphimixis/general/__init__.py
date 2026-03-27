@@ -1,6 +1,6 @@
 """The common module that is used in most other modules"""
 
-from amphimixis.general import constants
+from amphimixis.general import constants, tools
 from amphimixis.general.general import (
     IUI,
     Arch,
@@ -25,6 +25,7 @@ __all__ = [
     "IBuildSystem",
     "MachineAuthenticationInfo",
     "constants",
+    "tools",
     "MachineInfo",
     "MachineAuthenticationInfo",
     "IUI",
