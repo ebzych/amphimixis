@@ -40,12 +40,12 @@ def main():
         print(f"{args.validate} is correct!!")
         return 0
 
-    if args.compare:
-        if args.events == []:
-            target_events = None
-        else:
-            target_events = args.events
+    if args.events == []:
+        target_events = None
+    else:
+        target_events = args.events
 
+    if args.compare:
         filename1, filename2 = args.compare
         ui = ConsoleAnimationPrinter()
 
@@ -80,7 +80,9 @@ def main():
             if not run_build(project, config_file_path=str(config_file), ui=ui):
                 return 1
 
-            if not run_profile(project, config_file_path=str(config_file), ui=ui):
+            if not run_profile(
+                project, config_file_path=str(config_file), ui=ui, events=target_events
+            ):
                 return 1
 
             show_profiling_result()
@@ -95,7 +97,9 @@ def main():
                 return 1
 
         if args.profile:
-            if not run_profile(project, config_file_path=str(config_file), ui=ui):
+            if not run_profile(
+                project, config_file_path=str(config_file), ui=ui, events=target_events
+            ):
                 return 1
 
             show_profiling_result()

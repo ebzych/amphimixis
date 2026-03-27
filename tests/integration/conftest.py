@@ -26,9 +26,10 @@ def clone_repo():
 
     yield _clone_repo
 
-    for path in repo_paths:
-        if os.path.exists(path):
-            shutil.rmtree(path, ignore_errors=True)
+    if not os.getenv("CI"):
+        for path in repo_paths:
+            if os.path.exists(path):
+                shutil.rmtree(path, ignore_errors=True)
 
 
 @pytest.fixture
@@ -45,9 +46,10 @@ def create_working_space():
 
     yield _create_temp_file
 
-    for dir_ in working_dirs:
-        if os.path.exists(dir_):
-            shutil.rmtree(dir_, ignore_errors=True)
+    if not os.getenv("CI"):
+        for dir_ in working_dirs:
+            if os.path.exists(dir_):
+                shutil.rmtree(dir_, ignore_errors=True)
 
 
 @pytest.fixture
@@ -62,4 +64,5 @@ def _docker_compose():
 
     yield compose
 
-    compose.stop()
+    if not os.getenv("CI"):
+        compose.stop()

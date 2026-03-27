@@ -229,7 +229,7 @@ def main(
     target_events: None | list[str] = None,
     max_rows=20,
     use_llm=False,
-):
+) -> int:
     """
     Compares two perf output files and prints the top `max_rows`
     symbols with the most significant changes for specified events.
@@ -239,12 +239,16 @@ def main(
     stats_b = _get_stats_by_event(filename2)
 
     if not stats_a or not stats_b:
-        return
+        return 1
 
     all_events = set(stats_a.keys()) | set(stats_b.keys())
 
     top_regressions = []
     comparison_table_text = ""
+
+    if not any(event in all_events for event in target_events or []):
+        print("Available events: ", *all_events)
+        return 1
 
     for event in target_events if target_events else all_events:
         print_comparison_table(event, stats_a[event], stats_b[event], max_rows)
@@ -257,6 +261,8 @@ def main(
     raw_samples_b = _get_raw_context(filename2, top_regressions[:5])
     if use_llm:
         analyze_with_llm(comparison_table_text, raw_samples_a, raw_samples_b)
+
+    return 0
 
 
 if __name__ == "__main__":
@@ -271,6 +277,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if len(sys.argv) == 3:
-        main(sys.argv[1], sys.argv[2])
+        sys.exit(main(sys.argv[1], sys.argv[2]))
     else:
-        main(sys.argv[1], sys.argv[2], None, int(sys.argv[3]))
+        sys.exit(main(sys.argv[1], sys.argv[2], None, int(sys.argv[3])))

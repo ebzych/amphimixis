@@ -67,9 +67,12 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
         profiler_instance = Profiler(project, build)
         perf_record_collect_original = profiler_instance.perf_record_collect
 
-        def wrap(executable, options=None):
+        def wrap(executable, build_path, options="", events=["cycles"]):
             return perf_record_collect_original(
-                executable, profiler_instance.build_path, options="-g -F1000 -e cycles"
+                executable,
+                profiler_instance.build_path,
+                options,
+                events=events,
             )
 
         mocker.patch.object(profiler_instance, "perf_record_collect", side_effect=wrap)
@@ -271,13 +274,14 @@ class TestProfiler:
             proj_path, program, EXECUTABLE_FILENAME + "test", profiler.build.build_name
         )
 
-        assert profiler.profile_all(
+        profiler.profile_all(
             profiler.build_path,
             test_executable=True,
             execution_time=True,
             stat_collect=True,
             record_collect=True,
             max_number_of_executables=1,
+            events=["cycles"],
         )
 
         assert all(
@@ -319,13 +323,14 @@ class TestProfiler:
             profiler.build.build_name,
         )
 
-        assert profiler.profile_all(
+        profiler.profile_all(
             profiler.build_path,
             test_executable=True,
             execution_time=True,
             stat_collect=True,
             record_collect=True,
             max_number_of_executables=2,
+            events=["cycles"],
         )
 
         assert spies[0].call_count == 2

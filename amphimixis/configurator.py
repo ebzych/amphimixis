@@ -170,7 +170,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     else:
         run_machine = create_machine(run_machine_info)
 
-    if not _has_valid_arch(run_machine, ui):
+    if not _has_valid_arch(project, run_machine, ui):
         return False
 
     toolchain = None
@@ -226,7 +226,9 @@ def _get_by_id(items: list[dict[str, str]], target_id: int) -> dict[str, str]:
     return {}
 
 
-def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
+def _has_valid_arch(
+    project: general.Project, machine: general.MachineInfo, ui: IUI = NullUI()
+) -> bool:
     """Function to check whether run machine arch is valid"""
 
     if machine.address is None:
@@ -240,7 +242,7 @@ def _has_valid_arch(machine: general.MachineInfo, ui: IUI = NullUI()) -> bool:
 
     else:
         ui.update_message("config", "Checking remote architecture for validity...")
-        shell = Shell(machine, ui).connect()
+        shell = Shell(project, machine, ui).connect()
         error_code, stdout, _ = shell.run("uname -m")
         if error_code != 0:
             _logger.error(

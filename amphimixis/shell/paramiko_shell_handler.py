@@ -1,6 +1,5 @@
 """SSH shell handler implementation."""
 
-import os
 import socket
 from ctypes import ArgumentError
 
@@ -19,7 +18,6 @@ class _ParamikoHandler(IShellHandler):
 
         self.machine = machine
         self.client = paramiko.SSHClient()
-        self.client.load_host_keys(os.path.expanduser("~/.ssh/known_hosts"))
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         try:
@@ -58,7 +56,7 @@ class _ParamikoHandler(IShellHandler):
 
     def stdout_readline(self) -> str:
         line = ""
-        while char := self.chan.recv(1).decode("UTF-8", "ignore"):
+        while char := self.chan.recv(1).decode("UTF-8", "replace"):
             line += char
             if char == "\n":
                 break
@@ -67,7 +65,7 @@ class _ParamikoHandler(IShellHandler):
 
     def stderr_readline(self) -> str:
         line = ""
-        while char := self.chan.recv_stderr(1).decode("UTF-8", "ignore"):
+        while char := self.chan.recv_stderr(1).decode("UTF-8", "replace"):
             line += char
             if char == "\n":
                 break

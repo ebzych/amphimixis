@@ -6,6 +6,8 @@ import pytest
 
 import amphimixis
 
+project = amphimixis.general.Project("/tmp/amphimixis", [], None, None)  # type: ignore
+
 
 @pytest.mark.unit
 class TestShell:
@@ -22,7 +24,7 @@ class TestShell:
         original_file = tmp_path_factory.mktemp("data0") / "original.txt"
         os.system(f"dd if=/dev/random of={original_file} bs=1 count=1234")
 
-        shell = amphimixis.Shell(machine).connect()
+        shell = amphimixis.Shell(project, machine).connect()
         error, stdout, stderr = shell.run("echo $(mktemp -d)")
         assert error == 0
         remote_tmpdir = stdout[0][0].strip()
@@ -53,7 +55,7 @@ class TestShell:
         machine: amphimixis.general.MachineInfo,
         tmp_path_factory,
     ):
-        shell = amphimixis.Shell(machine).connect()
+        shell = amphimixis.Shell(project, machine).connect()
 
         error, stdout, stderr = shell.run("echo $(mktemp -d)")
         assert error == 0

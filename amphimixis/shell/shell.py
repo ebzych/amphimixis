@@ -19,20 +19,26 @@ _READING_BARRIER_FLAG = "READING_BARRIER_FLAG"
 class Shell:
     """Shell class to manage shell operations.
 
-    In case of local machine `bash` is used as shell.
+    `bash` is used as shell.
+
+    :param Project project: Project object.
+    :param MachineInfo machine: machine to run profiling at.
+    :param connect_timeout int: connection to machine timeout.
     """
 
     def __init__(
         self,
+        project: Project,
         machine: MachineInfo,
         ui: IUI = NullUI(),
-        connect_timeout=5,
+        connect_timeout=10,
     ):
-        self.logger = logger.setup_logger("SHELL")
-        self._shell: IShellHandler
-        self.machine = machine
-        self.ui = ui
+        self.project = project
         self.connect_timeout = connect_timeout
+        self.machine = machine
+        self._logger = logger.setup_logger("SHELL")
+        self._shell: IShellHandler
+        self._ui = ui
         self._project_workdir: str = ""
         self._homedir: str = ""
         self._is_connected: bool = False
@@ -48,8 +54,8 @@ class Shell:
 
         self._is_connected = True
         level, _ = self.set_paranoid(-1)
-        if level != 1:
-            self.logger.error(
+        if level != -1:
+            self._logger.error(
                 "Can't set /proc/sys/kernel/perf_event_paranoid to -1. Set it manually"
             )
 
@@ -61,7 +67,7 @@ class Shell:
 
     def _create_remote_shell(self) -> None:
         if self.machine.auth is None:
-            self.logger.error(
+            self._logger.error(
                 "Remote machine [%s] has no authentication info", self.machine.address
             )
 
@@ -72,7 +78,7 @@ class Shell:
         try:
             socket.getaddrinfo(self.machine.address, None)
         except socket.gaierror as exception:
-            self.logger.error("%s is unknown address", self.machine.address)
+            self._logger.error("%s is unknown address", self.machine.address)
             raise ArgumentError(
                 f"{self.machine.address} is unknown address"
             ) from exception
@@ -116,7 +122,7 @@ class Shell:
             cmd_stdout: List[str] = []
             cmd_stderr: List[str] = []
             while line := self._shell.stdout_readline():
-                self.ui.step()
+                self._ui.step()
                 if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
                     error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
                     if cmd_stdout[-1] == "\n":
@@ -128,7 +134,7 @@ class Shell:
             stdout.append(cmd_stdout)
 
             while line := self._shell.stderr_readline():
-                self.ui.step()
+                self._ui.step()
                 if line[:-1] == _READING_BARRIER_FLAG:
                     if cmd_stderr[-1] == "\n":
                         del cmd_stderr[-1]
@@ -175,10 +181,9 @@ class Shell:
 
         return self._copy(_source, destination)
 
-    def get_project_workdir(self, project: Project) -> str:
+    def get_project_workdir(self) -> str:
         """Gets a working directory for amphimixis
 
-        :param Project project: Project object to determine the project name
 
         :rtype: str
         :return: In case of remote machine:
@@ -200,7 +205,7 @@ class Shell:
         self._project_workdir = os.path.join(
             self.get_home(),
             constants.AMPHIMIXIS_DIRECTORY_NAME,
-            os.path.basename(os.path.normpath(project.path)) + "_builds",
+            os.path.basename(os.path.normpath(self.project.path)) + "_builds",
         )
 
         return self._project_workdir
@@ -217,13 +222,14 @@ class Shell:
         if self._is_local:
             self._homedir = os.path.expanduser("~")
             if self._homedir == "":
-                self.logger.error("Can't get homedir for [local] machine")
+                self._logger.error("Can't get homedir for [local] machine")
                 raise RuntimeError("Can't get homedir for [local] machine")
+            return self._homedir
 
         error, stdout, _ = self.run("echo ~")
 
         if self.machine.auth is None:
-            self.logger.error(
+            self._logger.error(
                 "Remote machine [%s] has no authentication info", self.machine.address
             )
 
@@ -232,7 +238,7 @@ class Shell:
             )
 
         if error != 0:
-            self.logger.error(
+            self._logger.error(
                 "Can't get homedir for [%s@%s] ",
                 self.machine.auth.username,
                 self.machine.address,
@@ -245,13 +251,15 @@ class Shell:
         self._homedir = stdout[0][0].strip()
         return self._homedir
 
-    def get_source_dir(self, project: Project):
+    def get_source_dir(self):
         """Gets a directory for the project source code on the target machine."""
         if self._is_local:
-            return project.path
+            return self.project.path
 
         return os.path.join(
-            self.get_project_workdir(project), "..", os.path.basename(project.path)
+            self.get_home(),
+            constants.AMPHIMIXIS_DIRECTORY_NAME,
+            os.path.basename(self.project.path),
         )
 
     def set_paranoid(self, level: int) -> tuple[int, bool]:
@@ -275,13 +283,13 @@ class Shell:
         )
 
         if error != 0:
-            self.logger.error("Can't set perf_event_paranoid: %s", "".join(stderr[0]))
+            self._logger.error("Can't set perf_event_paranoid: %s", "".join(stderr[0]))
 
         error, stdout, stderr = self.run("cat /proc/sys/kernel/perf_event_paranoid")
 
         set_code = 0
         if error != 0:
-            self.logger.error("Can't read perf_event_paranoid: %s", "".join(stderr[0]))
+            self._logger.error("Can't read perf_event_paranoid: %s", "".join(stderr[0]))
             return (0, False)
 
         set_code = int(stdout[0][0])
@@ -290,14 +298,18 @@ class Shell:
 
     def _copy(self, source: str, destination: str) -> bool:
         if self.machine.auth is None:
-            port = -1  # should be OK with local copying
-            password = "nopasswd"
-        else:
-            port = self.machine.auth.port
-            # if None or empty string, ssh-agent is supposed
-            password = self.machine.auth.password or "nopasswd"
+            return self._copy_local(source, destination)
 
-        self.logger.info("Copying %s -> %s", source, destination)
+        port = self.machine.auth.port
+        # if None or empty string, ssh-agent is supposed
+        password = self.machine.auth.password or "nopasswd"
+
+        return self._copy_remote(source, destination, password, port)
+
+    def _copy_remote(
+        self, source: str, destination: str, password: str, port: int
+    ) -> bool:
+        self._logger.info("Copying %s -> %s", source, destination)
         error_code = subprocess.call(
             [
                 "sshpass",
@@ -313,15 +325,25 @@ class Shell:
                 "--compress",
                 "--log-file=./amphimixis.log",
                 "-e",
-                f"ssh -p {port}",
+                f"ssh -o StrictHostKeyChecking=no -p {port}",
                 source,
                 destination,
             ]
         )
 
         if error_code != 0:
-            self.logger.error("Error %s -> %s", source, destination)
+            self._logger.error("Error %s -> %s", source, destination)
             return False
 
-        self.logger.info("Success %s -> %s", source, destination)
+        self._logger.info("Success %s -> %s", source, destination)
+        return True
+
+    def _copy_local(self, source: str, destination: str) -> bool:
+        self._logger.info("Copying %s -> %s", source, destination)
+        error_code = subprocess.call(["cp", "-aL", source, destination])
+        if error_code != 0:
+            self._logger.error("Error %s -> %s", source, destination)
+            return False
+
+        self._logger.info("Success %s -> %s", source, destination)
         return True
