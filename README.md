@@ -12,6 +12,19 @@ Amphimixis is automated project intelligence and evaluation tool for perfomance 
 
 > Amphimixis is currently in a very early pre-release state.
 
+## Quick Run
+
+If you want to try Amphimixis right away, create a virtual environment, install the package from GitHub, and run the full pipeline on a target project:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install git+https://github.com/ebzych/amphimixis.git
+amixis /path/to/project
+```
+
+Before you run it, make sure your project has an `input.yml` configuration file. The format is described in [docs/config_instruction.md](docs/config_instruction.md).
+
 ## Installation
 
 ### Install from GitHub
@@ -22,7 +35,7 @@ pip install git+https://github.com/ebzych/amphimixis.git
 
 ### Requirements
 
-- Python 3.13 or newer
+- Python 3.12 or newer
 - Linux
 - `perf` available in `PATH` for profiling
 - A supported build setup in the target project: CMake as the build system and Make as the low-level runner
@@ -128,7 +141,7 @@ Contributions are welcome.
 Before contributing, make sure local checks pass:
 
 ```bash
-uv run pytest
+ci/runner.sh
 ```
 
 ## License
