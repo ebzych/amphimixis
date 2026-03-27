@@ -233,6 +233,12 @@ def main(
     """
     Compares two perf output files and prints the top `max_rows`
     symbols with the most significant changes for specified events.
+
+    :param str filename1: path to baseline build perfdata.scriptout
+    :param str filename2: path to another build perfdata.scriptout
+    :param list[str] target_events: list of events to compare
+    :param int max_rows: maximum symbols to print per event
+    :param bool use_llm: use LLM
     """
 
     stats_a = _get_stats_by_event(filename1)
