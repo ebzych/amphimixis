@@ -43,8 +43,9 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
         shell = Shell(self._project, build.build_machine, self._ui).connect()
 
         build_path = os.path.join(shell.get_project_workdir(), build.build_name)
-        cmakelists_dir = self.find_relative_path(
-            shell.get_source_dir(), "CMakeLists.txt"
+        cmakelists_dir = os.path.join(
+            shell.get_source_dir(),
+            self.find_relative_path("CMakeLists.txt"),
         )
         command = (
             f"cmake -G {self._generator_names_map[type(self.runner)]} "
