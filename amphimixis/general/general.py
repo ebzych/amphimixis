@@ -362,15 +362,15 @@ class BuildSystem:
         self._ui = ui
         self.runner = runner
 
-    def find_relative_path(self, file_name: str) -> str:
-        """Find first <name> file relative to project root.
+    def find_relative_path(self, src_dir: str, file_name: str) -> str:
+        """Find first directory that contains 'file_name' relative to project root.
         :param str proj_path: Path to project root
         :param int max_depth: Max depth of search
         :rtype: str
-        :return: Path to <name> relative to project root
+        :return: Path to directory that contains file relative to project root
         """
         q_dirs: queue.Queue[tuple[str, int]] = queue.Queue()
-        q_dirs.put((self._project.path, 0))
+        q_dirs.put((src_dir, 0))
         while not q_dirs.empty():
             curr_dir = q_dirs.get()
             if curr_dir[1] >= self._MAX_DEPTH:

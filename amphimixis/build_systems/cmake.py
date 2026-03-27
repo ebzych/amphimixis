@@ -43,9 +43,12 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
         shell = Shell(self._project, build.build_machine, self._ui).connect()
 
         build_path = os.path.join(shell.get_project_workdir(), build.build_name)
+        cmakelists_dir = self.find_relative_path(
+            shell.get_source_dir(), "CMakeLists.txt"
+        )
         command = (
             f"cmake -G {self._generator_names_map[type(self.runner)]} "
-            f"-B {build_path} -S {shell.get_source_dir()} "
+            f"-B {build_path} -S {cmakelists_dir} "
         )
         if build.config_flags is not None:
             command += f"{build.config_flags} "
@@ -56,7 +59,7 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
                 command += f"-DCMAKE_SYSROOT={build.toolchain.sysroot} "
             command += f"{self._generate_toolchain_flags(build.toolchain)} "
 
-        err, stdout, stderr = shell.run(f"cd {shell.get_source_dir()}")
+        err, stdout, stderr = shell.run(f"cd {cmakelists_dir}")
         if err != 0:
             return (err, "".join(stdout[0]), "".join(stderr[0]))
 
