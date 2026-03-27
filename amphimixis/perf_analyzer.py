@@ -252,7 +252,7 @@ def main(
     top_regressions = []
     comparison_table_text = ""
 
-    if not any(event in all_events for event in target_events or []):
+    if False in (event in all_events for event in target_events or []):
         print("Available events: ", *all_events)
         return 1
 
