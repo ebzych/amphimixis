@@ -56,8 +56,11 @@ except ImportError:
 
     _logger = logging.getLogger("PERF_ANALYZER")
 
-SYMBOL_LENGTH = 160
-COLUMN_LENGTH = 12
+BUILD_COLUMN_LENGTH = 9
+DELTA_COLUMN_LENGTH = 7
+SYMBOL_LENGTH = (
+    os.get_terminal_size()[0] - 3 * BUILD_COLUMN_LENGTH - DELTA_COLUMN_LENGTH
+)
 LLM_OUTPUT_FILENAME = "perf_llm_output.md"
 
 
@@ -110,13 +113,13 @@ def print_comparison_table(event_name, data_a, data_b, max_rows):
     )
 
     header_symbol = "Symbol".ljust(SYMBOL_LENGTH)
-    header_a = "Build A %".rjust(COLUMN_LENGTH)
-    header_b = "Build B %".rjust(COLUMN_LENGTH)
-    header_delta = "Delta %".rjust(COLUMN_LENGTH)
+    header_a = "Build A %".rjust(BUILD_COLUMN_LENGTH)
+    header_b = "Build B %".rjust(BUILD_COLUMN_LENGTH)
+    header_delta = "Delta %".rjust(DELTA_COLUMN_LENGTH)
 
     print(f"\n{'='*10} EVENT: {event_name.upper()} {'='*10}")
     print(f"{header_symbol} | {header_a} | {header_b} | {header_delta}")
-    print("-" * (SYMBOL_LENGTH + COLUMN_LENGTH * 3 + 10))
+    print("-" * (SYMBOL_LENGTH + BUILD_COLUMN_LENGTH * 2 + DELTA_COLUMN_LENGTH + 9))
 
     for _, row in result.iterrows():
         sym = row["symbol"]
@@ -124,9 +127,9 @@ def print_comparison_table(event_name, data_a, data_b, max_rows):
             (sym[: SYMBOL_LENGTH - 3] + "...") if len(sym) > SYMBOL_LENGTH else sym
         )
 
-        val_a = f"{row['share_a']:>{COLUMN_LENGTH}.2f}"
-        val_b = f"{row['share_b']:>{COLUMN_LENGTH}.2f}"
-        val_d = f"{row['delta']:>+{COLUMN_LENGTH}.2f}"
+        val_a = f"{row['share_a']:>{BUILD_COLUMN_LENGTH}.2f}"
+        val_b = f"{row['share_b']:>{BUILD_COLUMN_LENGTH}.2f}"
+        val_d = f"{row['delta']:>+{DELTA_COLUMN_LENGTH}.2f}"
         print(f"{display_sym.ljust(SYMBOL_LENGTH)} | {val_a} | {val_b} | {val_d}")
 
 
