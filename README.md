@@ -25,6 +25,13 @@ amixis /path/to/project
 
 Before you run it, make sure your project has an `input.yml` configuration file. The format is described in [docs/config_instruction.md](docs/config_instruction.md).
 
+If your `input.yml` contains remote machines authenticated with SSH keys, start `ssh-agent` in the current shell and add the required keys manually before running `amixis`:
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_remote_machine
+```
+
 ## Installation
 
 ### Install from GitHub

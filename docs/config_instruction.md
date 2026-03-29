@@ -59,7 +59,7 @@ The **platforms** section describes the machines on which the project will be bu
 </p>
 <p id="note4">
 
-4. If the user has an SSH agent, then the password does not need to be provided. **Please note that passwords are passed to SSH through sshpass, which is not secure.**
+4. If the user uses SSH keys, start `ssh-agent` in the current shell and add the required keys for each remote machine manually with `ssh-add` before running Amphimixis. In this case, the password does not need to be provided. **Please note that passwords are passed to SSH through sshpass, which is not secure.**
 
 </p>
 
@@ -68,6 +68,7 @@ The **platforms** section describes the machines on which the project will be bu
 > - If the `address` field is not specified, the local machine is assumed.
 > - For a local machine, `username`, `password`, and `port` do not need to be specified.
 > - If an `address` is specified, the machine is treated as remote, and the fields `username`, `password`, and `port` must be provided.
+> - If you connect with SSH keys instead of a password, run `eval "$(ssh-agent -s)"` and then add the keys for the target machines manually, for example `ssh-add ~/.ssh/id_remote_machine`, before starting Amphimixis.
 
 ### Recipes
 

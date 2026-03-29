@@ -28,6 +28,15 @@ Before running the tool, ensure your directory contains a valid `input.yml` conf
 
 - Refer to the [input.yml example](./input.yml).
 
+If your configuration uses remote machines with SSH keys, start `ssh-agent` in the current shell and add the needed keys manually before running the tool:
+
+Example:
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_remote_machine
+```
+
 ## Run Amphimixis
 
 Run `amixis` from your **working directory** by passing the project path as an argument.
