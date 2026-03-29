@@ -562,10 +562,27 @@ class Profiler:
         return True, perf_script_file
 
     def save_stats(self):
-        """Save collected statistics to a file."""
+        """Save collected statistics to a file.
+        Merges with previous build statistics.
+
+        Structure:
+        {"build1":{"executable1": ProfileStats, "executable2": ...}, "build2": ...}
+        """
+
+        merged_stats = {self.build.build_name: self.stats}
+
+        try:
+            with open(
+                os.path.join(os.getcwd(), self._get_stats_filename()), "rb"
+            ) as file:
+                obj: dict[str, dict[str, ProfileStats]]
+                obj = pickle.load(file)
+            merged_stats.update(obj)
+        except FileNotFoundError:
+            pass
 
         with open(os.path.join(os.getcwd(), self._get_stats_filename()), "wb") as file:
-            pickle.dump(self.stats, file)
+            pickle.dump(merged_stats, file)
 
     def get_record_filename(self, executable: str) -> str:
         """Gets perf record output file name."""
@@ -591,7 +608,8 @@ class Profiler:
 
     def _get_stats_filename(self) -> str:
         return (
-            tools.escape_filename_part(self.build.build_name) + constants.PERF_STATS_EXT
+            tools.escape_filename_part(tools.project_name(self.project))
+            + constants.PERF_STATS_EXT
         )
 
     def _build_cmd(

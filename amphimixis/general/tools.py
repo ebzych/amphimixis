@@ -7,6 +7,8 @@ information.
 
 import os
 
+from amphimixis.general.general import Project
+
 
 def build_filename(build_name: str, executable: str) -> str:
     """Build a reversible filename."""
@@ -81,3 +83,8 @@ def unescape_filename_part(value: str) -> str:
             raise ValueError(f"Invalid escaped filename part: {value}")
 
     return "".join(decoded)
+
+
+def project_name(project: Project):
+    """Generate project name based on project object"""
+    return os.path.basename(os.path.normpath(project.path))
