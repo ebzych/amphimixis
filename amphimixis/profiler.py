@@ -393,7 +393,10 @@ class Profiler:
         """
 
         if not events:
-            events = ["cycles", "cache-misses", "branch-misses"]
+            if self.build.run_machine.arch == general.Arch.RISCV:
+                events = ["cpu-clock", "cache-misses", "branch-misses"]
+            else:
+                events = ["cycles", "cache-misses", "branch-misses"]
 
         self.ui.update_message(self.build.build_name, "Perf data recording...")
         self.logger.info(
