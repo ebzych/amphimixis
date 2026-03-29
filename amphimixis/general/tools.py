@@ -6,7 +6,9 @@ information.
 """
 
 import os
+import pickle
 
+from amphimixis.general.constants import PERF_STATS_EXT
 from amphimixis.general.general import Project
 
 
@@ -88,3 +90,12 @@ def unescape_filename_part(value: str) -> str:
 def project_name(project: Project):
     """Generate project name based on project object"""
     return os.path.basename(os.path.normpath(project.path))
+
+
+def load_project_stats(project: Project):
+    """Loads profiler statistics of the project"""
+    with open(
+        escape_filename_part(project_name(project)) + PERF_STATS_EXT,
+        "rb",
+    ) as file:
+        return pickle.load(file)

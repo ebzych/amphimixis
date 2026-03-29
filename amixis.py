@@ -85,7 +85,7 @@ def main():
             ):
                 return 1
 
-            show_profiling_result()
+            show_profiling_result(project)
             return 0
 
         if args.analyze:
@@ -102,7 +102,7 @@ def main():
             ):
                 return 1
 
-            show_profiling_result()
+            show_profiling_result(project)
 
         return 0
 

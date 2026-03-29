@@ -1,12 +1,12 @@
 """CLI command implementations for Amphimixis."""
 
-import glob
 import shutil
 import tempfile
 from os import path
 
 from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
-from amphimixis.general import IUI, NullUI
+from amphimixis.general import IUI, NullUI, constants, tools
+from amphimixis.general.general import ProjectStats
 from amphimixis.perf_analyzer import main as compare_perf
 
 
@@ -69,6 +69,7 @@ def run_profile(
         profiler_ = Profiler(project, build, ui)
         successful_execs = profiler_.profile_all(events=events)
         profiler_.save_stats()
+        profiler_.cleanup()
         # if empty return -> error
         # if build.executables is not empty, return not equal build.executables -> error
         # if build.executables is empty, return(found executables for profiling) not empty -> passed
@@ -119,26 +120,51 @@ def run_compare(
     return True
 
 
-def show_profiling_result():
+def show_profiling_result(project: general.Project):
     """Show hint or warning after profiling, based on .scriptout files in current directory."""
 
-    scriptout_files = glob.glob("*.scriptout")
+    obj: ProjectStats = tools.load_project_stats(project)
 
-    if not scriptout_files:
+    if not obj:
         print("\n[!] No profiling data (.scriptout files) were generated.")
         print("\tPlease check amphimixis.log for details.")
-    elif len(scriptout_files) == 1:
+    elif len(obj.keys()) == 1:
         print("\n[i] Only one profiling result was generated.")
         print("\tTo compare two results, run profiling again with a different build.")
         print("\tOnce you have two .scriptout files, compare them with:")
         print("\tamixis --compare <file1.scriptout> <file2.scriptout>")
     else:
-        file1 = path.basename(scriptout_files[0])
-        file2 = path.basename(scriptout_files[1])
+        key1, key2 = list(obj.keys())[:2]
+        executable = None
+        for exe in obj[key1]:
+            if exe in obj[key2]:
+                executable = exe
+                break
+
+        if executable is None:
+            print(
+                "\tThere is no profiling results for the same executable in different build"
+            )
+            print("\b Maybe you should check profiling errors")
+            return
+
+        build1_name = obj[key1][executable].build_name
+        build2_name = obj[key2][executable].build_name
+
+        if build1_name is None or build2_name is None:
+            print("Currupted project.stats file")
+            return
+
+        file1 = (
+            tools.build_filename(build1_name, executable) + constants.PERF_SCRIPT_EXT
+        )
+
+        file2 = (
+            tools.build_filename(build2_name, executable) + constants.PERF_SCRIPT_EXT
+        )
+
         print("\n[>] To compare two profiling results, use:")
         print(f"\tamixis --compare {file1} {file2}")
-        if len(scriptout_files) > 2:
-            print("\t(or pick the files you want)")
 
 
 def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bool:
