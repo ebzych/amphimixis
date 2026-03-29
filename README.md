@@ -68,6 +68,8 @@ Amphimixis can:
 
 Prepare a working directory with an `input.yml` configuration file. The configuration format is described in [docs/config_instruction.md](docs/config_instruction.md).
 
+In `builds`, you can optionally specify an `executables` list for each build. Each executable path must be relative to that build's output directory, for example `bin/my_app`. If you omit this field, Amphimixis will profile the first executable file it finds there.
+
 Run the full workflow for a project:
 
 ```bash

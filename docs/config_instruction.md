@@ -171,5 +171,24 @@ The **builds** section links platforms and recipes, defining which configuration
 | build_machine                                  | integer | `platform_id` of the machine where the project will be built               |
 | run_machine                                    | integer | `platform_id` of the machine where the built project will be executed      |
 | recipe_id                                      | integer | Id of the `recipe`                                                         |
+| executables<sup><a href="#note7">7</a></sup>   |  list   | List of executables to profile for this build                              |
 
 ---
+
+<p id="note7">
+
+7. **Optional field**. Each path in `executables` must be specified relative to the build directory created for this build. For example, use `bin/app` rather than an absolute path. If `executables` is not specified, Amphimixis will profile the first executable file it finds in the build directory.
+
+</p>
+
+Example:
+
+```yaml
+builds:
+  - build_machine: 1
+    run_machine: 1
+    recipe_id: 1
+    executables:
+      - bin/my_app
+      - tests/my_benchmark
+```
