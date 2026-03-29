@@ -85,6 +85,20 @@ def _parse_perf_line(line):
     return symbol, period, event_type
 
 
+def _event_map(event: str) -> str:
+    # intel hybrid cpu with E/P cores
+    # merges cpu_atom/cycles and cpu_core/cycles into a single 'cycles' event
+    # there should be a better solution...
+    if "cycles" in event:
+        return "cycles"
+
+    # risc-v
+    if event == "cpu-clock":
+        return "cycles"
+
+    return event
+
+
 def _get_stats_by_event(filepath):
     # { 'cycles': { 'func1': 100, 'func2': 200 }, 'cache-misses': { ... } }
     event_data = defaultdict(lambda: defaultdict(float))
@@ -95,7 +109,8 @@ def _get_stats_by_event(filepath):
                 res = _parse_perf_line(line)
                 if res:
                     sym, period, ev = res
-                    event_data[ev][sym] += period
+                    event = _event_map(ev)
+                    event_data[event][sym] += period
     except FileNotFoundError:
         return None
 
