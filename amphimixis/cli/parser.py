@@ -67,7 +67,16 @@ class CustomFormatterClass(
 
               amixis --compare filename1.scriptout filename2.scriptout --max-rows=10
                   → Compares two perf output files (.scriptout)
-                    and displays the top 10 rows per event in the console.
+                    and displays up to 10 symbols with the biggest delta per event.
+
+              amixis /path/to/folder/with/project --events cycles cache-misses 
+                  → Runs the full pipeline and records only the specified perf events.
+
+              amixis /path/to/folder/with/project --profile --events cycles cache-misses 
+                  → Runs only the profiling step and records only the specified perf events.
+
+              amixis --compare a.scriptout b.scriptout --events cycles cache-misses
+                  → Compares only the specified events from two .scriptout files.
             """
         )
 
@@ -142,14 +151,15 @@ def create_parser():
         "--max-rows",
         type=int,
         default=20,
-        help="maximum number of rows to display per event in comparison (default: 20).",
+        help="maximum number of rows(symbols) to display per event in comparison (default: 20).",
     )
 
     parser.add_argument(
         "--events",
         nargs="*",
-        help="list of specific events to compare (e.g., cpu-clock);\n"
-        "if not specified, all events are compared.",
+        help="space-separated perf events (e.g., cycles cache-misses).\n"
+        "With the main pipeline or --profile, records only these events;"
+        " with --compare, shows only these events.",
     )
 
     return parser

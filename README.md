@@ -90,6 +90,12 @@ amixis --profile /path/to/project
 amixis --validate ./input.yml
 ```
 
+To record only selected `perf` events in the full pipeline:
+
+```bash
+amixis /path/to/project --events cycles cache-misses
+```
+
 To use a custom configuration file:
 
 ```bash
@@ -101,6 +107,19 @@ To compare two collected `perf` outputs:
 ```bash
 amixis --compare build1.scriptout build2.scriptout --max-rows 10
 ```
+
+`--compare` accepts exactly two `.scriptout` files. `--max-rows` limits how many symbols with the largest delta are shown for each event.
+
+To compare only selected events:
+
+```bash
+amixis --compare build1.scriptout build2.scriptout --events cycles cache-misses
+```
+
+`--events` has two modes:
+
+- with the main pipeline or `--profile`, it tells `perf record` which events to collect
+- with `--compare`, it filters the output to the listed events
 
 ## Build And Run Notes
 

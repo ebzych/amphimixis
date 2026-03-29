@@ -77,10 +77,42 @@ amixis --build /path/to/project
 amixis --profile /path/to/project
 ```
 
+To collect only specific perf events in the full pipeline, pass them after `--events`:
+
+```bash
+amixis /path/to/project --events cycles cache-misses
+```
+
+The same flag also works with the profiling-only mode:
+
+```bash
+amixis --profile /path/to/project --events cycles cache-misses
+```
+
 #### Use a custom configuration file
 
 To use a configuration file other than the default `input.yml`, use the `--config` flag:
 
 ```bash
 amixis --config=./my_input.yml /path/to/project
+```
+
+#### Compare two profiling results
+
+Use `--compare` with two `.scriptout` files:
+
+```bash
+amixis --compare build1.scriptout build2.scriptout
+```
+
+Use `--max-rows` to limit how many symbols with the biggest delta are shown for each event:
+
+```bash
+amixis --compare build1.scriptout build2.scriptout --max-rows 10
+```
+
+Use `--events` with `--compare` to display only the selected events:
+
+```bash
+amixis --compare build1.scriptout build2.scriptout --events cycles cache-misses
 ```
