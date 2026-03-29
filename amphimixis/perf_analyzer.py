@@ -1,11 +1,15 @@
 """Compare two perf output files."""
 
+# pylint: disable=too-many-arguments
+
 import os
 import sys
 from collections import defaultdict
 
 import pandas as pd
 from openai import OpenAI
+
+from amphimixis.general import tools
 
 
 # pylint: disable=too-few-public-methods
@@ -56,11 +60,7 @@ except ImportError:
 
     _logger = logging.getLogger("PERF_ANALYZER")
 
-BUILD_COLUMN_LENGTH = 9
 DELTA_COLUMN_LENGTH = 7
-SYMBOL_LENGTH = (
-    os.get_terminal_size()[0] - 3 * BUILD_COLUMN_LENGTH - DELTA_COLUMN_LENGTH
-)
 LLM_OUTPUT_FILENAME = "perf_llm_output.md"
 
 
@@ -118,7 +118,9 @@ def _get_stats_by_event(filepath):
 
 
 # pylint: disable=too-many-locals
-def print_comparison_table(event_name, data_a, data_b, max_rows):
+def print_comparison_table(
+    event_name, data_a, data_b, max_rows, build_a="Build A", build_b="Build B"
+):
     """Prints statistics comparison for a specific event."""
 
     merged = _get_comparison_data(data_a, data_b, max_rows)
@@ -127,25 +129,49 @@ def print_comparison_table(event_name, data_a, data_b, max_rows):
         max_rows
     )
 
-    header_symbol = "Symbol".ljust(SYMBOL_LENGTH)
-    header_a = "Build A %".rjust(BUILD_COLUMN_LENGTH)
-    header_b = "Build B %".rjust(BUILD_COLUMN_LENGTH)
+    if not build_a:
+        build_a = "Build A"
+    if not build_b:
+        build_b = "Build B"
+
+    build_a_column_length = max(6, len(build_a) + 2)
+    build_b_column_length = max(6, len(build_b) + 2)
+    symbol_length = (
+        os.get_terminal_size()[0]
+        - build_a_column_length
+        - build_b_column_length
+        - DELTA_COLUMN_LENGTH
+        - 10
+    )
+
+    header_symbol = "Symbol".ljust(symbol_length)
+    header_a = f"{build_a} %".rjust(build_a_column_length)
+    header_b = f"{build_b} %".rjust(build_b_column_length)
     header_delta = "Delta %".rjust(DELTA_COLUMN_LENGTH)
 
     print(f"\n{'='*10} EVENT: {event_name.upper()} {'='*10}")
     print(f"{header_symbol} | {header_a} | {header_b} | {header_delta}")
-    print("-" * (SYMBOL_LENGTH + BUILD_COLUMN_LENGTH * 2 + DELTA_COLUMN_LENGTH + 9))
+    print(
+        "-"
+        * (
+            symbol_length
+            + build_a_column_length
+            + build_b_column_length
+            + DELTA_COLUMN_LENGTH
+            + 9
+        )
+    )
 
     for _, row in result.iterrows():
         sym = row["symbol"]
         display_sym = (
-            (sym[: SYMBOL_LENGTH - 3] + "...") if len(sym) > SYMBOL_LENGTH else sym
+            (sym[: symbol_length - 3] + "...") if len(sym) > symbol_length else sym
         )
 
-        val_a = f"{row['share_a']:>{BUILD_COLUMN_LENGTH}.2f}"
-        val_b = f"{row['share_b']:>{BUILD_COLUMN_LENGTH}.2f}"
+        val_a = f"{row['share_a']:>{build_a_column_length}.2f}"
+        val_b = f"{row['share_b']:>{build_b_column_length}.2f}"
         val_d = f"{row['delta']:>+{DELTA_COLUMN_LENGTH}.2f}"
-        print(f"{display_sym.ljust(SYMBOL_LENGTH)} | {val_a} | {val_b} | {val_d}")
+        print(f"{display_sym.ljust(symbol_length)} | {val_a} | {val_b} | {val_d}")
 
 
 def _format_df_to_text(event_name, df):
@@ -201,6 +227,16 @@ def _get_comparison_data(data_a, data_b, max_rows):
     ).head(max_rows)
 
     return top_changes
+
+
+def _get_build_data(filename: str) -> str:
+
+    if not os.path.exists(filename):
+        return ""
+
+    filename = os.path.splitext(filename)[0]
+
+    return tools.parse_filename(filename)[0]
 
 
 def analyze_with_llm(table, samples_a, samples_b):
@@ -259,6 +295,9 @@ def main(
     :param bool use_llm: use LLM
     """
 
+    build_a = _get_build_data(filename1)
+    build_b = _get_build_data(filename2)
+
     stats_a = _get_stats_by_event(filename1)
     stats_b = _get_stats_by_event(filename2)
 
@@ -275,7 +314,9 @@ def main(
         return 1
 
     for event in target_events if target_events else all_events:
-        print_comparison_table(event, stats_a[event], stats_b[event], max_rows)
+        print_comparison_table(
+            event, stats_a[event], stats_b[event], max_rows, build_a, build_b
+        )
 
         df = _get_comparison_data(stats_a[event], stats_b[event], max_rows)
         comparison_table_text += _format_df_to_text(event, df)

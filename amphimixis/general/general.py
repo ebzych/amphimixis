@@ -44,6 +44,9 @@ class ProfileStats:
     perf_archive_name: Optional[str] = None
 
 
+ProjectStats = dict[str, dict[str, ProfileStats]]
+
+
 @dataclass
 class MachineAuthenticationInfo:
     """Information about authentication on a remote machine

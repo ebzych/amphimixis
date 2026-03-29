@@ -5,7 +5,7 @@ import os
 import pickle
 
 from amphimixis import general, logger, shell
-from amphimixis.general import IUI, NullUI, ProfileStats, constants, tools
+from amphimixis.general import IUI, NullUI, ProfileStats, ProjectStats, constants, tools
 
 _commands_args: dict[str, dict[str, str]] = {
     "stat": {
@@ -575,8 +575,7 @@ class Profiler:
             with open(
                 os.path.join(os.getcwd(), self._get_stats_filename()), "rb"
             ) as file:
-                obj: dict[str, dict[str, ProfileStats]]
-                obj = pickle.load(file)
+                obj: ProjectStats = pickle.load(file)
             merged_stats.update(obj)
         except FileNotFoundError:
             pass

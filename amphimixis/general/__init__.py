@@ -13,6 +13,7 @@ from amphimixis.general.general import (
     NullUI,
     ProfileStats,
     Project,
+    ProjectStats,
     Toolchain,
     ToolchainAttrs,
 )
@@ -35,4 +36,5 @@ __all__ = [
     "CompilerFlagsAttrs",
     "CompilerFlags",
     "ProfileStats",
+    "ProjectStats",
 ]
