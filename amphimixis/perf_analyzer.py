@@ -265,7 +265,7 @@ def main(
     if not stats_a or not stats_b:
         return 1
 
-    all_events = set(stats_a.keys()) | set(stats_b.keys())
+    all_events = sorted(set(stats_a.keys()) | set(stats_b.keys()))
 
     top_regressions = []
     comparison_table_text = ""
