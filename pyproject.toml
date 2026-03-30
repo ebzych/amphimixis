@@ -37,7 +37,7 @@ dev = [
 package = true
 
 [tool.mypy]
-disable_error_code = ["import-untyped"]
+disable_error_code = ["import-untyped", "annotation-unchecked"]
 
 [tool.isort]
 profile = "black"
