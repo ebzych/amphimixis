@@ -1,4 +1,4 @@
-"Ninja build system implementation"
+"""Module working with Ninja build system"""
 
 import os
 
@@ -10,13 +10,14 @@ _logger = logger.setup_logger("NINJA")
 
 
 class Ninja(BuildSystem, ILowLevelBuildSystem):
-    """Ninja build system implementation"""
+    """Implementation of working with Ninja build system"""
 
     def run_building(self, build: Build) -> tuple[int, str, str]:
         """Run ninja in the build directory.
 
         :param Build build: Build configuration
-        :return: Tuple of (error_code, stdout_lines, stderr_lines)
+        :rtype: tuple[int, str, str]
+        :return: Tuple of error_code, stdout, stderr
         """
         shell = Shell(build.build_machine, self._ui).connect()
         build_path = os.path.join(
