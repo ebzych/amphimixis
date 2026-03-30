@@ -1,8 +1,10 @@
 """Tests for build systems: CMake, Make, Ninja"""
 
+import os
+import pytest
+
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from amphimixis.build_systems.cmake import CMake
 from amphimixis.build_systems.make import Make
@@ -34,6 +36,11 @@ def mock_project(tmp_path):
     return Project(path=str(tmp_path))
 
 
+root = "/mock"
+source = os.path.join(root, "source")
+file = os.path.join(source, "file")
+
+
 @pytest.fixture
 def mock_shell():
     shell_mock = MagicMock()
@@ -62,7 +69,7 @@ class TestMake:
             (
                 CompilerFlagsAttrs.FORTRAN_FLAGS,
                 "-ffast-math",
-                "FORTRANFLAGS='-ffast-math'",
+                "FCFLAGS='-ffast-math'",
             ),
         ],
     )
@@ -79,6 +86,7 @@ class TestMake:
         [
             (ToolchainAttrs.C_COMPILER, "CC"),
             (ToolchainAttrs.CXX_COMPILER, "CXX"),
+            (ToolchainAttrs.FORTRAN_COMPILER, "FC"),
             (ToolchainAttrs.AR_T, "AR"),
             (ToolchainAttrs.LD_T, "LD"),
         ],
@@ -87,13 +95,18 @@ class TestMake:
         result = make_system._attrs_map(tool_attr.value)
         assert result == expected_tool
 
-    def test_generate_toolchain_flags(self, make_system):
+    @pytest.mark.parametrize(
+        "compiler,flags,expected",
+        [
+            (ToolchainAttrs.C_COMPILER, "/usr/bin/gcc", "CC='/usr/bin/gcc'"),
+            (ToolchainAttrs.CXX_COMPILER, "/usr/bin/g++", "CXX='/usr/bin/g++'"),
+        ],
+    )
+    def test_generate_toolchain_flags(self, make_system, compiler, flags, expected):
         toolchain = Toolchain()
-        toolchain.set(ToolchainAttrs.C_COMPILER, "/usr/bin/gcc")
-        toolchain.set(ToolchainAttrs.CXX_COMPILER, "/usr/bin/g++")
+        toolchain.set(compiler, flags)
         result = make_system._generate_toolchain_flags(toolchain)
-        assert "CC='/usr/bin/gcc'" in result
-        assert "CXX='/usr/bin/g++'" in result
+        assert expected in result
 
     def test_sysroot_handling(self, mock_project, mock_shell):
         sysroot = "/sysroot"
@@ -111,13 +124,19 @@ class TestMake:
             config_flags=None,
         )
 
-        with patch("amphimixis.build_systems.make.Shell", return_value=mock_shell):
+        with (
+            patch("amphimixis.build_systems.make.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.make.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
             make = Make(mock_project)
             make._build_install_clean(build, configure=True)
 
         calls = [str(call) for call in mock_shell.run.call_args_list]
         combined_output = " ".join(calls)
-        assert "SYSROOT=/sysroot" in combined_output
+        assert "SYSROOT='/sysroot'" in combined_output
 
     def test_parallel_build(self, mock_project, mock_shell):
         build = Build(
@@ -140,7 +159,13 @@ class TestMake:
         assert "-j" in combined_output
 
     def test_warning_on_build(self, mock_project, mock_shell):
-        with patch("amphimixis.build_systems.make.Shell", return_value=mock_shell):
+        with (
+            patch("amphimixis.build_systems.make.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.make.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
             make = Make(mock_project)
             make._ui = MagicMock()
             make.build(
@@ -227,17 +252,29 @@ class TestCMake:
             config_flags=None,
         )
 
-        with patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell):
+        with (
+            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
             ninja_runner = Ninja(mock_project)
             cmake = CMake(mock_project, runner=ninja_runner)
             cmake.build(build)
 
         calls = [str(call) for call in mock_shell.run.call_args_list]
         combined_output = " ".join(calls)
-        assert "-DCMAKE_SYSROOT=/sysroot" in combined_output
+        assert "-DCMAKE_SYSROOT='/sysroot'" in combined_output
 
     def test_generator_selection_ninja(self, mock_project, mock_shell):
-        with patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell):
+        with (
+            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
             ninja_runner = Ninja(mock_project)
             cmake = CMake(mock_project, runner=ninja_runner)
 
@@ -255,10 +292,16 @@ class TestCMake:
 
             calls = [str(call) for call in mock_shell.run.call_args_list]
             combined_output = " ".join(calls)
-            assert "Ninja" in combined_output
+            assert "-G Ninja" in combined_output
 
     def test_generator_selection_make(self, mock_project, mock_shell):
-        with patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell):
+        with (
+            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
             make_runner = Make(mock_project)
             cmake = CMake(mock_project, runner=make_runner)
 
@@ -276,10 +319,16 @@ class TestCMake:
 
             calls = [str(call) for call in mock_shell.run.call_args_list]
             combined_output = " ".join(calls)
-            assert "Unix Makefiles" in combined_output
+            assert '-G "Unix Makefiles"' in combined_output
 
     def test_config_flags_passed(self, mock_project, mock_shell):
-        with patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell):
+        with (
+            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
             ninja_runner = Ninja(mock_project)
             cmake = CMake(mock_project, runner=ninja_runner)
 
@@ -299,29 +348,6 @@ class TestCMake:
         combined_output = " ".join(calls)
         assert "CMAKE_BUILD_TYPE=Release" in combined_output
 
-    def test_build_command_structure(self, cmake_system, mock_shell):
-        build = Build(
-            build_machine=MachineInfo(Arch.X86, None, None),
-            run_machine=MachineInfo(Arch.X86, None, None),
-            build_name="test_build",
-            executables=[],
-            toolchain=None,
-            sysroot=None,
-            compiler_flags=None,
-            config_flags=None,
-        )
-
-        cmake_system.build(build)
-
-        cmake_call_found = False
-        for call in mock_shell.run.call_args_list:
-            call_str = str(call)
-            if "cmake" in call_str and "-G" in call_str:
-                cmake_call_found = True
-                break
-
-        assert cmake_call_found, "cmake command with -G generator not found"
-
     def test_cmake_and_build_steps(self, cmake_system, mock_shell):
         mock_shell.run.side_effect = [
             (0, [["Configuring..."]], [[""]]),
@@ -339,7 +365,11 @@ class TestCMake:
             config_flags=None,
         )
 
-        cmake_system.build(build)
+        with patch(
+            "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+            return_value=file,
+        ):
+            cmake_system.build(build)
 
         assert mock_shell.run.call_count >= 2
 
@@ -367,7 +397,13 @@ class TestBuildSystemIntegration:
             config_flags=None,
         )
 
-        with patch("amphimixis.build_systems.make.Shell", return_value=mock_shell):
+        with (
+            patch("amphimixis.build_systems.make.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.make.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
             make = Make(mock_project)
             make._build_install_clean(build, configure=True)
 

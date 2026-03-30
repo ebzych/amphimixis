@@ -19,10 +19,8 @@ class Ninja(BuildSystem, ILowLevelBuildSystem):
         :rtype: tuple[int, str, str]
         :return: Tuple of error_code, stdout, stderr
         """
-        shell = Shell(build.build_machine, self._ui).connect()
-        build_path = os.path.join(
-            shell.get_project_workdir(self._project), build.build_name
-        )
+        shell = Shell(self._project, build.build_machine, self._ui).connect()
+        build_path = os.path.join(shell.get_project_workdir(), build.build_name)
         command = "ninja "
         err, stdout, stderr = shell.run(f"cd {build_path}")
         if err != 0:

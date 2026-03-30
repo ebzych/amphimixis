@@ -42,7 +42,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
     def _generate_lang_flags(self, flags: CompilerFlags):
         ret_flags = []
         for flag, value in flags.data.items():
-            ret_flags.append(f"{"".join(flag.upper().split("_"))}='{value}'")
+            ret_flags.append(f"{"".join(self._attrs_map(flag))}='{value}'")
         return " ".join(ret_flags)
 
     def _generate_toolchain_flags(self, toolchain: Toolchain):
@@ -60,7 +60,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
             if opt == "-f":
                 path = options[i + 1]
                 break
-            elif "--file=" in opt or "--makefile=" in opt:
+            if "--file=" in opt or "--makefile=" in opt:
                 path = opt[opt.find("=") + 1 :]
                 break
         return os.path.basename(path)
@@ -80,7 +80,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
                 command += f"{self._generate_lang_flags(build.compiler_flags)} "
             if build.toolchain is not None:
                 if build.toolchain.sysroot is not None:
-                    command += f"SYSROOT={build.toolchain.sysroot} "
+                    command += f"SYSROOT='{build.toolchain.sysroot}' "
                 command += f"{self._generate_toolchain_flags(build.toolchain)} "
             cd_dir = os.path.join(
                 shell.get_source_dir(),

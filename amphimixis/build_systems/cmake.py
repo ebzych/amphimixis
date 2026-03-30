@@ -61,7 +61,7 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
             command += f"{self._generate_lang_flags(build.compiler_flags)} "
         if build.toolchain is not None:
             if build.toolchain.sysroot is not None:
-                command += f"-DCMAKE_SYSROOT={build.toolchain.sysroot} "
+                command += f"-DCMAKE_SYSROOT='{build.toolchain.sysroot}' "
             command += f"{self._generate_toolchain_flags(build.toolchain)} "
 
         err, stdout, stderr = shell.run(f"cd {cmakelists_dir}")

@@ -94,8 +94,6 @@ def get_shellmocked_profiler(mocker: pytest_mock.MockerFixture, tmp_path: Path):
         project = general.Project(
             str(tmp_path),
             [build],
-            amphimixis.build_systems_dict["cmake"],
-            amphimixis.build_systems_dict["cmake"],
         )
 
         shell_mock = mocker.Mock()
