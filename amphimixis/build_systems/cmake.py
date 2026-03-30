@@ -19,7 +19,7 @@ _logger = logger.setup_logger("CMAKE")
 
 
 class CMake(BuildSystem, IHighLevelBuildSystem):
-    """CMake implementation of IBuildSystem"""
+    """Implementation of working with CMake build system"""
 
     _generator_names_map: dict[type[ILowLevelBuildSystem], str] = {
         Make: '"Unix Makefiles"',
@@ -39,7 +39,7 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
         return " ".join(ret_flags)
 
     def build(self, build: Build) -> tuple[int, str, str]:
-        """Generate build system prompt with all specified flags"""
+        """Configure and build via CMake"""
         shell = Shell(self._project, build.build_machine, self._ui).connect()
 
         build_path = os.path.join(shell.get_project_workdir(), build.build_name)
