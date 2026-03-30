@@ -1,4 +1,4 @@
-"Make IBuildSystem implementation"
+"""Module working with Make build system"""
 
 import os
 
@@ -119,7 +119,8 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
         """Build via Make
 
         :param Build build: Build to build
-        :return: Tuple of error code, stdout and stderr"""
+        :rtype: tuple[int, str, str]
+        :return: Tuple of error_code, stdout, stderr"""
         self._ui.print_warning(
             build.build_name,
             Make._GNU_standard_compatibility_warn_msg,
