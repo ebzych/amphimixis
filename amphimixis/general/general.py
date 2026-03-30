@@ -364,8 +364,7 @@ class BuildSystem:
 
     def find_relative_path(self, file_name: str) -> str:
         """Find first directory that contains 'file_name' relative to project root.
-        :param str proj_path: Path to project root
-        :param int max_depth: Max depth of search
+        :param str file_name: Name of file to search relative to project root.
         :rtype: str
         :return: Path to directory that contains file relative to project root
         """
