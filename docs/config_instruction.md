@@ -1,6 +1,6 @@
 # Configuration file guide
 
-This guide explains how to create and configure your project’s build file.
+This guide explains how to create and configure your project’s configuration file.
 
 See an example configuration file [here](./input.yml).
 
@@ -8,13 +8,13 @@ See an example configuration file [here](./input.yml).
 
 The YAML configuration file consists of the following **top-level fields**:
 
-|                     Field                     |         Type         | Description                                 |
-| :-------------------------------------------: | :------------------: | ------------------------------------------- |
-| build_system<sup><a href="#note1">1</a></sup> |        string        | Name of the build system                    |
-|    runner<sup><a href="#note2">2</a></sup>    |        string        | Name of the runner (low-level build system) |
-|                   platforms                   | list of dictionaries | Describes the platforms used by the user    |
-|                    recipes                    | list of dictionaries | Build configuration parameters              |
-|                    builds                     | list of dictionaries | Describes of builds tasks                   |
+|                     Field                     |         Type         | Description                                                          |
+| :-------------------------------------------: | :------------------: | -------------------------------------------------------------------- |
+| build_system<sup><a href="#note1">1</a></sup> |        string        | Name of the build system                                             |
+|    runner<sup><a href="#note2">2</a></sup>    |        string        | Name of the runner (low-level build system)                          |
+|                   platforms                   | list of dictionaries | Describes the platforms used for building and running the project    |
+|                    recipes                    | list of dictionaries | Build configuration parameters                                       |
+|                    builds                     | list of dictionaries | Describes builds tasks                                               |
 
 ---
 
@@ -44,7 +44,7 @@ The **platforms** section describes the machines on which the project will be bu
 |                   Field                   |  Type   | Description                     |
 | :---------------------------------------: | :-----: | ------------------------------- |
 |                    id                     | integer | Unique id of the platform       |
-|                  address                  | string  | IP-address or domain name       |
+|                  address                  | string  | IP address or domain name       |
 |                   arch                    | string  | Architecture (e.g. x86, riscv)  |
 |                 username                  | string  | Username of the remote machine  |
 |   port<sup><a href="#note3">3</a></sup>   | integer | Port of the remote machine      |
@@ -76,7 +76,7 @@ The **recipes** section describes the build configuration and compiler flags.
 
 |                  Field                          |  Type   | Description                                                                |
 | :---------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
-| id                                              | integer | Unique id of the recipes                                                   |
+| id                                              | integer | Unique ID of the recipe                                                   |
 | config_flags                                    | string  | Build configuration options                                                |
 | compiler_flags<sup><a href="#note5">5</a></sup> | dict    | Compiler flags used during the build process                               |
 | toolchain<sup><a href="#note6">6</a></sup>      |  dict   | Path to the toolchain used for building the project                        |
@@ -170,7 +170,7 @@ The **builds** section links platforms and recipes, defining which configuration
 | :--------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
 | build_machine                                  | integer | `platform_id` of the machine where the project will be built               |
 | run_machine                                    | integer | `platform_id` of the machine where the built project will be executed      |
-| recipe_id                                      | integer | Id of the `recipe`                                                         |
+| recipe_id                                      | integer | ID of the `recipe`                                                         |
 | executables<sup><a href="#note7">7</a></sup>   |  list   | List of executables to profile for this build                              |
 
 ---

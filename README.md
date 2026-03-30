@@ -12,7 +12,7 @@ Amphimixis is an automated project intelligence and evaluation tool for performa
 
 > Amphimixis is currently in a very early pre-release state.
 
-## Quick Run
+## Quick run
 
 If you want to try Amphimixis right away, create a virtual environment, install the package from GitHub, and run the full pipeline on a target project:
 
@@ -36,13 +36,13 @@ ssh-add ~/.ssh/id_remote_machine
 
 - Python 3.12 or later
 - Linux
-- `rsync` available on the machine where Amphimixis runs
-- `sshpass` available if you connect to remote machines with passwords
+- `rsync` available on the machine where you run Amphimixis
+- `sshpass` available on the machine where you run Amphimixis, if you connect to remote machines with passwords
 - `perf` available on each `run_machine`
 - `perf archive` available on each `run_machine`
 - A supported build setup in the target project: CMake as the build system and Make as the low-level runner
 
-## What Amphimixis Does
+## What Amphimixis does
 
 Amphimixis can:
 
@@ -51,7 +51,7 @@ Amphimixis can:
 - profile executable runs and collect timing and `perf`-based statistics
 - compare profiling outputs produced for different builds
 
-## Typical Usage
+## Typical usage
 
 Prepare a working directory with an `input.yml` configuration file. The configuration format is described in [docs/config_instruction.md](docs/config_instruction.md).
 
@@ -78,7 +78,7 @@ amixis --compare build1.scriptout build2.scriptout --max-rows 10
 
 For step-by-step command examples, custom configuration files, and `--events` usage, see [docs/usage_guide.md](docs/usage_guide.md).
 
-## Build And Run Notes
+## Build and run notes
 
 The tool is distributed as a Python package with the `amixis` CLI entry point.
 
@@ -93,7 +93,7 @@ uv run pytest
 
 If you want a more detailed walkthrough with installation options, workspace preparation, and command examples, see [docs/usage_guide.md](docs/usage_guide.md).
 
-## Project Structure
+## Project structure
 
 The repository is organized around a small CLI and several core modules:
 

@@ -20,7 +20,7 @@ cd amphimixis
 uv sync
 ```
 
-If you specifically want to build a wheel locally and test the packaged artifact, you can do that too:
+If you specifically want to build a wheel locally and test the packaged artifact, use:
 
 ```bash
 python3 -m venv .venv
@@ -33,11 +33,9 @@ pip install dist/*.whl
 
 Run Amphimixis from a working directory that contains your configuration and any generated artifacts. Before starting, create an `input.yml` file there.
 
-Make sure the required system tools are available before you run the pipeline:
+### Make sure the required system tools are available
 
-### Install dependencies
-
-- `rsync` on the machine where Amphimixis runs
+- `rsync` on the machine where you run Amphimixis
 - `perf` in `PATH`
 - `perf archive` on each `run_machine`
 - `sshpass` if your remote connections use passwords
@@ -46,7 +44,7 @@ Make sure the required system tools are available before you run the pipeline:
 sudo apt install rsync sshpass linux-tools-common linux-tools
 ```
 
-### Create configuration file
+### Create a configuration file
 
 - Configuration reference: [config_instruction.md](./config_instruction.md)
 - Example file: [input.yml](./input.yml)
