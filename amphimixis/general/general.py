@@ -412,22 +412,23 @@ class Project:
     """Class with information about project and his builds
 
     :var str path: Path to project for research.
-    :var type[IHighLevelBuildSystem] build_system: High-level build system.
     :var list[Build] builds: List of project configurations to be build.
+    :var IHighLevelBuildSystem build_system: High-level build system.
     """
 
     builds: list[Build]
 
     def __init__(
         self,
-        path,
-        builds=None,
+        path: str,
+        builds: list[Build] | None = None,
         build_system: IHighLevelBuildSystem = DummyBuildSystem(),
     ):
         self.path: str = path
-        self.builds = builds
         if builds is None:  # what's wrong with python?? (pylint W0102)
             self.builds = []
+        else:
+            self.builds = builds
         if not isinstance(self.builds, list):
             raise TypeError("class Project: 'builds' must have a list type")
         self.build_system = build_system
