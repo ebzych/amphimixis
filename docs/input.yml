@@ -10,7 +10,7 @@ platforms:
 
 recipes:
 - id: 1
-  config_flags: "-DCMAKE_BUILD_TYPE=Release -DYAML_CPP_BUILD_TESTS=ON"
+  config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo -DYAML_CPP_BUILD_TESTS=ON"
   compiler_flags:
     cxx_flags: "-O2"
   toolchain:
@@ -21,3 +21,5 @@ builds:
 - build_machine: 1
   run_machine: 1
   recipe_id: 1
+  executables:
+    - test/run-tests

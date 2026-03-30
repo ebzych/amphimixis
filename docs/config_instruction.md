@@ -1,6 +1,6 @@
 # Configuration file guide
 
-This guide explains how to create and configure your project’s build file.
+This guide explains how to create and configure your project’s configuration file.
 
 See an example configuration file [here](./input.yml).
 
@@ -8,13 +8,13 @@ See an example configuration file [here](./input.yml).
 
 The YAML configuration file consists of the following **top-level fields**:
 
-|                     Field                     |         Type         | Description                                 |
-| :-------------------------------------------: | :------------------: | ------------------------------------------- |
-| build_system<sup><a href="#note1">1</a></sup> |        string        | Name of the build system                    |
-|    runner<sup><a href="#note2">2</a></sup>    |        string        | Name of the runner (low-level build system) |
-|                   platforms                   | list of dictionaries | Describes the platforms used by the user    |
-|                    recipes                    | list of dictionaries | Build configuration parameters              |
-|                    builds                     | list of dictionaries | Describes of builds tasks                   |
+|                     Field                     |         Type         | Description                                                          |
+| :-------------------------------------------: | :------------------: | -------------------------------------------------------------------- |
+| build_system<sup><a href="#note1">1</a></sup> |        string        | Name of the build system                                             |
+|    runner<sup><a href="#note2">2</a></sup>    |        string        | Name of the runner (low-level build system)                          |
+|                   platforms                   | list of dictionaries | Describes the platforms used for building and running the project    |
+|                    recipes                    | list of dictionaries | Build configuration parameters                                       |
+|                    builds                     | list of dictionaries | Describes builds tasks                                               |
 
 ---
 
@@ -44,7 +44,7 @@ The **platforms** section describes the machines on which the project will be bu
 |                   Field                   |  Type   | Description                     |
 | :---------------------------------------: | :-----: | ------------------------------- |
 |                    id                     | integer | Unique id of the platform       |
-|                  address                  | string  | IP-address or domain name       |
+|                  address                  | string  | IP address or domain name       |
 |                   arch                    | string  | Architecture (e.g. x86, riscv)  |
 |                 username                  | string  | Username of the remote machine  |
 |   port<sup><a href="#note3">3</a></sup>   | integer | Port of the remote machine      |
@@ -59,7 +59,7 @@ The **platforms** section describes the machines on which the project will be bu
 </p>
 <p id="note4">
 
-4. If the user has an SSH agent, then the password does not need to be provided. **Please note that passwords are passed to SSH through sshpass, which is not secure.**
+4. If the user uses SSH keys, start `ssh-agent` in the current shell and add the required keys for each remote machine manually with `ssh-add` before running Amphimixis. In this case, the password does not need to be provided. **Please note that passwords are passed to SSH through sshpass, which is not secure.**
 
 </p>
 
@@ -68,14 +68,15 @@ The **platforms** section describes the machines on which the project will be bu
 > - If the `address` field is not specified, the local machine is assumed.
 > - For a local machine, `username`, `password`, and `port` do not need to be specified.
 > - If an `address` is specified, the machine is treated as remote, and the fields `username`, `password`, and `port` must be provided.
+> - If you connect with SSH keys instead of a password, run `eval "$(ssh-agent -s)"` and then add the keys for the target machines manually, for example `ssh-add ~/.ssh/id_remote_machine`, before starting Amphimixis.
 
 ### Recipes
 
 The **recipes** section describes the build configuration and compiler flags.
 
 |                  Field                          |  Type   | Description                                                                |
-| :---------------------------------------------: | :-----: | -------------------------------------------------------------------------: |
-| id                                              | integer | Unique id of the recipes                                                   |
+| :---------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
+| id                                              | integer | Unique ID of the recipe                                                   |
 | config_flags                                    | string  | Build configuration options                                                |
 | compiler_flags<sup><a href="#note5">5</a></sup> | dict    | Compiler flags used during the build process                               |
 | toolchain<sup><a href="#note6">6</a></sup>      |  dict   | Path to the toolchain used for building the project                        |
@@ -169,6 +170,25 @@ The **builds** section links platforms and recipes, defining which configuration
 | :--------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
 | build_machine                                  | integer | `platform_id` of the machine where the project will be built               |
 | run_machine                                    | integer | `platform_id` of the machine where the built project will be executed      |
-| recipe_id                                      | integer | Id of the `recipe`                                                         |
+| recipe_id                                      | integer | ID of the `recipe`                                                         |
+| executables<sup><a href="#note7">7</a></sup>   |  list   | List of executables to profile for this build                              |
 
 ---
+
+<p id="note7">
+
+7. **Optional field**. Each path in `executables` must be specified relative to the build directory created for this build. For example, use `bin/app` rather than an absolute path. If `executables` is not specified, Amphimixis will profile the first executable file it finds in the build directory.
+
+</p>
+
+Example:
+
+```yaml
+builds:
+  - build_machine: 1
+    run_machine: 1
+    recipe_id: 1
+    executables:
+      - bin/my_app
+      - tests/my_benchmark
+```
