@@ -82,6 +82,42 @@ def get_profiler(mocker: pytest_mock.MockerFixture):
     return _profiler
 
 
+@pytest.fixture
+def get_shellmocked_profiler(mocker: pytest_mock.MockerFixture, tmp_path: Path):
+    def _profiler(executables: list[str] | None = None) -> Profiler:
+        build = general.Build(
+            general.MachineInfo(general.Arch.X86, None, None),
+            general.MachineInfo(general.Arch.X86, None, None),
+            "test_build",
+            executables or [EXECUTABLE_FILENAME],
+            None,
+            None,
+            None,
+            None,
+        )
+
+        project = general.Project(
+            str(tmp_path),
+            [build],
+            amphimixis.build_systems_dict["cmake"],
+            amphimixis.build_systems_dict["cmake"],
+        )
+
+        shell_mock = mocker.Mock()
+        shell_mock.get_project_workdir.return_value = str(tmp_path)
+        shell_mock.get_source_dir.return_value = str(tmp_path / "source")
+        shell_mock.connect.return_value = shell_mock
+        shell_ctor = mocker.patch(
+            "amphimixis.profiler.shell.Shell", return_value=shell_mock
+        )
+
+        profiler = Profiler(project, build)
+        assert shell_ctor.called
+        return profiler
+
+    return _profiler
+
+
 @pytest.mark.unit
 class TestProfiler:
     @pytest.mark.parametrize(
@@ -341,3 +377,195 @@ class TestProfiler:
         assert (
             len(profiler.stats[EXECUTABLE_FILENAME + "ok_test"].keys()) == 5
         ), "Executable that passed smoke test is skipped"
+
+    def test_get_record_filename_flattens_nested_path(self, get_shellmocked_profiler):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        assert (
+            profiler.get_record_filename("bin/nested/a.out")
+            == "test_build_bin_nested_a.out.perfdata"
+        )
+
+    def test_get_archive_filename_uses_record_filename(self, get_shellmocked_profiler):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        assert (
+            profiler.get_archive_filename("bin/a.out")
+            == "test_build_bin_a.out.perfdata.tar.bz2"
+        )
+
+    def test_get_stats_filename_uses_build_name(self, get_shellmocked_profiler):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        assert profiler._get_stats_filename() == "test_build.stats"
+
+    def test_build_cmd_adds_redirects(self, get_shellmocked_profiler):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        assert (
+            profiler._build_cmd(
+                "perf stat -ddd",
+                "/tmp/build/a.out",
+                stdout_clear=True,
+                stderr_clear=True,
+            )
+            == "perf stat -ddd taskset -c 0 sh -c '/tmp/build/a.out 1>/dev/null 2>/dev/null'"
+        )
+
+    def test_perf_stat_command_builds_expected_prompt(self, get_shellmocked_profiler):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        assert (
+            profiler._perf_stat_command("/tmp/build/a.out", "-d")
+            == "perf stat -d -x, taskset -c 0 sh -c '/tmp/build/a.out 2>/dev/null'"
+        )
+
+    def test_perf_record_command_builds_expected_prompt(self, get_shellmocked_profiler):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        assert (
+            profiler._perf_record_command(
+                "/tmp/build/a.out", "-g", ["cycles", "branches"]
+            )
+            == "perf record -g -e cycles,branches taskset -c 0 sh -c '/tmp/build/a.out 2>/dev/null'"
+        )
+
+    def test_get_script_command_uses_default_output_filename(
+        self, get_shellmocked_profiler
+    ):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        command, filename = profiler._get_script_command("stats.perfdata")
+
+        assert filename == "stats.perfdata.scriptout"
+        assert (
+            command
+            == "perf --no-pager script -F comm,event,ip,sym,dso,period -G -i stats.perfdata > stats.perfdata.scriptout"
+        )
+
+    def test_time_command_keeps_stderr_when_requested(self, get_shellmocked_profiler):
+        profiler: Profiler = get_shellmocked_profiler()
+
+        assert (
+            profiler._time_command("/tmp/build/a.out", stderr_clear=False)
+            == "/bin/time -f\"%e\\n%U\\n%S\" taskset -c 0 sh -c '/tmp/build/a.out'"
+        )
+
+    def test_find_executables_returns_empty_list_on_shell_error(
+        self, get_shellmocked_profiler, mocker: pytest_mock.MockerFixture
+    ):
+        profiler: Profiler = get_shellmocked_profiler([])
+        mocker.patch.object(
+            profiler.shell,
+            "run",
+            return_value=(1, [[], []], [["find failed\n"]]),
+        )
+
+        assert profiler._find_executables(2) == []
+
+    def test_profile_all_uses_source_dir_when_working_directory_not_provided(
+        self, get_shellmocked_profiler, mocker: pytest_mock.MockerFixture
+    ):
+        profiler: Profiler = get_shellmocked_profiler(["bin/a.out"])
+        mocker.patch.object(profiler, "test_executable", return_value=True)
+        execution = mocker.patch.object(profiler, "execution_time", return_value=True)
+        mocker.patch.object(profiler, "perf_stat_collect", return_value=True)
+        mocker.patch.object(profiler, "perf_record_collect", return_value=True)
+        mocker.patch.object(
+            profiler,
+            "perf_script",
+            return_value=(True, "test_build_bin_a.out.perfdata.scriptout"),
+        )
+
+        result = profiler.profile_all()
+
+        assert result == ["bin/a.out"]
+        execution.assert_called_once_with("bin/a.out", profiler.shell.get_source_dir())
+
+    def test_profile_all_returns_empty_when_perf_script_fails(
+        self, get_shellmocked_profiler, mocker: pytest_mock.MockerFixture
+    ):
+        profiler: Profiler = get_shellmocked_profiler(["bin/a.out"])
+        mocker.patch.object(profiler, "test_executable", return_value=True)
+        mocker.patch.object(profiler, "execution_time", return_value=True)
+        mocker.patch.object(profiler, "perf_stat_collect", return_value=True)
+        mocker.patch.object(profiler, "perf_record_collect", return_value=True)
+        mocker.patch.object(profiler, "perf_script", return_value=(False, ""))
+
+        assert profiler.profile_all("/tmp/workdir", events=["cycles"]) == []
+
+    def test_perf_script_returns_false_when_cd_fails(
+        self, get_shellmocked_profiler, mocker: pytest_mock.MockerFixture
+    ):
+        profiler: Profiler = get_shellmocked_profiler()
+        mocker.patch.object(
+            profiler.shell,
+            "run",
+            return_value=(1, [[]], [["cd failed\n"]]),
+        )
+
+        assert profiler.perf_script("stats.perfdata", "/tmp/workdir") == (False, "")
+
+    def test_perf_script_returns_false_when_script_command_fails(
+        self, get_shellmocked_profiler, mocker: pytest_mock.MockerFixture
+    ):
+        profiler: Profiler = get_shellmocked_profiler()
+        mocker.patch.object(
+            profiler.shell,
+            "run",
+            side_effect=[
+                (0, [[]], [[]]),
+                (1, [[]], [["script failed\n"]]),
+            ],
+        )
+
+        assert profiler.perf_script("stats.perfdata", "/tmp/workdir") == (False, "")
+        assert profiler.cleanup_files == ["/tmp/workdir/stats.perfdata.scriptout"]
+
+    def test_perf_script_returns_false_when_copy_to_host_fails(
+        self, get_shellmocked_profiler, mocker: pytest_mock.MockerFixture
+    ):
+        profiler: Profiler = get_shellmocked_profiler()
+        mocker.patch.object(
+            profiler.shell,
+            "run",
+            side_effect=[
+                (0, [[]], [[]]),
+                (0, [[]], [[]]),
+            ],
+        )
+        mocker.patch.object(profiler.shell, "copy_to_host", return_value=False)
+
+        assert profiler.perf_script("stats.perfdata", "/tmp/workdir") == (False, "")
+
+    def test_perf_script_returns_output_filename_on_success(
+        self, get_shellmocked_profiler, mocker: pytest_mock.MockerFixture
+    ):
+        profiler: Profiler = get_shellmocked_profiler()
+        mocker.patch.object(
+            profiler.shell,
+            "run",
+            side_effect=[
+                (0, [[]], [[]]),
+                (0, [[]], [[]]),
+            ],
+        )
+        copy_to_host = mocker.patch.object(
+            profiler.shell, "copy_to_host", return_value=True
+        )
+
+        assert profiler.perf_script("stats.perfdata", "/tmp/workdir") == (
+            True,
+            "stats.perfdata.scriptout",
+        )
+        copy_to_host.assert_called_once()
+
+    def test_cleanup_removes_every_file(self, get_shellmocked_profiler, mocker):
+        profiler: Profiler = get_shellmocked_profiler()
+        profiler.cleanup_files = ["/tmp/a", "/tmp/b"]
+        run = mocker.patch.object(profiler.shell, "run")
+
+        profiler.cleanup()
+
+        assert run.call_args_list[0].args == ("rm /tmp/a",)
+        assert run.call_args_list[1].args == ("rm /tmp/b",)
