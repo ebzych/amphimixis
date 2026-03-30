@@ -8,7 +8,7 @@
 
 # Amphimixis
 
-Amphimixis is automated project intelligence and evaluation tool for perfomance and migration readiness. It helps inspect a project for existing infrastructure such as CI, tests, benchmarks, dependencies, and build scripts, then runs builds and collects performance data for further comparison.
+Amphimixis is an automated project intelligence and evaluation tool for performance and migration readiness. It helps inspect a project for existing infrastructure such as CI, tests, benchmarks, dependencies, and build scripts, then runs builds and collects performance data for further comparison.
 
 > Amphimixis is currently in a very early pre-release state.
 
@@ -42,7 +42,7 @@ pip install git+https://github.com/ebzych/amphimixis.git
 
 ### Requirements
 
-- Python 3.12 or newer
+- Python 3.12 or later
 - Linux
 - `perf` available in `PATH` for profiling
 - A supported build setup in the target project: CMake as the build system and Make as the low-level runner

@@ -75,7 +75,7 @@ The **platforms** section describes the machines on which the project will be bu
 The **recipes** section describes the build configuration and compiler flags.
 
 |                  Field                          |  Type   | Description                                                                |
-| :---------------------------------------------: | :-----: | -------------------------------------------------------------------------: |
+| :---------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
 | id                                              | integer | Unique id of the recipes                                                   |
 | config_flags                                    | string  | Build configuration options                                                |
 | compiler_flags<sup><a href="#note5">5</a></sup> | dict    | Compiler flags used during the build process                               |
