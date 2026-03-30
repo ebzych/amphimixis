@@ -17,15 +17,7 @@ _logger = logger.setup_logger("MAKE")
 
 
 class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
-    """Make implementation of BuildSystem.
-
-    Make can be used as:
-    - High-level build system (build()) for simple Makefile-based projects
-    - Low-level runner (run_building()) after CMake configuration
-
-    Uses the base class methods for:
-    - get_build_path(): Determines build path based on machine address
-    """
+    """Implementation of working with Make build system"""
 
     _GNU_standard_compatibility_warn_msg = (
         "Amphimixis only uses GNU standard flags for Makefile, "
