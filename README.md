@@ -32,28 +32,15 @@ eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_remote_machine
 ```
 
-## Installation
-
-### Install from GitHub
-
-```bash
-pip install git+https://github.com/ebzych/amphimixis.git
-```
-
-### Requirements
+## Requirements
 
 - Python 3.12 or later
 - Linux
-- `perf` available in `PATH` for profiling
+- `rsync` available on the machine where Amphimixis runs
+- `sshpass` available if you connect to remote machines with passwords
+- `perf` available on each `run_machine`
+- `perf archive` available on each `run_machine`
 - A supported build setup in the target project: CMake as the build system and Make as the low-level runner
-
-### Install for development
-
-```bash
-git clone https://github.com/ebzych/amphimixis.git
-cd amphimixis
-uv sync
-```
 
 ## What Amphimixis Does
 
@@ -68,8 +55,6 @@ Amphimixis can:
 
 Prepare a working directory with an `input.yml` configuration file. The configuration format is described in [docs/config_instruction.md](docs/config_instruction.md).
 
-In `builds`, you can optionally specify an `executables` list for each build. Each executable path must be relative to that build's output directory, for example `bin/my_app`. If you omit this field, Amphimixis will profile the first executable file it finds there.
-
 Run the full workflow for a project:
 
 ```bash
@@ -83,27 +68,6 @@ This command:
 1. profiles the resulting executables
 1. prints profiling results in the console
 
-You can also run individual steps:
-
-```bash
-amixis --analyze /path/to/project
-amixis --build /path/to/project
-amixis --profile /path/to/project
-amixis --validate ./input.yml
-```
-
-To record only selected `perf` events in the full pipeline:
-
-```bash
-amixis /path/to/project --events cycles cache-misses
-```
-
-To use a custom configuration file:
-
-```bash
-amixis --config ./my_input.yml /path/to/project
-```
-
 To compare two collected `perf` outputs:
 
 ```bash
@@ -112,16 +76,7 @@ amixis --compare build1.scriptout build2.scriptout --max-rows 10
 
 `--compare` accepts exactly two `.scriptout` files. `--max-rows` limits how many symbols with the largest delta are shown for each event.
 
-To compare only selected events:
-
-```bash
-amixis --compare build1.scriptout build2.scriptout --events cycles cache-misses
-```
-
-`--events` has two modes:
-
-- with the main pipeline or `--profile`, it tells `perf record` which events to collect
-- with `--compare`, it filters the output to the listed events
+For step-by-step command examples, custom configuration files, and `--events` usage, see [docs/usage_guide.md](docs/usage_guide.md).
 
 ## Build And Run Notes
 
@@ -136,7 +91,7 @@ uv run amixis --help
 uv run pytest
 ```
 
-If you want a more step-by-step walkthrough, see [docs/quick_start.md](docs/quick_start.md).
+If you want a more detailed walkthrough with installation options, workspace preparation, and command examples, see [docs/usage_guide.md](docs/usage_guide.md).
 
 ## Project Structure
 
@@ -154,7 +109,7 @@ The repository is organized around a small CLI and several core modules:
 
 Additional documentation:
 
-- [docs/quick_start.md](docs/quick_start.md)
+- [docs/usage_guide.md](docs/usage_guide.md)
 - [docs/config_instruction.md](docs/config_instruction.md)
 
 ## How To Help
