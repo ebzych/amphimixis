@@ -76,7 +76,7 @@ def run_profile(
         if not successful_execs or (
             build.executables and successful_execs != build.executables
         ):
-            ui.mark_failed()
+            ui.mark_failed("Some executables failed to be profiled")
             success = False
         else:
             ui.mark_success("Profiling completed!")

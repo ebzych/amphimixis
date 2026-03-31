@@ -13,7 +13,13 @@ from amphimixis.general.general import Project
 
 
 def build_filename(build_name: str, executable: str) -> str:
-    """Build a reversible filename."""
+    """Build a readable filename that can be decoded back to original values.
+
+    :param str build_name: Name of the build configuration.
+    :param str executable: Path to the executable relative to the build directory.
+    :return: Filename in ``<escaped-build>..<escaped-executable>`` form.
+    :rtype: str
+    """
 
     escaped_build = escape_filename_part(build_name)
     escaped_executable = escape_filename_part(os.path.normpath(executable))
@@ -21,7 +27,13 @@ def build_filename(build_name: str, executable: str) -> str:
 
 
 def parse_filename(filename: str) -> tuple[str, str]:
-    """Decode a filename produced by `build_filename()`."""
+    """Decode a filename produced by :func:`build_filename`.
+
+    :param str filename: Encoded profiling filename without extension.
+    :return: Original build name and executable path.
+    :rtype: tuple[str, str]
+    :raises ValueError: If `filename` does not contain the expected separator.
+    """
 
     separator = filename.find("..")
     if separator == -1:
@@ -33,7 +45,16 @@ def parse_filename(filename: str) -> tuple[str, str]:
 
 
 def escape_filename_part(value: str) -> str:
-    """Escape a build or executable name for a readable, reversible filename."""
+    """Escape a filename part into a filesystem-friendly reversible form.
+
+    Letters, digits, and `-` are preserved. Other supported characters are
+    replaced with short escape sequences so the original string can be restored
+    by :func:`unescape_filename_part`.
+
+    :param str value: Build name or executable path fragment to encode.
+    :return: Encoded string safe to use inside generated filenames.
+    :rtype: str
+    """
 
     escaped = []
     for char in value:
@@ -51,7 +72,13 @@ def escape_filename_part(value: str) -> str:
 
 
 def unescape_filename_part(value: str) -> str:
-    """Decode a filename part produced by `escape_filename_part()`."""
+    """Decode a value produced by :func:`escape_filename_part`.
+
+    :param str value: Encoded filename fragment.
+    :return: Decoded original string.
+    :rtype: str
+    :raises ValueError: If `value` contains an invalid escape sequence.
+    """
 
     decoded = []
     idx = 0
@@ -88,12 +115,24 @@ def unescape_filename_part(value: str) -> str:
 
 
 def project_name(project: Project):
-    """Generate project name based on project object"""
+    """Return the normalized project directory name.
+
+    :param Project project: Project whose root path is used as the name source.
+    :return: Basename of the normalized project path.
+    :rtype: str
+    """
     return os.path.basename(os.path.normpath(project.path))
 
 
 def load_project_stats(project: Project):
-    """Loads profiler statistics of the project"""
+    """Load serialized profiling statistics for a project.
+
+    The statistics file is resolved from the escaped project name and
+    :data:`PERF_STATS_EXT`.
+
+    :param Project project: Project whose profiling statistics should be loaded.
+    :return: Deserialized profiling statistics object.
+    """
     with open(
         escape_filename_part(project_name(project)) + PERF_STATS_EXT,
         "rb",
