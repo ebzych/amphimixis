@@ -174,16 +174,7 @@ def print_comparison_table(
 
     print(f"\n{event_header.center(_get_terminal_width(), '=')}")
     print(f"{header_symbol} | {header_a} | {header_b} | {header_delta}")
-    print(
-        "-"
-        * (
-            symbol_length
-            + build_a_column_length
-            + build_b_column_length
-            + DELTA_COLUMN_LENGTH
-            + 9
-        )
-    )
+    print("-" * _get_terminal_width())
 
     for _, row in result.iterrows():
         sym = row["symbol"]
