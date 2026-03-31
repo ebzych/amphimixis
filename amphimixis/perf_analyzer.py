@@ -63,6 +63,8 @@ except ImportError:
 
 DELTA_COLUMN_LENGTH = 7
 LLM_OUTPUT_FILENAME = "perf_llm_output.md"
+LLM_SYMBOL_COLUMN_LENGTH = 60
+LLM_VALUE_COLUMN_LENGTH = 8
 
 
 def _parse_perf_line(line):
@@ -197,11 +199,18 @@ def print_comparison_table(
 
 def _format_df_to_text(event_name, df):
     text = [f"EVENT: {event_name.upper()}"]
-    text.append(f"{'Symbol':<60} | {'A%':>8} | {'B%':>8} | {'Delta%':>8}")
+    text.append(
+        f"{'Symbol':<{LLM_SYMBOL_COLUMN_LENGTH}} | "
+        f"{'A%':>{LLM_VALUE_COLUMN_LENGTH}} | "
+        f"{'B%':>{LLM_VALUE_COLUMN_LENGTH}} | "
+        f"{'Delta%':>{LLM_VALUE_COLUMN_LENGTH}}"
+    )
     for _, r in df.iterrows():
         text.append(
-            f"{r['symbol'][:60]:<60} | {r['share_a']:8.2f} "
-            f"| {r['share_b']:8.2f} | {r['delta']:+8.2f}"
+            f"{r['symbol'][:LLM_SYMBOL_COLUMN_LENGTH]:<{LLM_SYMBOL_COLUMN_LENGTH}} | "
+            f"{r['share_a']:{LLM_VALUE_COLUMN_LENGTH}.2f} | "
+            f"{r['share_b']:{LLM_VALUE_COLUMN_LENGTH}.2f} | "
+            f"{r['delta']:+{LLM_VALUE_COLUMN_LENGTH}.2f}"
         )
     return "\n".join(text)
 
