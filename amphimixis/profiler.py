@@ -486,7 +486,8 @@ class Profiler:
 
         if perf_archive_error == 0 and not self.shell.copy_to_host(
             os.path.join(
-                working_directory, self.get_record_filename(executable) + ".tar.bz2"
+                working_directory,
+                self.get_record_filename(executable) + constants.PERF_ARCHIVE_EXT,
             ),
             os.path.join(os.getcwd(), self.get_archive_filename(executable)),
         ):

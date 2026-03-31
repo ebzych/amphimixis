@@ -8,7 +8,7 @@ from typing import Any
 import yaml
 
 from amphimixis.build_systems import build_systems_dict
-from amphimixis.general import IUI, NullUI, general
+from amphimixis.general import IUI, NullUI, general, tools
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -94,9 +94,7 @@ def parse_config(
         ui.update_message("config", "Config file not found")
         return False
 
-    config_path = path.join(
-        getcwd(), f"{path.basename(path.normpath(project.path))}.project"
-    )
+    config_path = path.join(getcwd(), tools.project_name(project) + ".project")
     with open(config_path, "wb") as file:
         pickle.dump(project, file)
 
