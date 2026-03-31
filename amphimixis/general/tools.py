@@ -58,16 +58,17 @@ def escape_filename_part(value: str) -> str:
 
     escaped = []
     for char in value:
-        if char.isalnum() or char == "-":
-            escaped.append(char)
-        elif char == "_":
-            escaped.append("__")
-        elif char == "/":
-            escaped.append("_s")
-        elif char == ".":
-            escaped.append("_d")
-        else:
-            escaped.append(f"_x{ord(char):02x}_")
+        match char:
+            case "-" | str() if char.isalnum():
+                escaped.append(char)
+            case "_":
+                escaped.append("__")
+            case "/":
+                escaped.append("_s")
+            case ".":
+                escaped.append("_d")
+            case _:
+                escaped.append(f"_x{ord(char):02x}_")
     return "".join(escaped)
 
 
@@ -92,24 +93,24 @@ def unescape_filename_part(value: str) -> str:
         if idx + 1 >= len(value):
             raise ValueError(f"Invalid escaped filename part: {value}")
 
-        marker = value[idx + 1]
-        if marker == "_":
-            decoded.append("_")
-            idx += 2
-        elif marker == "s":
-            decoded.append("/")
-            idx += 2
-        elif marker == "d":
-            decoded.append(".")
-            idx += 2
-        elif marker == "x":
-            hex_end = value.find("_", idx + 2)
-            if hex_end == -1:
+        match value[idx + 1]:
+            case "_":
+                decoded.append("_")
+                idx += 2
+            case "s":
+                decoded.append("/")
+                idx += 2
+            case "d":
+                decoded.append(".")
+                idx += 2
+            case "x":
+                hex_end = value.find("_", idx + 2)
+                if hex_end == -1:
+                    raise ValueError(f"Invalid escaped filename part: {value}")
+                decoded.append(chr(int(value[idx + 2 : hex_end], 16)))
+                idx = hex_end + 1
+            case _:
                 raise ValueError(f"Invalid escaped filename part: {value}")
-            decoded.append(chr(int(value[idx + 2 : hex_end], 16)))
-            idx = hex_end + 1
-        else:
-            raise ValueError(f"Invalid escaped filename part: {value}")
 
     return "".join(decoded)
 
