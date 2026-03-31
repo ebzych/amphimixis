@@ -1,12 +1,12 @@
 """CLI command implementations for Amphimixis."""
 
-import glob
 import shutil
 import tempfile
 from os import path
 
 from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
-from amphimixis.general import IUI, NullUI
+from amphimixis.general import IUI, NullUI, constants, tools
+from amphimixis.general.general import ProjectStats
 from amphimixis.perf_analyzer import main as compare_perf
 
 
@@ -36,7 +36,11 @@ def run_build(
     :param IUI ui: User interface for progress display
     """
 
-    parse_config(project, config_file_path=str(config_file_path), ui=ui)
+    if not project.builds and not parse_config(
+        project, config_file_path=str(config_file_path), ui=ui
+    ):
+        return False
+
     for build in project.builds:
         if not Builder.build_for_linux(project, build, ui):
             ui.mark_failed()
@@ -58,25 +62,32 @@ def run_profile(
     :param IUI ui: User interface for progress display
     """
 
-    if not project.builds:
-        parse_config(project, config_file_path=str(config_file_path), ui=ui)
+    if not project.builds and not parse_config(
+        project, config_file_path=str(config_file_path), ui=ui
+    ):
+        return False
 
     setup_profiling_environment(project, ui)
+
+    success = True
 
     for build in project.builds:
         profiler_ = Profiler(project, build, ui)
         successful_execs = profiler_.profile_all(events=events)
+        profiler_.save_stats()
+        profiler_.cleanup()
         # if empty return -> error
         # if build.executables is not empty, return not equal build.executables -> error
         # if build.executables is empty, return(found executables for profiling) not empty -> passed
         if not successful_execs or (
             build.executables and successful_execs != build.executables
         ):
-            ui.mark_failed()
-            return False
-        profiler_.save_stats()
-        ui.mark_success("Profiling completed!")
-    return True
+            ui.mark_failed("Some executables failed to be profiled")
+            success = False
+        else:
+            ui.mark_success("Profiling completed!")
+
+    return success
 
 
 def run_compare(
@@ -115,26 +126,63 @@ def run_compare(
     return True
 
 
-def show_profiling_result():
+def show_profiling_result(project: general.Project):
     """Show hint or warning after profiling, based on .scriptout files in current directory."""
 
-    scriptout_files = glob.glob("*.scriptout")
+    obj: ProjectStats = tools.load_project_stats(project)
 
-    if not scriptout_files:
+    if not obj or not any(
+        obj[build][exe].executable_run_success
+        for build in obj.keys()
+        for exe in obj[build]
+    ):
         print("\n[!] No profiling data (.scriptout files) were generated.")
         print("\tPlease check amphimixis.log for details.")
-    elif len(scriptout_files) == 1:
+        return
+
+    if len(obj.keys()) == 1:
         print("\n[i] Only one profiling result was generated.")
         print("\tTo compare two results, run profiling again with a different build.")
         print("\tOnce you have two .scriptout files, compare them with:")
         print("\tamixis --compare <file1.scriptout> <file2.scriptout>")
-    else:
-        file1 = path.basename(scriptout_files[0])
-        file2 = path.basename(scriptout_files[1])
-        print("\n[>] To compare two profiling results, use:")
-        print(f"\tamixis --compare {file1} {file2}")
-        if len(scriptout_files) > 2:
-            print("\t(or pick the files you want)")
+        return
+
+    def _find_matching_exe() -> tuple[str, str, str]:
+        found_build1 = None
+        found_build2 = None
+        found_executable = None
+        build_keys = list(obj.keys())
+        for build1_index in range(len(build_keys) - 1):
+            for build2_key in build_keys[build1_index + 1 :]:
+                build1 = obj[build_keys[build1_index]]
+                build2 = obj[build2_key]
+
+                exe_keys = set(obj[build_keys[build1_index]]) | set(obj[build2_key])
+
+                for exe in exe_keys:
+                    if (
+                        build1[exe].executable_run_success
+                        and build2[exe].executable_run_success
+                    ):
+                        found_build1 = build_keys[build1_index]
+                        found_build2 = build2_key
+                        found_executable = exe
+                        return found_build1, found_build2, found_executable
+        return "", "", ""
+
+    build1, build2, exe = _find_matching_exe()
+    if not all([build1, build2, exe]):
+        print(
+            "\tThere is no profiling results for the same executable in different build"
+        )
+        print("\b Maybe you should check profiling errors")
+        return
+
+    file1 = tools.build_filename(build1, exe) + constants.PERF_SCRIPT_EXT
+    file2 = tools.build_filename(build2, exe) + constants.PERF_SCRIPT_EXT
+
+    print("\n[>] To compare two profiling results, use:")
+    print(f"\tamixis --compare {file1} {file2}")
 
 
 def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bool:
