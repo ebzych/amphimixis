@@ -36,7 +36,11 @@ def run_build(
     :param IUI ui: User interface for progress display
     """
 
-    parse_config(project, config_file_path=str(config_file_path), ui=ui)
+    if not project.builds and not parse_config(
+        project, config_file_path=str(config_file_path), ui=ui
+    ):
+        return False
+
     for build in project.builds:
         if not Builder.build_for_linux(project, build, ui):
             ui.mark_failed()
@@ -58,8 +62,10 @@ def run_profile(
     :param IUI ui: User interface for progress display
     """
 
-    if not project.builds:
-        parse_config(project, config_file_path=str(config_file_path), ui=ui)
+    if not project.builds and not parse_config(
+        project, config_file_path=str(config_file_path), ui=ui
+    ):
+        return False
 
     setup_profiling_environment(project, ui)
 

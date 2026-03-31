@@ -28,58 +28,55 @@ def validate(config_file_path: str) -> bool:
     :rtype: bool
     :return: Outcome value :\n
          True if config is valid
-         False if config is invalid
+         False if config is invalid or file not exists
     """
 
-    try:
-        with open(config_file_path, "r", encoding="UTF-8") as file:
-
-            file_dict = yaml.safe_load(file)
-
-            build_system = file_dict.get("build_system")
-            if (
-                isinstance(build_system, str)
-                and build_system.lower() not in build_systems_dict
-            ):
-                _warn(f"Invalid build_system: {build_system}")
-
-            runner = file_dict.get("runner")
-            if not isinstance(runner, str) or runner.lower() not in build_systems_dict:
-                _warn(f"Invalid runner: {runner}")
-
-            # validate platforms
-            platforms = file_dict.get("platforms", {})
-            if platforms == {}:
-                _warn("Platforms not found")
-
-            for platform in platforms:
-                _is_valid_platform(platform)
-
-            # validate recipes
-            recipes = file_dict.get("recipes", {})
-            if recipes == {}:
-                _warn("Recipes not found")
-
-            for recipe in recipes:
-                _is_valid_recipe(recipe)
-
-            # validate builds
-            builds = file_dict.get("builds", {})
-            if builds == {}:
-                _warn("Builds not found")
-
-            for build in builds:
-                _is_valid_build(build)
-
-        _logger.info("Validation completed, errors found: %s", _errors_count)
-
-        # True if config is valid (0 errors)
-        # False if config is invalid (>0 errors)
-        return not bool(_errors_count)
-
-    except FileNotFoundError:
-        _logger.error("File not found")
+    if not path.exists(config_file_path):
+        _logger.error("Config file not found")
         return False
+
+    with open(config_file_path, "r", encoding="UTF-8") as file:
+
+        file_dict = yaml.safe_load(file)
+
+        build_system = file_dict.get("build_system")
+        if (
+            isinstance(build_system, str)
+            and build_system.lower() not in build_systems_dict
+        ):
+            _warn(f"Invalid build_system: {build_system}")
+
+        runner = file_dict.get("runner")
+        if not isinstance(runner, str) or runner.lower() not in build_systems_dict:
+            _warn(f"Invalid runner: {runner}")
+
+        # validate platforms
+        platforms = file_dict.get("platforms", {})
+        if platforms == {}:
+            _warn("Platforms not found")
+
+        for platform in platforms:
+            _is_valid_platform(platform)
+
+        # validate recipes
+        recipes = file_dict.get("recipes", {})
+        if recipes == {}:
+            _warn("Recipes not found")
+
+        for recipe in recipes:
+            _is_valid_recipe(recipe)
+
+        # validate builds
+        builds = file_dict.get("builds", {})
+        if builds == {}:
+            _warn("Builds not found")
+
+        for build in builds:
+            _is_valid_build(build)
+
+    _logger.info("Validation completed, errors found: %s", _errors_count)
+
+    return _errors_count == 0
 
 
 def _is_valid_platform(platform: dict[str, int | str]):

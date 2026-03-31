@@ -41,28 +41,40 @@ class ConsoleAnimationPrinter(IUI):
         self.index = (self.index + 1) % len(self.braille)
         self.draw()
 
-    def mark_success(self, message: str = "") -> None:
-        """Mark as successful."""
+    def mark_success(self, message: str = "", build_id: str = "") -> None:
+        """Mark as successful.
+
+        :param str message: message to display.
+        If empty, leaves the previous message
+        :param str build_id: Build identifier.
+        If empty, leaves the previous identifier
+        """
 
         self.status = "success"
-        if message == "":
-            self.message = "Success!"
-        else:
+        if build_id:
+            self.build_id = build_id
+
+        if message:
             self.message = message
 
         self.draw()
         self.finalize()
 
-    def mark_failed(self, error_message: str = "Failed!") -> None:
+    def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
         """Mark as failed and optionally update message.
 
-        :param str error_message: Message to display for failed build
+        :param str error_message: Message to display for failed build.
+        If empty, leaves the previous message
+        :param str build_id: Build identifier.
+        If empty, leaves the previous identifier
         """
 
         self.status = "failed"
-        if error_message == "":
-            self.message = "Failed!"
-        else:
+
+        if build_id:
+            self.build_id = build_id
+
+        if error_message:
             self.message = error_message
 
         self.draw()

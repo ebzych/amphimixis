@@ -292,17 +292,19 @@ class IUI(ABC):
         """
 
     @abstractmethod
-    def mark_success(self, message: str = "") -> None:
+    def mark_success(self, message: str = "", build_id: str = "") -> None:
         """Mark build as successful.
 
         :param str message: Optional message
+        :param str build_id: Build identifier
         """
 
     @abstractmethod
-    def mark_failed(self, error_message: str = "") -> None:
+    def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
         """Mark build as failed.
 
-        :param str error: Optional error message
+        :param str error_message: Optional error message
+        :param str build_id: Build identifier
         """
 
 
@@ -315,8 +317,8 @@ class NullUI(IUI):
     def update_message(self, build_id: str, message: str) -> None:
         pass
 
-    def mark_success(self, message: str = "") -> None:
+    def mark_success(self, message: str = "", build_id: str = "") -> None:
         pass
 
-    def mark_failed(self, error_message: str = "") -> None:
+    def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
         pass

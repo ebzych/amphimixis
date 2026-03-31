@@ -36,63 +36,58 @@ def parse_config(
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
-        ui.update_message("config", "Project path not found")
+        ui.mark_failed("Project path not found")
         return False
 
     project.builds = []
 
+    if not path.exists(config_file_path):
+        _logger.error("Input file path not exists")
+        ui.mark_failed("Input file path not exists")
+        return False
+
     if not validate(config_file_path):
         _logger.error("Incorrect input file")
-        ui.update_message("config", "Incorrect input file")
+        ui.mark_failed("Incorrect input file")
         return False
 
-    try:
-        with open(config_file_path, "r", encoding="UTF-8") as file:
-            input_config = yaml.safe_load(file)
+    with open(config_file_path, "r", encoding="UTF-8") as file:
+        input_config = yaml.safe_load(file)
 
-            build_system = input_config.get("build_system")
-            if build_system is None:
-                if not (build_system := _get_analyzed_build_system()):
-                    _logger.error("Did not find any proper build_system")
-                    ui.update_message("config", "No build system found")
-                    return False
+        build_system = input_config.get("build_system")
+        if build_system is None:
+            if not (build_system := _get_analyzed_build_system()):
+                _logger.error("Did not find any proper build_system")
+                ui.mark_failed("No build system found")
+                return False
 
-            runner = input_config.get("runner")
+        runner = input_config.get("runner")
 
-            project.build_system = build_systems_dict[build_system.lower()]
-            project.runner = build_systems_dict[runner.lower()]
+        project.build_system = build_systems_dict[build_system.lower()]
+        project.runner = build_systems_dict[runner.lower()]
 
-            for build in input_config["builds"]:
+        for build in input_config["builds"]:
 
-                (
-                    executables,
-                    build_machine_info,
-                    run_machine_info,
-                    recipe_info,
-                ) = _configure_build(input_config, build)
+            (
+                executables,
+                build_machine_info,
+                run_machine_info,
+                recipe_info,
+            ) = _configure_build(input_config, build)
 
-                if (
-                    build_machine_info == {}
-                    or run_machine_info == {}
-                    or recipe_info == {}
-                ):
-                    return False
+            if build_machine_info == {} or run_machine_info == {} or recipe_info == {}:
+                return False
 
-                if not _create_build(
-                    project,
-                    build_machine_info,
-                    run_machine_info,
-                    recipe_info,
-                    executables,
-                    ui,
-                ):
-                    ui.update_message("config", "Failed to create build")
-                    return False
-
-    except FileNotFoundError:
-        _logger.error("Error opening file, check input data")
-        ui.update_message("config", "Config file not found")
-        return False
+            if not _create_build(
+                project,
+                build_machine_info,
+                run_machine_info,
+                recipe_info,
+                executables,
+                ui,
+            ):
+                ui.mark_failed("Failed to create build")
+                return False
 
     config_path = path.join(getcwd(), tools.project_name(project) + ".project")
     with open(config_path, "wb") as file:
@@ -274,34 +269,32 @@ def _get_analyzed_build_system() -> str | None:
          analysis was not completed
     """
 
-    try:
-        with open(ANALYZED_FILE_NAME, "r", encoding="UTF-8") as file:
-            analyzed = yaml.safe_load(file)
-            if analyzed:
-                if not isinstance(analyzed, dict):
-                    raise TypeError("Incorrect amphimixis.analyzed")
+    if not path.exists(ANALYZED_FILE_NAME):
+        _logger.warning("Analyzer output file not found")
+        return None
 
-                if "build_systems" not in analyzed:
-                    raise TypeError(
-                        "Missing 'build_systems' key in amphimixis.analyzed"
-                    )
+    with open(ANALYZED_FILE_NAME, "r", encoding="UTF-8") as file:
+        analyzed = yaml.safe_load(file)
+        if analyzed:
+            if not isinstance(analyzed, dict):
+                raise TypeError("Incorrect analyzer output file")
 
-                build_systems = analyzed["build_systems"]
-                if not isinstance(build_systems, list) or not build_systems:
-                    raise TypeError("'Build_systems' must be a non-empty list")
+            if "build_systems" not in analyzed:
+                raise TypeError("Missing 'build_systems' key in analyzer output file")
 
-                if not isinstance(build_systems[0], str):
-                    raise TypeError("Incorrect build systems list")
+            build_systems = analyzed["build_systems"]
+            if not isinstance(build_systems, list) or not build_systems:
+                raise TypeError("'Build_systems' must be a non-empty list")
 
-                build_system = build_systems[0].lower()
-                if (
-                    build_system in build_systems_dict
-                ):  # take first (in priority) found build system
-                    return build_system
+            if not isinstance(build_systems[0], str):
+                raise TypeError("Incorrect build systems list")
 
-            return None
+            build_system = build_systems[0].lower()
+            if (
+                build_system in build_systems_dict
+            ):  # take first (in priority) found build system
+                return build_system
 
-    except FileNotFoundError:
         return None
 
 
