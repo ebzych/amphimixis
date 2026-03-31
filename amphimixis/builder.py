@@ -71,5 +71,24 @@ class Builder:
             return False
 
     @staticmethod
+    def clean(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
+        """Clean build artifacts from build machine
+
+        :param Project project: Project whose build must be cleaned
+        :param Build build: Build to clean from build machine
+        :rtype: bool
+        :return: True if successful cleaned, otherwise False"""
+        shell = Shell(project, build.build_machine, ui).connect()
+        path: str = os.path.join(shell.get_project_workdir(), build.build_name)
+        err, stdout, stderr = shell.run(f"rm -rf {path}")
+        if not stdout:
+            _logger.error("Cleaning stdout: %s", "".join(stdout[0]))
+        if err == 0:
+            return True
+        if not stderr:
+            _logger.error("Cleaning stderr: %s", "".join(stderr[0]))
+        return False
+
+    @staticmethod
     def _normbase(path: str) -> str:
         return os.path.basename(os.path.normpath(path))
