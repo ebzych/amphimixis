@@ -59,7 +59,7 @@ def escape_filename_part(value: str) -> str:
     escaped = []
     for char in value:
         match char:
-            case "-" | str() if char.isalnum():
+            case char if char.isalnum() or char == "-":
                 escaped.append(char)
             case "_":
                 escaped.append("__")
