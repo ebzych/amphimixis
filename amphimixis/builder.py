@@ -81,11 +81,11 @@ class Builder:
         shell = Shell(project, build.build_machine, ui).connect()
         path: str = os.path.join(shell.get_project_workdir(), build.build_name)
         err, stdout, stderr = shell.run(f"rm -rf {path}")
-        if not stdout:
+        if stdout[0]:
             _logger.error("Cleaning stdout: %s", "".join(stdout[0]))
         if err == 0:
             return True
-        if not stderr:
+        if stderr[0]:
             _logger.error("Cleaning stderr: %s", "".join(stderr[0]))
         return False
 
