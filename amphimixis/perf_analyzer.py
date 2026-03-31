@@ -117,6 +117,14 @@ def _get_stats_by_event(filepath):
     return event_data
 
 
+INNER_BORDERS = 3
+BUILD_TEXT_MARGINS = 2
+BUILD_A_DEFAULT = "Build A"
+BUILD_B_DEFAULT = "Build B"
+PERCENTAGE_MAX_LENGTH = len("100.00")
+TOTAL_MARGINS = INNER_BORDERS * BUILD_TEXT_MARGINS
+
+
 # pylint: disable=too-many-locals
 def print_comparison_table(
     event_name, data_a, data_b, max_rows, build_a="Build A", build_b="Build B"
@@ -134,14 +142,19 @@ def print_comparison_table(
     if not build_b:
         build_b = "Build B"
 
-    build_a_column_length = max(6, len(build_a) + 2)
-    build_b_column_length = max(6, len(build_b) + 2)
+    build_a_column_length = max(
+        PERCENTAGE_MAX_LENGTH, len(build_a) + BUILD_TEXT_MARGINS
+    )
+    build_b_column_length = max(
+        PERCENTAGE_MAX_LENGTH, len(build_b) + BUILD_TEXT_MARGINS
+    )
     symbol_length = (
         os.get_terminal_size()[0]
         - build_a_column_length
         - build_b_column_length
         - DELTA_COLUMN_LENGTH
-        - 10
+        - TOTAL_MARGINS
+        - INNER_BORDERS
     )
 
     header_symbol = "Symbol".ljust(symbol_length)
