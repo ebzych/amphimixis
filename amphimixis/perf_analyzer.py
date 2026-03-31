@@ -3,6 +3,7 @@
 # pylint: disable=too-many-arguments
 
 import os
+import shutil
 import sys
 from collections import defaultdict
 
@@ -125,6 +126,12 @@ PERCENTAGE_MAX_LENGTH = len("100.00")
 TOTAL_MARGINS = INNER_BORDERS * BUILD_TEXT_MARGINS
 
 
+def _get_terminal_width(default: int = 80) -> int:
+    """Return terminal width or a fallback value if it cannot be detected."""
+
+    return shutil.get_terminal_size(fallback=(default, 24)).columns
+
+
 # pylint: disable=too-many-locals
 def print_comparison_table(
     event_name, data_a, data_b, max_rows, build_a="Build A", build_b="Build B"
@@ -149,7 +156,7 @@ def print_comparison_table(
         PERCENTAGE_MAX_LENGTH, len(build_b) + BUILD_TEXT_MARGINS
     )
     symbol_length = (
-        os.get_terminal_size()[0]
+        _get_terminal_width()
         - build_a_column_length
         - build_b_column_length
         - DELTA_COLUMN_LENGTH
@@ -161,8 +168,9 @@ def print_comparison_table(
     header_a = f"{build_a} %".rjust(build_a_column_length)
     header_b = f"{build_b} %".rjust(build_b_column_length)
     header_delta = "Delta %".rjust(DELTA_COLUMN_LENGTH)
+    event_header = f" EVENT: {event_name.upper()} "
 
-    print(f"\n{'='*10} EVENT: {event_name.upper()} {'='*10}")
+    print(f"\n{event_header.center(_get_terminal_width(), '=')}")
     print(f"{header_symbol} | {header_a} | {header_b} | {header_delta}")
     print(
         "-"
