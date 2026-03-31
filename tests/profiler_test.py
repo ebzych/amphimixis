@@ -39,8 +39,9 @@ def build_executable():
 
 
 @pytest.fixture
-def get_profiler(mocker: pytest_mock.MockerFixture):
+def get_profiler(mocker: pytest_mock.MockerFixture, monkeypatch: pytest.MonkeyPatch):
     def _profiler(path: Path, exec_name: str) -> Profiler:
+        monkeypatch.chdir(path)
         workdir_path_mock = mocker.Mock()
         workdir_path_mock.return_value = str(path)
         mocker.patch("amphimixis.Shell.get_project_workdir", workdir_path_mock)
