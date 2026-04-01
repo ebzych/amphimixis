@@ -61,14 +61,14 @@ def test_e2e_remote_machine_between_containers(
         "pip install --break-system-packages pandas openai",
     ]
     client_container.exec_run(pandas_install_cmd)
-    repo_path = clone_repo("https://github.com/jbeder/yaml-cpp.git")
-    copy_cmd = ["docker", "cp", repo_path, "build-client:/workspace/yaml-cpp"]
+    repo_path = clone_repo("https://github.com/leethomason/tinyxml2")
+    copy_cmd = ["docker", "cp", repo_path, "build-client:/workspace/tinyxml2"]
     subprocess.run(copy_cmd, check=True)
 
     build_cmd = [
         "bash",
         "-c",
-        "/root/.local/bin/uv run --project /app /app/amixis.py /workspace/yaml-cpp --events cycles",
+        "/root/.local/bin/uv run --project /app /app/amixis.py /workspace/tinyxml2 --events cycles",
     ]
     exit_code = client_container.exec_run(build_cmd, workdir="/workspace")[0]
 
