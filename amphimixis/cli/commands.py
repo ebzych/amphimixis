@@ -266,6 +266,8 @@ def interactive_clean() -> bool:
             int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
         ]
 
+        print("\033[?1049l", end="")
+
         for i, build in enumerate(builds.values()):
             if i in nums:
                 if Builder.clean(project, build):
@@ -275,9 +277,10 @@ def interactive_clean() -> bool:
                     print(f"{build.build_name} failed to clean")
 
     except KeyboardInterrupt:
-        pass
+        print("\033[?1049l", end="")
+    except ValueError:
+        print("\033[?1049l", end="")
+        print("Not a number")
     finally:
         print("\033[?1049l", end="")
-
-    print("\033[?1049l", end="")
     return success
