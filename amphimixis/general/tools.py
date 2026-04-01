@@ -129,10 +129,7 @@ def project_name(project: Project):
 def get_cache_project() -> Project:
     """Load Project object saved to first .project file"""
     project_file = glob.glob("./*.project")[0]
-    with open(
-        os.path.join(os.getcwd(), project_file),
-        "rb",
-    ) as file:
+    with open(project_file, "rb") as file:
         project: Project = pickle.load(file)
         return project
 

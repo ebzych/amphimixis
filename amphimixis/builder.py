@@ -90,17 +90,13 @@ class Builder:
         :param Build build: Build to saving"""
         builds: dict[str, Build] = {}
         try:
-            with open(
-                os.path.join(os.getcwd(), Builder.BUILDS_LIST_FILE_NAME), "rb"
-            ) as file:
+            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
                 builds = pickle.load(file)
         except FileNotFoundError:
             pass
 
         builds[build.build_name] = build
-        with open(
-            os.path.join(os.getcwd(), Builder.BUILDS_LIST_FILE_NAME), "wb"
-        ) as file:
+        with open(Builder.BUILDS_LIST_FILE_NAME, "wb") as file:
             pickle.dump(builds, file)
 
     @staticmethod
@@ -111,18 +107,14 @@ class Builder:
         :param Build build: Build to removing from builds list"""
         builds: dict[str, Build] = {}
         try:
-            with open(
-                os.path.join(os.getcwd(), Builder.BUILDS_LIST_FILE_NAME), "rb"
-            ) as file:
+            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
                 builds = pickle.load(file)
         except FileNotFoundError:
             pass
 
         if build.build_name in builds:
             builds.pop(build.build_name)
-        with open(
-            os.path.join(os.getcwd(), Builder.BUILDS_LIST_FILE_NAME), "wb"
-        ) as file:
+        with open(Builder.BUILDS_LIST_FILE_NAME, "wb") as file:
             pickle.dump(builds, file)
 
     @staticmethod

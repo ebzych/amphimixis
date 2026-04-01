@@ -2,7 +2,6 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
-from os import getcwd, path
 import pickle
 import sys
 from pathlib import Path
@@ -34,7 +33,7 @@ def main():
     if args.clean is not None:
         builds: dict[str, general.Build] = {}
         try:
-            with open(path.join(getcwd(), Builder.BUILDS_LIST_FILE_NAME), "rb") as file:
+            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
                 builds: dict[str, general.Build] = pickle.load(file)
         except FileNotFoundError:
             print("No builds remember")

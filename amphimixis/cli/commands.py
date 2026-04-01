@@ -2,7 +2,7 @@
 
 import shutil
 import tempfile
-from os import path, getcwd
+from os import path
 import pickle
 
 from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
@@ -229,6 +229,16 @@ def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bo
     return success
 
 
+def open_alternate_term() -> None:
+    """Uses Xterm control code to switch to an alternate terminal buffer"""
+    print("\033[?1049h", end="")
+
+
+def close_alternate_term() -> None:
+    """Uses Xterm control code to return back to first terminal buffer"""
+    print("\033[?1049l", end="")
+
+
 def clean(*builds: Build) -> bool:
     """Clean builds directories"""
     project: Project
@@ -251,14 +261,14 @@ def interactive_clean() -> bool:
     project: Project
     try:
         project = tools.get_cache_project()
-        with open(path.join(getcwd(), Builder.BUILDS_LIST_FILE_NAME), "rb") as file:
+        with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
             builds = pickle.load(file)
     except FileNotFoundError:
         pass
 
     success = True
     try:
-        print("\033[?1049h", end="")
+        open_alternate_term()
 
         for i, build_name in enumerate(builds.keys()):
             print(f"{i + 1}.\t{build_name}")
@@ -266,7 +276,7 @@ def interactive_clean() -> bool:
             int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
         ]
 
-        print("\033[?1049l", end="")
+        close_alternate_term()
 
         for i, build in enumerate(builds.values()):
             if i in nums:
@@ -277,10 +287,10 @@ def interactive_clean() -> bool:
                     print(f"{build.build_name} failed to clean")
 
     except KeyboardInterrupt:
-        print("\033[?1049l", end="")
+        close_alternate_term()
     except ValueError:
-        print("\033[?1049l", end="")
+        close_alternate_term()
         print("Not a number")
     finally:
-        print("\033[?1049l", end="")
+        close_alternate_term()
     return success
