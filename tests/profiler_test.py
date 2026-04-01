@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 import pytest_mock
 
-import amphimixis
 from amphimixis import Profiler, general
 
 EXECUTABLE_FILENAME = "a.out"

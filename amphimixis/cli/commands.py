@@ -4,7 +4,6 @@ import shutil
 import tempfile
 from os import path, getcwd
 import pickle
-import glob
 
 from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
 from amphimixis.general import IUI, NullUI, Project, Build, constants, tools
@@ -49,7 +48,7 @@ def run_build(
             there_are_built = True
             ui.mark_success("Build passed!")
         else:
-            ui.mark_failed(build_id=build.build_name, error_message=f"Building failed")
+            ui.mark_failed(build_id=build.build_name, error_message="Building failed")
 
     return there_are_built
 
@@ -231,22 +230,29 @@ def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bo
 
 
 def clean(*builds: Build) -> bool:
+    """Clean builds directories"""
     project: Project
     try:
         project = tools.get_cache_project()
     except FileNotFoundError:
-        pass
+        print("Project file .project not found")
+        return False
+    success = True
     for b in builds:
-        Builder.clean(project, b)
+        if not Builder.clean(project, b):
+            success = False
+    return success
 
 
 def interactive_clean() -> bool:
+    """Open alternative terminal buffer, enumerate builds "
+    "names and suggest choose which will be cleaned"""
     builds: dict[str, Build] = {}
     project: Project
     try:
-        project: Project = tools.get_cache_project()
-        with open(path.join(getcwd(), Builder._BUILDS_LIST_FILE_NAME), "rb") as file:
-            builds: dict[str, Build] = pickle.load(file)
+        project = tools.get_cache_project()
+        with open(path.join(getcwd(), Builder.BUILDS_LIST_FILE_NAME), "rb") as file:
+            builds = pickle.load(file)
     except FileNotFoundError:
         pass
 
