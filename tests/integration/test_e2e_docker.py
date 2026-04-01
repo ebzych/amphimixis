@@ -48,7 +48,7 @@ def test_e2e_remote_machine_between_containers(
     add_ip_cmd = [
         "bash",
         "-c",
-        f"sed '5s/.*/  address: {ip_address}/' "
+        f"sed 's/address:/address: {ip_address}/' "
         f"/workspace/input_remote.yml > /workspace/input.yml.tmp",
     ]
     exit_code = client_container.exec_run(add_ip_cmd)[0]
@@ -57,7 +57,7 @@ def test_e2e_remote_machine_between_containers(
     add_jobs_cmd = [
         "bash",
         "-c",
-        f"sed -E 's/^([[:space:]]*jobs:[[:space:]]*)[0-9]+/\\1{os.cpu_count() or 8}/' "
+        f"sed 's/jobs:/jobs: {os.cpu_count() or 8}/' "
         f"/workspace/input.yml.tmp > /workspace/input.yml",
     ]
     exit_code = client_container.exec_run(add_jobs_cmd)[0]
