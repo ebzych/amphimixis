@@ -1,7 +1,6 @@
 """Tests for the full launch of the application on a specific project"""
 
 import os
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -19,7 +18,15 @@ def test_e2e_local_machine(clone_repo, create_working_space):
     try:
         orig_file = Path(f"{orig_dir}/tests/integration/input_local.yaml")
         config_file = Path(f"{working_dir}/input.yml")
-        shutil.copy(orig_file, config_file)
+        add_jobs_cmd = [
+            "bash",
+            "-c",
+            f"sed -E 's/^([[:space:]]*jobs:[[:space:]]*)[0-9]+/\\1{os.cpu_count() or 8}/' "
+            f"{orig_file} > {config_file}",
+        ]
+        subprocess.check_call(
+            add_jobs_cmd,
+        )
 
         os.chdir(working_dir)
         command = [

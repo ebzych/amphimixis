@@ -13,7 +13,7 @@ shellcheck "${CI_PATH}"/*.sh
 echo -e "${BLUE}Run CI:${NC}"
 "${CI_PATH}"/mdl.sh
 "${CI_PATH}"/black.sh
+"${CI_PATH}"/ruff.sh
 "${CI_PATH}"/mypy.sh
 "${CI_PATH}"/pylint.sh
-"${CI_PATH}"/ruff.sh
 "${CI_PATH}"/pytest.sh

@@ -19,7 +19,7 @@ def clone_repo():
 
     def _clone_repo(repo_url):
         repo_path = tempfile.mkdtemp(prefix="temp_dir")
-        command = ["git", "clone", repo_url, repo_path]
+        command = ["git", "clone", "--depth", "1", repo_url, repo_path]
         subprocess.run(command, check=True)
         repo_paths.append(repo_path)
         return Path(repo_path)
