@@ -257,7 +257,10 @@ def _get_build_data(filename: str) -> str:
 
     filename = os.path.splitext(filename)[0]
 
-    return tools.parse_filename(filename)[0]
+    try:
+        return tools.parse_filename(filename)[0]
+    except ValueError:
+        return ""
 
 
 def analyze_with_llm(table, samples_a, samples_b):
@@ -318,6 +321,11 @@ def main(
 
     build_a = _get_build_data(filename1)
     build_b = _get_build_data(filename2)
+
+    if not build_a:
+        build_a = BUILD_A_DEFAULT
+    if not build_b:
+        build_b = BUILD_B_DEFAULT
 
     stats_a = _get_stats_by_event(filename1)
     stats_b = _get_stats_by_event(filename2)
