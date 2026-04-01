@@ -20,8 +20,9 @@ jobs:
           python-version: "3.13"
       - name: Install dependencies
         run: |
-          sudo apt update && sudo apt-get install -y linux-tools-azure ruby-mdl
+          sudo apt update && sudo apt install -y ruby-mdl
           if ! perf --version; then
+              sudo apt-get install -y linux-tools-azure 
               export PERF_PATH=$(find -L /usr/lib/linux-tools/ -name perf -type f | head -n 1)
               if [ -n "$PERF_PATH" ]; then
                   sudo ln -sf "$PERF_PATH" /usr/bin/perf
@@ -53,9 +54,8 @@ jobs:
     steps:
       - name: Install perf
         run: |
-          sudo apt update
-          sudo apt-get install -y linux-tools-azure
           if ! perf --version; then
+              sudo apt update && sudo apt-get install -y linux-tools-azure 
               export PERF_PATH=$(find -L /usr/lib/linux-tools/ -name perf -type f | head -n 1)
               if [ -n "$PERF_PATH" ]; then
                   sudo ln -sf "$PERF_PATH" /usr/bin/perf
@@ -95,9 +95,8 @@ jobs:
     steps:
       - name: Install perf
         run: |
-          sudo apt update
-          sudo apt-get install -y linux-tools-azure
           if ! perf --version; then
+              sudo apt update && sudo apt-get install -y linux-tools-azure 
               export PERF_PATH=$(find -L /usr/lib/linux-tools/ -name perf -type f | head -n 1)
               if [ -n "$PERF_PATH" ]; then
                   sudo ln -sf "$PERF_PATH" /usr/bin/perf
