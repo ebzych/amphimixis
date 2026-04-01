@@ -151,3 +151,16 @@ amixis --compare build1.scriptout build2.scriptout --events cycles cache-misses
 ```
 
 With `--compare`, `--events` filters the output to the listed events.
+
+## Centralized management
+
+If you want to clean up on your machines, use:
+
+```bash
+# To specify build names manually
+amixis --clean build-name1 build-name-2 ...
+# To use interactive mode with selecting builds to clean
+amixis --clean
+# To clean all builds
+amixis --clean --all
+```

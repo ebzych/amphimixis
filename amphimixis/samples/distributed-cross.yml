@@ -1,7 +1,7 @@
-# Distributed setup for x86 and risc-v
+# Distributed setup for x86 and risc-v with cross-building
 
 build_system: CMake
-runner: Make
+runner: Ninja
 platforms:
 - id: 1
   arch: x86
@@ -15,8 +15,10 @@ platforms:
 recipes:
 - id: 1
   config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+  # jobs:
 - id: 2
   config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=/opt/toolchains/riscv.cmake"
+  # jobs:
 
 list: &executables
 - test/run-tests
