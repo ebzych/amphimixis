@@ -115,7 +115,7 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
         :param Build build: Build to build
         :rtype: tuple[int, str, str]
         :return: Tuple of error_code, stdout, stderr"""
-        self._ui.print_warning(
+        self._ui.send_warning(
             build.build_name,
             Make._GNU_standard_compatibility_warn_msg,
         )

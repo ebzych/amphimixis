@@ -46,7 +46,7 @@ def parse_config(
         ui.mark_failed("Input file path not exists")
         return False
 
-    if not validate(config_file_path):
+    if not validate(config_file_path, ui):
         _logger.error("Incorrect input file")
         ui.mark_failed("Incorrect input file")
         return False

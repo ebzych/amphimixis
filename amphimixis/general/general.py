@@ -233,18 +233,24 @@ class IUI(ABC):
         """Advance the progress counter by one step."""
 
     @abstractmethod
-    def print_message(self, sender: str, message: str) -> None:
-        """Print message to user with status mark 'I'
+    def send_message(self, sender: str, message: str) -> None:
+        """Send message to user
 
         :param str sender: Identifier name of sender module
         :param str message: Message to user"""
 
     @abstractmethod
-    def print_warning(self, sender: str, warning: str) -> None:
-        """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message
+    def send_warning(self, sender: str, warning: str) -> None:
+        """Send warning to user
 
         :param str sender: Identifier name of sender module
         :param str warning: Warning to user"""
+
+    def send_error(self, sender: str, err_msg: str) -> None:
+        """Send error message to user
+
+        :param str sender: Identifier name of sender module
+        :param str error: Error message to user"""
 
     @abstractmethod
     def update_message(self, build_id: str, message: str) -> None:
@@ -277,10 +283,13 @@ class NullUI(IUI):
     def step(self) -> None:
         pass
 
-    def print_message(self, sender: str, message: str) -> None:
+    def send_message(self, sender: str, message: str) -> None:
         pass
 
-    def print_warning(self, sender: str, warning: str) -> None:
+    def send_warning(self, sender: str, warning: str) -> None:
+        pass
+
+    def send_error(self, sender: str, err_msg: str) -> None:
         pass
 
     def update_message(self, build_id: str, message: str) -> None:

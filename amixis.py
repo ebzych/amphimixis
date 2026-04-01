@@ -27,6 +27,7 @@ def main():
 
     parser = create_parser()
     args = parser.parse_args()
+    ui = ConsoleAnimationPrinter()
 
     if args.all and args.clean is None:
         parser.error("--all can only be used with --clean")
@@ -56,7 +57,7 @@ def main():
         config_file = DEFAULT_CONFIG_PATH
 
     if args.validate:
-        if not validate(args.validate):
+        if not validate(args.validate, ui):
             print(f"{args.validate} is incorrect!!")
             return 1
         print(f"{args.validate} is correct!!")
@@ -69,7 +70,6 @@ def main():
 
     if args.compare:
         filename1, filename2 = args.compare
-        ui = ConsoleAnimationPrinter()
 
         if not run_compare(
             filename1,
@@ -86,8 +86,6 @@ def main():
         return 1
 
     project = general.Project(str(Path(args.path).expanduser().resolve()))
-
-    ui = ConsoleAnimationPrinter()
 
     try:
         if not any([args.analyze, args.build, args.profile]):
