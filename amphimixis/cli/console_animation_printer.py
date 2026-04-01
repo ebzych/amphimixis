@@ -20,6 +20,27 @@ class ConsoleAnimationPrinter(IUI):
         self.message = ""
         self.status = "running"
 
+    def send_message(self, sender: str, message: str) -> None:
+        """Print message to user with status mark 'I'
+
+        :param str sender: Identifier name of sender module
+        :param str message: Message to user"""
+        print(f"\r\033[K[{sender}][I] {message}")
+
+    def send_warning(self, sender: str, warning: str) -> None:
+        """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message
+
+        :param str sender: Identifier name of sender module
+        :param str warning: Warning to user"""
+        print(f"\r\033[K[{sender}][W] WARNING: {warning}")
+
+    def send_error(self, sender: str, err_msg: str) -> None:
+        """Print error to user with status mark 'E' and 'ERROR: ' in begin of message
+
+        :param str sender: Identifier name of sender module
+        :param str error: Error message to user"""
+        print(f"\r\033[K[{sender}][E] ERROR: {err_msg}")
+
     def update_message(self, build_id: str, message: str) -> None:
         """Update build_id and message.
 

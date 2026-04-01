@@ -1,10 +1,14 @@
 """Module that builds a build based on configuration"""
 
 import os
+import pickle
 
 from amphimixis import logger
 from amphimixis.general import IUI, NullUI
-from amphimixis.general.general import Build, Project
+from amphimixis.general.general import (
+    Build,
+    Project,
+)
 from amphimixis.shell.shell import Shell
 
 _logger = logger.setup_logger("BUILDER")
@@ -12,6 +16,8 @@ _logger = logger.setup_logger("BUILDER")
 
 class Builder:
     """The class is representing a module which builds a build based on its configuration"""
+
+    BUILDS_LIST_FILE_NAME = ".builds"
 
     @staticmethod
     def build(project: Project, ui: IUI = NullUI()) -> None:
@@ -43,26 +49,16 @@ class Builder:
                 os.path.normpath(project.path), "~/amphimixis/"
             ):
                 _logger.error("Error in copying source files")
-                ui.update_message(build.build_name, "Error in copying source files")
+                ui.mark_failed(
+                    build_id=build.build_name,
+                    error_message="Error in copying source files",
+                )
+                build.successfully_built = False
                 return False
 
         try:
-            configuration_prompt = project.build_system.get_build_system_prompt(
-                project, build
-            )
-
-            _logger.info("Configuration with: %s", configuration_prompt)
-
-            runner_prompt = project.runner.get_runner_prompt(project, build)
-            _logger.info("Run building with: %s", runner_prompt)
-
             ui.update_message(build.build_name, "Building...")
-            err, stdout, stderr = shell.run(
-                f"mkdir -p {path}",
-                f"cd {path}",
-                configuration_prompt,
-                runner_prompt,
-            )
+            err, _, stderr = shell.run(f"mkdir -p {path}")
 
             if len(stderr) >= 1 and len(stderr[0]) != 0:
                 _logger.error(
@@ -70,29 +66,76 @@ class Builder:
                     "".join(stderr[0]),
                 )
 
-            if len(stderr) >= 2 and len(stderr[1]) != 0:
-                _logger.error(
-                    "Error in changing current working directory on current machine: %s",
-                    "".join(stderr[1]),
-                )
-
-            if len(stdout) >= 3:
-                _logger.info("Configuration output:\n%s", "".join(stdout[2]))
-                _logger.info("Configuration stderr:\n%s", "".join(stderr[2]))
-
-            if len(stdout) >= 4:
-                _logger.info("Building output:\n%s", "".join(stdout[3]))
-                _logger.info("Building stderr:\n%s", "".join(stderr[3]))
+            err, sstdout, sstderr = project.build_system.build(build)
+            _logger.info("Building output:\n%s", sstdout)
+            _logger.info("Building stderr:\n%s", sstderr)
 
             if err != 0:
-                ui.update_message(build.build_name, "Build failed")
+                build.successfully_built = False
                 return False
-
+            Builder.remember_build(build)
             return True
 
         except FileNotFoundError:
-            ui.update_message(build.build_name, "Build system not found")
+            ui.mark_failed(
+                build_id=build.build_name, error_message="Build system not found"
+            )
             return False
+
+    @staticmethod
+    def remember_build(build: Build) -> None:
+        """Remember build to Builder.BUILDS_LIST_FILE_NAME "
+        "file in working directory
+
+        :param Build build: Build to saving"""
+        builds: dict[str, Build] = {}
+        try:
+            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+                builds = pickle.load(file)
+        except FileNotFoundError:
+            pass
+
+        builds[build.build_name] = build
+        with open(Builder.BUILDS_LIST_FILE_NAME, "wb") as file:
+            pickle.dump(builds, file)
+
+    @staticmethod
+    def forget_build(build: Build) -> None:
+        """Forget build from Builder.BUILDS_LIST_FILE_NAME "
+        "file in working directory
+
+        :param Build build: Build to removing from builds list"""
+        builds: dict[str, Build] = {}
+        try:
+            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+                builds = pickle.load(file)
+        except FileNotFoundError:
+            pass
+
+        if build.build_name in builds:
+            builds.pop(build.build_name)
+        with open(Builder.BUILDS_LIST_FILE_NAME, "wb") as file:
+            pickle.dump(builds, file)
+
+    @staticmethod
+    def clean(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
+        """Clean build artifacts from build machine
+
+        :param Project project: Project whose build must be cleaned
+        :param Build build: Build to clean from build machine
+        :rtype: bool
+        :return: True if successful cleaned, otherwise False"""
+        shell = Shell(project, build.build_machine, ui).connect()
+        path: str = os.path.join(shell.get_project_workdir(), build.build_name)
+        err, stdout, stderr = shell.run(f"rm -rf {path}")
+        if stdout[0]:
+            _logger.error("Cleaning stdout: %s", "".join(stdout[0]))
+        if err == 0:
+            Builder.forget_build(build)
+            return True
+        if stderr[0]:
+            _logger.error("Cleaning stderr: %s", "".join(stderr[0]))
+        return False
 
     @staticmethod
     def _normbase(path: str) -> str:

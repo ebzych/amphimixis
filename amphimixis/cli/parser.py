@@ -140,7 +140,7 @@ def create_parser():
     )
 
     parser.add_argument(
-        "-с",
+        "-c",
         "--compare",
         nargs=2,
         metavar=("FILE1", "FILE2"),
@@ -160,6 +160,21 @@ def create_parser():
         help="space-separated perf events (e.g., cycles cache-misses).\n"
         "With the main pipeline or --profile, records only these events;"
         " with --compare, shows only these events.",
+    )
+
+    parser.add_argument(
+        "--clean",
+        nargs="*",
+        metavar="[ build_name_1 [ build_name_2 [ ... ] ] ]",
+        help="clean specified builds directories.\n"
+        "Clean ALL builds directories with --all.\n"
+        "If no builds is specified, then switches to interactive mode.",
+    )
+
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="used with --clean for cleaning all builds directories.",
     )
 
     return parser

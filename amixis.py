@@ -2,10 +2,11 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
+import pickle
 import sys
 from pathlib import Path
 
-from amphimixis import build_systems_dict, general, validate
+from amphimixis import general, validate, Builder
 from amphimixis.cli import (
     DEFAULT_CONFIG_PATH,
     create_parser,
@@ -13,6 +14,8 @@ from amphimixis.cli import (
     run_build,
     run_compare,
     run_profile,
+    clean,
+    interactive_clean,
     show_profiling_result,
 )
 from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
@@ -24,6 +27,26 @@ def main():
 
     parser = create_parser()
     args = parser.parse_args()
+    ui = ConsoleAnimationPrinter()
+
+    if args.all and args.clean is None:
+        parser.error("--all can only be used with --clean")
+    if args.clean is not None:
+        builds: dict[str, general.Build] = {}
+        try:
+            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+                builds: dict[str, general.Build] = pickle.load(file)
+        except FileNotFoundError:
+            print("No builds remember")
+        if args.all:
+            return clean(*builds.values())
+        if len(args.clean) > 0:
+            to_clean: list[general.Build] = []
+            for b in builds.values():
+                if b.build_name in args.clean:
+                    to_clean.append(b)
+            return clean(*to_clean)
+        return interactive_clean()
 
     if not args.compare and args.max_rows != 20:
         parser.error("--max-rows can only be used with --compare")
@@ -34,7 +57,7 @@ def main():
         config_file = DEFAULT_CONFIG_PATH
 
     if args.validate:
-        if not validate(args.validate):
+        if not validate(args.validate, ui):
             print(f"{args.validate} is incorrect!!")
             return 1
         print(f"{args.validate} is correct!!")
@@ -47,7 +70,6 @@ def main():
 
     if args.compare:
         filename1, filename2 = args.compare
-        ui = ConsoleAnimationPrinter()
 
         if not run_compare(
             filename1,
@@ -63,14 +85,7 @@ def main():
         print("Error: please provide path to the project directory.")
         return 1
 
-    project = general.Project(
-        str(Path(args.path).expanduser().resolve()),
-        [],
-        build_systems_dict["make"],
-        build_systems_dict["cmake"],
-    )
-
-    ui = ConsoleAnimationPrinter()
+    project = general.Project(str(Path(args.path).expanduser().resolve()))
 
     try:
         if not any([args.analyze, args.build, args.profile]):

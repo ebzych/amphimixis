@@ -1,14 +1,14 @@
 """Module for configuring a new build"""
 
 import pickle
-from os import getcwd, path
+from os import path
 from platform import machine as local_arch
 from typing import Any
 
 import yaml
 
-from amphimixis.build_systems import build_systems_dict
-from amphimixis.general import IUI, NullUI, general, tools
+from amphimixis.build_systems import build_systems_dict, runners_dict
+from amphimixis.general import IUI, DummyRunner, NullUI, general, tools
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -32,7 +32,7 @@ def parse_config(
          False if configuration failed
     """
 
-    ui.update_message("config", "Parsing configuration file...")
+    ui.update_message("Config", "Parsing configuration file...")
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
@@ -46,7 +46,7 @@ def parse_config(
         ui.mark_failed("Input file path not exists")
         return False
 
-    if not validate(config_file_path):
+    if not validate(config_file_path, ui):
         _logger.error("Incorrect input file")
         ui.mark_failed("Incorrect input file")
         return False
@@ -54,20 +54,26 @@ def parse_config(
     with open(config_file_path, "r", encoding="UTF-8") as file:
         input_config = yaml.safe_load(file)
 
-        build_system = input_config.get("build_system")
-        if build_system is None:
+        build_system: str | None = str(input_config.get("build_system")).lower()
+        if build_system not in build_systems_dict:
             if not (build_system := _get_analyzed_build_system()):
                 _logger.error("Did not find any proper build_system")
-                ui.mark_failed("No build system found")
+                ui.mark_failed("Config: no build system found")
                 return False
-
-        runner = input_config.get("runner")
-
-        project.build_system = build_systems_dict[build_system.lower()]
-        project.runner = build_systems_dict[runner.lower()]
+        runner_name = str(input_config.get("runner", None)).lower()
+        if (
+            runner_name
+            and runner_name in runners_dict
+            and runners_dict[runner_name] in build_systems_dict[build_system][1]
+        ):
+            runner = runners_dict[runner_name](project, ui)
+        elif len(build_systems_dict[build_system][1]) > 0:
+            runner = build_systems_dict[build_system][1][0](project, ui)
+        else:  # if build system doesn't have runners (like Make)
+            runner = DummyRunner()
+        project.build_system = build_systems_dict[build_system][0](project, runner, ui)
 
         for build in input_config["builds"]:
-
             (
                 executables,
                 build_machine_info,
@@ -89,7 +95,7 @@ def parse_config(
                 ui.mark_failed("Failed to create build")
                 return False
 
-    config_path = path.join(getcwd(), tools.project_name(project) + ".project")
+    config_path = tools.project_name(project) + ".project"
     with open(config_path, "wb") as file:
         pickle.dump(project, file)
 
@@ -182,6 +188,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
 
     config_flags = recipe_info.get("config_flags", "")
     compiler_flags = create_flags(recipe_info.get("compiler_flags"))
+    jobs = recipe_info.get("jobs", None)
 
     build = general.Build(
         build_machine,
@@ -192,6 +199,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
         sysroot,
         compiler_flags,
         config_flags,
+        jobs,
     )
 
     project.builds.append(build)
@@ -236,14 +244,14 @@ def _has_valid_arch(
             return False
 
     else:
-        ui.update_message("config", "Checking remote architecture for validity...")
+        ui.update_message("Config", "Checking remote architecture for validity...")
         shell = Shell(project, machine, ui).connect()
         error_code, stdout, _ = shell.run("uname -m")
         if error_code != 0:
             _logger.error(
                 "An error occured during reading remote machine arch, check remote machine"
             )
-            ui.update_message("config", "Failed to check remote architecture")
+            ui.mark_failed("Config: failed to check remote architecture")
             return False
 
         remote_arch = stdout[0][0]
@@ -253,7 +261,7 @@ def _has_valid_arch(
                 machine.arch.name.lower(),
                 remote_arch.lower(),
             )
-            ui.update_message("Config", "Invalid remote architecture")
+            ui.mark_failed("Config: invalid remote architecture")
             return False
 
     return True

@@ -3,9 +3,10 @@
 import shutil
 import tempfile
 from os import path
+import pickle
 
 from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
-from amphimixis.general import IUI, NullUI, constants, tools
+from amphimixis.general import IUI, NullUI, Project, Build, constants, tools
 from amphimixis.general.general import ProjectStats
 from amphimixis.perf_analyzer import main as compare_perf
 
@@ -41,12 +42,15 @@ def run_build(
     ):
         return False
 
+    there_are_built = False
     for build in project.builds:
-        if not Builder.build_for_linux(project, build, ui):
-            ui.mark_failed()
-            return False
-        ui.mark_success("Build passed!")
-    return True
+        if Builder.build_for_linux(project, build, ui):
+            there_are_built = True
+            ui.mark_success("Build passed!")
+        else:
+            ui.mark_failed(build_id=build.build_name, error_message="Building failed")
+
+    return there_are_built
 
 
 def run_profile(
@@ -72,6 +76,8 @@ def run_profile(
     success = True
 
     for build in project.builds:
+        if not build.successfully_built:
+            continue
         profiler_ = Profiler(project, build, ui)
         successful_execs = profiler_.profile_all(events=events)
         profiler_.save_stats()
@@ -220,4 +226,71 @@ def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bo
                 success = False
 
     shutil.rmtree(tmpdir)
+    return success
+
+
+def open_alternate_term() -> None:
+    """Uses Xterm control code to switch to an alternate terminal buffer"""
+    print("\033[?1049h", end="")
+
+
+def close_alternate_term() -> None:
+    """Uses Xterm control code to return back to first terminal buffer"""
+    print("\033[?1049l", end="")
+
+
+def clean(*builds: Build) -> bool:
+    """Clean builds directories"""
+    project: Project
+    try:
+        project = tools.get_cache_project()
+    except FileNotFoundError:
+        print("Project file .project not found")
+        return False
+    success = True
+    for b in builds:
+        if not Builder.clean(project, b):
+            success = False
+    return success
+
+
+def interactive_clean() -> bool:
+    """Open alternative terminal buffer, enumerate builds "
+    "names and suggest choose which will be cleaned"""
+    builds: dict[str, Build] = {}
+    project: Project
+    try:
+        project = tools.get_cache_project()
+        with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+            builds = pickle.load(file)
+    except FileNotFoundError:
+        pass
+
+    success = True
+    try:
+        open_alternate_term()
+
+        for i, build_name in enumerate(builds.keys()):
+            print(f"{i + 1}.\t{build_name}")
+        nums = [
+            int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
+        ]
+
+        close_alternate_term()
+
+        for i, build in enumerate(builds.values()):
+            if i in nums:
+                if Builder.clean(project, build):
+                    print(f"{build.build_name} was successfully cleaned")
+                else:
+                    success = False
+                    print(f"{build.build_name} failed to clean")
+
+    except KeyboardInterrupt:
+        close_alternate_term()
+    except ValueError:
+        close_alternate_term()
+        print("Not a number")
+    finally:
+        close_alternate_term()
     return success

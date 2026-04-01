@@ -10,7 +10,7 @@ import amphimixis
 from amphimixis.general import constants
 from amphimixis.shell.shell import Shell
 
-project = amphimixis.general.Project("/tmp/amphimixis", [], None, None)  # type: ignore
+project = amphimixis.general.Project("/tmp/amphimixis", [])  # type: ignore
 READING_BARRIER_STDOUT = 'echo "\nREADING_BARRIER_FLAG:$?"'
 READING_BARRIER_STDERR = 'echo "\nREADING_BARRIER_FLAG">&2'
 

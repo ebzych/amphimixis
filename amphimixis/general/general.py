@@ -1,5 +1,7 @@
 """The common module that is used in most other modules"""
 
+import os
+import queue
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
@@ -222,59 +224,6 @@ class CompilerFlags:
         return self.__attrs
 
 
-@dataclass
-class Build:
-    """Class with information about one build of project
-
-    :var MachineInfo build_machine: Information about the machine to build at
-    :var MachineInfo run_machine: Information about the machine to profile at
-    :var str build_name: Unique name of the build
-    :var Toolchain | None toolchain: Toolchain used to building
-    :var str | None sysroot: Path to sysroot or name of sysroot used to building
-    :var list[str] executables: List of relative to `build path` paths to executables
-    :var str compiler_flags: Compiler flags for the build
-    """
-
-    build_machine: MachineInfo
-    run_machine: MachineInfo
-    build_name: str
-    executables: list[str]
-    toolchain: Toolchain | None
-    sysroot: str | None
-    compiler_flags: CompilerFlags | None
-    config_flags: None | str
-
-
-@dataclass
-class Project:
-    """Class with information about project and his builds
-
-    :var str path: Path to project for research.
-    :var type[IBuildSystem] build_system: High-level build system interface.
-    :var type[IBuildSystem] runner: Low-level build system interface.
-    :var list[Build] builds: List of project configurations to be build.
-    """
-
-    path: str
-    builds: list[Build]
-    build_system: "type[IBuildSystem]"
-    runner: "type[IBuildSystem]"
-
-
-class IBuildSystem(ABC):
-    """Interface for classes implementing interaction with build system"""
-
-    @staticmethod
-    @abstractmethod
-    def get_build_system_prompt(project: Project, build: Build) -> str:
-        """Generate build system prompt with all specified flags"""
-
-    @staticmethod
-    @abstractmethod
-    def get_runner_prompt(project: Project, build: Build) -> str:
-        """Generate runner prompt"""
-
-
 # pylint: disable=too-few-public-methods
 class IUI(ABC):
     """Interface for User Interface (UI) classes"""
@@ -282,6 +231,26 @@ class IUI(ABC):
     @abstractmethod
     def step(self) -> None:
         """Advance the progress counter by one step."""
+
+    @abstractmethod
+    def send_message(self, sender: str, message: str) -> None:
+        """Send message to user
+
+        :param str sender: Identifier name of sender module
+        :param str message: Message to user"""
+
+    @abstractmethod
+    def send_warning(self, sender: str, warning: str) -> None:
+        """Send warning to user
+
+        :param str sender: Identifier name of sender module
+        :param str warning: Warning to user"""
+
+    def send_error(self, sender: str, err_msg: str) -> None:
+        """Send error message to user
+
+        :param str sender: Identifier name of sender module
+        :param str error: Error message to user"""
 
     @abstractmethod
     def update_message(self, build_id: str, message: str) -> None:
@@ -314,6 +283,15 @@ class NullUI(IUI):
     def step(self) -> None:
         pass
 
+    def send_message(self, sender: str, message: str) -> None:
+        pass
+
+    def send_warning(self, sender: str, warning: str) -> None:
+        pass
+
+    def send_error(self, sender: str, err_msg: str) -> None:
+        pass
+
     def update_message(self, build_id: str, message: str) -> None:
         pass
 
@@ -322,3 +300,148 @@ class NullUI(IUI):
 
     def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
         pass
+
+
+# pylint: disable=too-few-public-methods
+class ILowLevelBuildSystem(ABC):
+    """Interface for classes implementing interaction with runner (low-level build-system)"""
+
+    @abstractmethod
+    def __init__(self, project: "Project", ui: IUI = NullUI()):
+        pass
+
+    @abstractmethod
+    def run_building(self, build: "Build") -> tuple[int, str, str]:
+        """Run building via build system"""
+
+
+# pylint: disable=too-few-public-methods
+class IHighLevelBuildSystem(ABC):
+    """Interface for classes implementing interaction with build system (high-level build-system)"""
+
+    @abstractmethod
+    def __init__(
+        self,
+        project: "Project",
+        runner: ILowLevelBuildSystem,
+        ui: IUI = NullUI(),
+    ):
+        pass
+
+    @abstractmethod
+    def build(self, build: "Build") -> tuple[int, str, str]:
+        """Build via build system"""
+
+
+class DummyRunner(ILowLevelBuildSystem):
+    """Runner that does nothing"""
+
+    def __init__(self):
+        pass
+
+    def run_building(self, build: "Build") -> tuple[int, str, str]:
+        return (0, "", "")
+
+
+# pylint: disable=too-few-public-methods
+class DummyBuildSystem(IHighLevelBuildSystem):
+    """Build system that does nothing"""
+
+    def __init__(self):
+        pass
+
+    def build(self, build: "Build") -> tuple[int, str, str]:
+        """Build via build system"""
+        return (0, "", "")
+
+
+# pylint: disable=too-few-public-methods
+class BuildSystem:
+    """Common class for build systems"""
+
+    _MAX_DEPTH = 3
+
+    def __init__(
+        self,
+        project: "Project",
+        runner: ILowLevelBuildSystem = DummyRunner(),
+        ui: IUI = NullUI(),
+    ):
+        self._project = project
+        self._ui = ui
+        self.runner = runner
+
+    def find_relative_path(self, file_name: str) -> str:
+        """Find first directory that contains 'file_name' relative to project root.
+        :param str file_name: Name of file to search relative to project root.
+        :rtype: str
+        :return: Path to directory that contains file relative to project root
+        """
+        q_dirs: queue.Queue[tuple[str, int]] = queue.Queue()
+        q_dirs.put((self._project.path, 0))
+        while not q_dirs.empty():
+            curr_dir = q_dirs.get()
+            if curr_dir[1] >= self._MAX_DEPTH:
+                continue
+            if os.path.exists(os.path.join(curr_dir[0], file_name)):
+                return curr_dir[0][
+                    len(self._project.path) + 1 :
+                ]  # /path/to/sources/[path/to/file] <- this returns
+            for el in os.scandir(curr_dir[0]):
+                if el.is_dir():
+                    q_dirs.put((el.path, curr_dir[1] + 1))
+        raise FileNotFoundError(f"Can't find {file_name}")
+
+
+@dataclass
+class Build:
+    """Class with information about one build of project
+
+    :var MachineInfo build_machine: Information about the machine to build at
+    :var MachineInfo run_machine: Information about the machine to profile at
+    :var str build_name: Unique name of the build
+    :var Toolchain | None toolchain: Toolchain used to building
+    :var str | None sysroot: Path to sysroot or name of sysroot used to building
+    :var list[str] executables: List of relative to `build path` paths to executables
+    :var str compiler_flags: Compiler flags for the build
+    :var None | int jobs: Number of building jobs
+    :var bool successfully_built: Flag of completness of build
+    """
+
+    build_machine: MachineInfo
+    run_machine: MachineInfo
+    build_name: str
+    executables: list[str]
+    toolchain: Toolchain | None
+    sysroot: str | None
+    compiler_flags: CompilerFlags | None
+    config_flags: None | str
+    jobs: None | int = None
+    successfully_built: bool = True
+
+
+@dataclass
+class Project:
+    """Class with information about project and his builds
+
+    :var str path: Path to project for research.
+    :var list[Build] builds: List of project configurations to be build.
+    :var IHighLevelBuildSystem build_system: High-level build system.
+    """
+
+    builds: list[Build]
+
+    def __init__(
+        self,
+        path: str,
+        builds: list[Build] | None = None,
+        build_system: IHighLevelBuildSystem = DummyBuildSystem(),
+    ):
+        self.path: str = path
+        if builds is None:  # what's wrong with python?? (pylint W0102)
+            self.builds = []
+        else:
+            self.builds = builds
+        if not isinstance(self.builds, list):
+            raise TypeError("class Project: 'builds' must have a list type")
+        self.build_system = build_system

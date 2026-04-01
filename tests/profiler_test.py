@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 import pytest_mock
 
-import amphimixis
 from amphimixis import Profiler, general
 
 EXECUTABLE_FILENAME = "a.out"
@@ -57,12 +56,7 @@ def get_profiler(mocker: pytest_mock.MockerFixture, monkeypatch: pytest.MonkeyPa
         )
         (path / build.build_name).mkdir()
 
-        project = general.Project(
-            str(path),
-            [build],
-            amphimixis.build_systems_dict["cmake"],
-            amphimixis.build_systems_dict["cmake"],
-        )
+        project = general.Project(str(path), [build])
 
         profiler_instance = Profiler(project, build)
         perf_record_collect_original = profiler_instance.perf_record_collect
@@ -99,8 +93,6 @@ def get_shellmocked_profiler(mocker: pytest_mock.MockerFixture, tmp_path: Path):
         project = general.Project(
             str(tmp_path),
             [build],
-            amphimixis.build_systems_dict["cmake"],
-            amphimixis.build_systems_dict["cmake"],
         )
 
         shell_mock = mocker.Mock()
