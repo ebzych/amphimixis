@@ -51,27 +51,29 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
             shell.get_source_dir(),
             self.find_relative_path("CMakeLists.txt"),
         )
-        command = (
+        conf_cmd = (
             f"cmake -G {self._generator_names_map[type(self.runner)]} "
             f"-B {build_path} -S {cmakelists_dir} "
         )
         if build.config_flags is not None:
-            command += f"{build.config_flags} "
+            conf_cmd += f"{build.config_flags} "
         if build.compiler_flags is not None:
-            command += f"{self._generate_lang_flags(build.compiler_flags)} "
+            conf_cmd += f"{self._generate_lang_flags(build.compiler_flags)} "
         if build.toolchain is not None:
             if build.toolchain.sysroot is not None:
-                command += f"-DCMAKE_SYSROOT='{build.toolchain.sysroot}' "
-            command += f"{self._generate_toolchain_flags(build.toolchain)} "
+                conf_cmd += f"-DCMAKE_SYSROOT='{build.toolchain.sysroot}' "
+            conf_cmd += f"{self._generate_toolchain_flags(build.toolchain)} "
 
         err, stdout, stderr = shell.run(f"cd {cmakelists_dir}")
         if err != 0:
             return (err, "".join(stdout[0]), "".join(stderr[0]))
 
-        _logger.info(
-            "Run building with '%s' and 'cmake --build %s'", command, build_path
-        )
-        err, stdout, stderr = shell.run(command, f"cmake --build {build_path}")
+        run_cmd = f"cmake --build {build_path} "
+        if build.jobs:
+            run_cmd += f"--parallel {build.jobs} "
+
+        _logger.info("Run building with '%s' and '%s'", conf_cmd, run_cmd)
+        err, stdout, stderr = shell.run(conf_cmd, run_cmd)
         if len(stdout) > 1:
             stdout[0].extend(stdout[1])
             stderr[0].extend(stderr[1])

@@ -395,6 +395,8 @@ class Build:
     :var str | None sysroot: Path to sysroot or name of sysroot used to building
     :var list[str] executables: List of relative to `build path` paths to executables
     :var str compiler_flags: Compiler flags for the build
+    :var None | int jobs: Number of building jobs
+    :var bool successfully_built: Flag of completness of build
     """
 
     build_machine: MachineInfo
@@ -405,6 +407,7 @@ class Build:
     sysroot: str | None
     compiler_flags: CompilerFlags | None
     config_flags: None | str
+    jobs: None | int = None
     successfully_built: bool = True
 
 

@@ -88,14 +88,8 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
                     self._get_makefile_name(str(build.config_flags))
                 ),
             )
-
-        err_nproc, stdout_nproc, _ = shell.run("nproc")
-        nproc = 1
-        if err_nproc == 0 and stdout_nproc:
-            nproc = int(stdout_nproc[0][0].strip())
-            if nproc > 1:
-                nproc -= 1
-        command += f"-j{nproc} "
+        if build.jobs:
+            command += f"--jobs={build.jobs} "
 
         err, stdout, stderr = shell.run(f"cd {cd_dir}")
         if err != 0:

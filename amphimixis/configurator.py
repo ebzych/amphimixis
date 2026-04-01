@@ -95,7 +95,7 @@ def parse_config(
                 ui.mark_failed("Failed to create build")
                 return False
 
-    config_path = path.join(getcwd(), tools.project_name(project) + ".project")
+    config_path = tools.project_name(project) + ".project"
     with open(config_path, "wb") as file:
         pickle.dump(project, file)
 
@@ -188,6 +188,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
 
     config_flags = recipe_info.get("config_flags", "")
     compiler_flags = create_flags(recipe_info.get("compiler_flags"))
+    jobs = recipe_info.get("jobs", None)
 
     build = general.Build(
         build_machine,
@@ -198,6 +199,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
         sysroot,
         compiler_flags,
         config_flags,
+        jobs,
     )
 
     project.builds.append(build)

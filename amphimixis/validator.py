@@ -144,6 +144,10 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
     if sysroot is not None and not isinstance(sysroot, str):
         _warn(f"Invalid sysroot in build: {sysroot}")
 
+    jobs = recipe.get("jobs")
+    if jobs is not None and (not isinstance(jobs, int) or jobs <= 0):
+        _warn(f"Invalid jobs number in recipe")
+
 
 def _is_valid_build(build: dict[str, int | str]):
     """Function to check whether build is valid"""

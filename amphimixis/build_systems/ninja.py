@@ -22,6 +22,8 @@ class Ninja(BuildSystem, ILowLevelBuildSystem):
         shell = Shell(self._project, build.build_machine, self._ui).connect()
         build_path = os.path.join(shell.get_project_workdir(), build.build_name)
         command = "ninja "
+        if build.jobs:
+            command += f"-j {build.jobs} "
         err, stdout, stderr = shell.run(f"cd {build_path}")
         if err != 0:
             return (err, "".join(stdout[0]), "".join(stderr[0]))
