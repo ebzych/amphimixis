@@ -12,9 +12,12 @@ services:
   build-client:
     container_name: build-client
     image: marianovik/build-client:latest
+    environment:
+      UV_CACHE_DIR: /root/.cache/uv
     volumes:
       - ../../:/tmp/src:ro
       - ./input_remote.yaml:/workspace/input_remote.yml:ro
+      - ../../.uv-cache:/root/.cache/uv
     command: >
       bash -c "
         mkdir -p /app &&
