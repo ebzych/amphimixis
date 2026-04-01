@@ -43,7 +43,11 @@ class Builder:
                 os.path.normpath(project.path), "~/amphimixis/"
             ):
                 _logger.error("Error in copying source files")
-                ui.mark_failed(f"{build.build_name}: error in copying source files")
+                ui.mark_failed(
+                    build_id=build.build_name,
+                    error_message=f"Error in copying source files",
+                )
+                build.successfully_built = False
                 return False
 
         try:
@@ -61,13 +65,14 @@ class Builder:
             _logger.info("Building stderr:\n%s", sstderr)
 
             if err != 0:
-                ui.mark_failed(f"{build.build_name}: build failed")
+                build.successfully_built = False
                 return False
-
             return True
 
         except FileNotFoundError:
-            ui.mark_failed(f"{build.build_name}: build system not found")
+            ui.mark_failed(
+                build_id=build.build_name, error_message=f"Build system not found"
+            )
             return False
 
     @staticmethod

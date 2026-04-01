@@ -405,6 +405,7 @@ class Build:
     sysroot: str | None
     compiler_flags: CompilerFlags | None
     config_flags: None | str
+    successfully_built: bool = True
 
 
 @dataclass

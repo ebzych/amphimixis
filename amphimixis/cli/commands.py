@@ -41,12 +41,15 @@ def run_build(
     ):
         return False
 
+    there_are_built = False
     for build in project.builds:
-        if not Builder.build_for_linux(project, build, ui):
-            ui.mark_failed()
-            return False
-        ui.mark_success("Build passed!")
-    return True
+        if Builder.build_for_linux(project, build, ui):
+            there_are_built = True
+            ui.mark_success("Build passed!")
+        else:
+            ui.mark_failed(build_id=build.build_name, error_message=f"Building failed")
+
+    return there_are_built
 
 
 def run_profile(
@@ -72,6 +75,8 @@ def run_profile(
     success = True
 
     for build in project.builds:
+        if not build.successfully_built:
+            continue
         profiler_ = Profiler(project, build, ui)
         successful_execs = profiler_.profile_all(events=events)
         profiler_.save_stats()
