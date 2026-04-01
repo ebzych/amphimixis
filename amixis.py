@@ -2,10 +2,12 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
+from os import getcwd, path
+import pickle
 import sys
 from pathlib import Path
 
-from amphimixis import general, validate
+from amphimixis import general, validate, Builder
 from amphimixis.cli import (
     DEFAULT_CONFIG_PATH,
     create_parser,
@@ -13,6 +15,8 @@ from amphimixis.cli import (
     run_build,
     run_compare,
     run_profile,
+    clean,
+    interactive_clean,
     show_profiling_result,
 )
 from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
@@ -24,6 +28,28 @@ def main():
 
     parser = create_parser()
     args = parser.parse_args()
+
+    if args.all and not args.clean is not None:
+        parser.error(f"--all can only be used with --clean")
+    if args.clean is not None:
+        builds: dict[str, general.Build] = []
+        try:
+            with open(
+                path.join(getcwd(), Builder._BUILDS_LIST_FILE_NAME), "rb"
+            ) as file:
+                builds: dict[str, general.Build] = pickle.load(file)
+        except FileNotFoundError:
+            print("No builds remember")
+        if args.all:
+            return clean(*builds.values())
+        if len(args.clean) > 0:
+            to_clean: list[general.Build] = []
+            for b in builds.values():
+                if b.build_name in args.clean:
+                    to_clean.append(b)
+            return clean(*to_clean)
+        else:
+            return interactive_clean()
 
     if not args.compare and args.max_rows != 20:
         parser.error("--max-rows can only be used with --compare")

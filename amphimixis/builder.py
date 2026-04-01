@@ -1,10 +1,18 @@
 """Module that builds a build based on configuration"""
 
 import os
+import pickle
+from dataclasses import dataclass
 
 from amphimixis import logger
 from amphimixis.general import IUI, NullUI
-from amphimixis.general.general import Build, Project
+from amphimixis.general.general import (
+    Build,
+    Project,
+    MachineInfo,
+    Toolchain,
+    CompilerFlags,
+)
 from amphimixis.shell.shell import Shell
 
 _logger = logger.setup_logger("BUILDER")
@@ -12,6 +20,8 @@ _logger = logger.setup_logger("BUILDER")
 
 class Builder:
     """The class is representing a module which builds a build based on its configuration"""
+
+    _BUILDS_LIST_FILE_NAME = ".builds"
 
     @staticmethod
     def build(project: Project, ui: IUI = NullUI()) -> None:
@@ -67,6 +77,7 @@ class Builder:
             if err != 0:
                 build.successfully_built = False
                 return False
+            Builder.remember_build(build)
             return True
 
         except FileNotFoundError:
@@ -74,6 +85,49 @@ class Builder:
                 build_id=build.build_name, error_message=f"Build system not found"
             )
             return False
+
+    @staticmethod
+    def remember_build(build: Build) -> None:
+        f"""Remember build to {Builder._BUILDS_LIST_FILE_NAME} "
+        "file in working directory
+        
+        :param Build build: Build to saving"""
+        builds: dict[str, Build] = {}
+        try:
+            with open(
+                os.path.join(os.getcwd(), Builder._BUILDS_LIST_FILE_NAME), "rb"
+            ) as file:
+                builds: dict[str, Build] = pickle.load(file)
+        except FileNotFoundError:
+            pass
+
+        builds[build.build_name] = build
+        with open(
+            os.path.join(os.getcwd(), Builder._BUILDS_LIST_FILE_NAME), "wb"
+        ) as file:
+            pickle.dump(builds, file)
+
+    @staticmethod
+    def forget_build(build: Build) -> None:
+        f"""Forget build from {Builder._BUILDS_LIST_FILE_NAME} "
+        "file in working directory
+        
+        :param Build build: Build to removing from builds list"""
+        builds: dict[str, Build] = {}
+        try:
+            with open(
+                os.path.join(os.getcwd(), Builder._BUILDS_LIST_FILE_NAME), "rb"
+            ) as file:
+                builds: dict[str, Build] = pickle.load(file)
+        except FileNotFoundError:
+            pass
+
+        if build.build_name in builds:
+            builds.pop(build.build_name)
+        with open(
+            os.path.join(os.getcwd(), Builder._BUILDS_LIST_FILE_NAME), "wb"
+        ) as file:
+            pickle.dump(builds, file)
 
     @staticmethod
     def clean(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
@@ -89,6 +143,7 @@ class Builder:
         if stdout[0]:
             _logger.error("Cleaning stdout: %s", "".join(stdout[0]))
         if err == 0:
+            Builder.forget_build(build)
             return True
         if stderr[0]:
             _logger.error("Cleaning stderr: %s", "".join(stderr[0]))

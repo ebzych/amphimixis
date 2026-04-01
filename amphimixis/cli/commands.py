@@ -2,10 +2,12 @@
 
 import shutil
 import tempfile
-from os import path
+from os import path, getcwd
+import pickle
+import glob
 
 from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
-from amphimixis.general import IUI, NullUI, constants, tools
+from amphimixis.general import IUI, NullUI, Project, Build, constants, tools
 from amphimixis.general.general import ProjectStats
 from amphimixis.perf_analyzer import main as compare_perf
 
@@ -225,4 +227,57 @@ def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bo
                 success = False
 
     shutil.rmtree(tmpdir)
+    return success
+
+
+def clean(*builds: Build) -> bool:
+    project_file = glob.glob("./*.project")[0]
+    try:
+        with open(
+            path.join(getcwd(), project_file),
+            "rb",
+        ) as file:
+            project = pickle.load(file)
+    except FileNotFoundError:
+        pass
+
+    for b in builds:
+        Builder.clean(project, b)
+
+
+def interactive_clean() -> bool:
+    builds: dict[str, Build] = {}
+    project_file = glob.glob("./*.project")[0]
+    try:
+        with open(
+            path.join(getcwd(), project_file),
+            "rb",
+        ) as file:
+            project = pickle.load(file)
+        with open(path.join(getcwd(), Builder._BUILDS_LIST_FILE_NAME), "rb") as file:
+            builds: dict[str, Build] = pickle.load(file)
+    except FileNotFoundError:
+        pass
+
+    success = True
+    try:
+        print("\033[?1049h", end="")
+        for i, build_name in enumerate(builds.keys()):
+            print(f"{i + 1}.\t{build_name}")
+        nums = [
+            int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
+        ]
+        for i, build in enumerate(builds.values()):
+            if i in nums:
+                if Builder.clean(project, build):
+                    print(f"{build.build_name} was successfully cleaned")
+                else:
+                    success = False
+                    print(f"{build.build_name} failed to clean")
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("\033[?1049l", end="")
+    print("\033[?1049l", end="")
     return success
