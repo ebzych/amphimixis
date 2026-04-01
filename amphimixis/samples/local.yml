@@ -1,0 +1,18 @@
+# Simple local setup for x86
+
+build_system: CMake
+runner: Make
+platforms:
+- id: 1
+  arch: x86
+
+recipes:
+- id: 1
+  config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+
+builds:
+- build_machine: 1
+  run_machine: 1
+  recipe_id: 1
+  executables:
+    - test/run-tests
