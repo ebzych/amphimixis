@@ -49,18 +49,20 @@ def test_e2e_remote_machine_between_containers(
         "bash",
         "-c",
         f"sed '5s/.*/  address: {ip_address}/' "
-        f"/workspace/input_remote.yml > /workspace/input.yml.tmp && "
-        f"mv /workspace/input.yml.tmp /workspace/input.yml",
+        f"/workspace/input_remote.yml > /workspace/input.yml.tmp",
     ]
     exit_code = client_container.exec_run(add_ip_cmd)[0]
     assert exit_code == 0
 
-    pandas_install_cmd = [
+    add_jobs_cmd = [
         "bash",
         "-c",
-        "pip install --break-system-packages pandas openai",
+        f"sed -E 's/^([[:space:]]*jobs:[[:space:]]*)[0-9]+/\\1{os.cpu_count() or 8}/' "
+        f"/workspace/input.yml.tmp > /workspace/input.yml",
     ]
-    client_container.exec_run(pandas_install_cmd)
+    exit_code = client_container.exec_run(add_jobs_cmd)[0]
+    assert exit_code == 0
+
     repo_path = clone_repo("https://github.com/leethomason/tinyxml2")
     copy_cmd = ["docker", "cp", repo_path, "build-client:/workspace/tinyxml2"]
     subprocess.run(copy_cmd, check=True)
