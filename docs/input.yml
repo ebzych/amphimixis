@@ -16,6 +16,7 @@ recipes:
   toolchain:
     cxx_compiler: "/usr/bin/g++"
   sysroot: "/"
+  jobs: 4
 
 builds:
 - build_machine: 1
