@@ -139,6 +139,7 @@ class TestMake:
         assert "SYSROOT='/sysroot'" in combined_output
 
     def test_parallel_build(self, mock_project, mock_shell):
+        jobs = 1
         build = Build(
             build_machine=MachineInfo(Arch.X86, None, None),
             run_machine=MachineInfo(Arch.X86, None, None),
@@ -148,6 +149,7 @@ class TestMake:
             sysroot=None,
             compiler_flags=None,
             config_flags=None,
+            jobs=jobs,
         )
 
         with patch("amphimixis.build_systems.make.Shell", return_value=mock_shell):
@@ -156,7 +158,7 @@ class TestMake:
 
         calls = [str(call) for call in mock_shell.run.call_args_list]
         combined_output = " ".join(calls)
-        assert "-j" in combined_output
+        assert f"--jobs={jobs}" in combined_output
 
     def test_warning_on_build(self, mock_project, mock_shell):
         with (
@@ -180,7 +182,34 @@ class TestMake:
                     config_flags=None,
                 )
             )
-            assert make._ui.print_warning.call_count == 1
+            assert make._ui.send_warning.call_count == 1
+
+
+@pytest.mark.unit
+class TestNinja:
+    """Tests for Ninja build system"""
+
+    def test_parallel_build(self, mock_project, mock_shell):
+        jobs = 1
+        build = Build(
+            build_machine=MachineInfo(Arch.X86, None, None),
+            run_machine=MachineInfo(Arch.X86, None, None),
+            build_name="test_build",
+            executables=[],
+            toolchain=None,
+            sysroot=None,
+            compiler_flags=None,
+            config_flags=None,
+            jobs=jobs,
+        )
+
+        with patch("amphimixis.build_systems.ninja.Shell", return_value=mock_shell):
+            ninja = Ninja(mock_project)
+            ninja.run_building(build)
+
+        calls = [str(call) for call in mock_shell.run.call_args_list]
+        combined_output = " ".join(calls)
+        assert f"-j {jobs}" in combined_output
 
 
 @pytest.mark.unit
@@ -235,6 +264,34 @@ class TestCMake:
         toolchain.set(tool_attr, tool_value)
         result = cmake_system._generate_toolchain_flags(toolchain)
         assert expected_flag in result
+
+    def test_parallel_build(self, mock_project, mock_shell):
+        jobs = 1
+        build = Build(
+            build_machine=MachineInfo(Arch.X86, None, None),
+            run_machine=MachineInfo(Arch.X86, None, None),
+            build_name="test_build",
+            executables=[],
+            toolchain=None,
+            sysroot=None,
+            compiler_flags=None,
+            config_flags=None,
+            jobs=jobs,
+        )
+
+        with (
+            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch(
+                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                return_value=file,
+            ),
+        ):
+            cmake = CMake(mock_project, Ninja(mock_project))
+            cmake.build(build)
+
+        calls = [str(call) for call in mock_shell.run.call_args_list]
+        combined_output = " ".join(calls)
+        assert f"--parallel {jobs}" in combined_output
 
     def test_sysroot_in_command(self, mock_project, mock_shell):
         sysroot = "/sysroot"

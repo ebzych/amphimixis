@@ -151,7 +151,9 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
 
     jobs = recipe.get("jobs")
     if jobs is not None and (not isinstance(jobs, int) or jobs <= 0):
-        _notify_about_error(f"Invalid jobs number in recipe")
+        _notify_about_error(
+            f"Invalid jobs number in recipe: '{jobs}' is not positive number"
+        )
 
 
 def _is_valid_build(build: dict[str, int | str]):
@@ -237,6 +239,7 @@ def _is_valid_address(address: str) -> bool:
         return bool(hostname_pattern.match(address))
 
 
+# pylint: disable=global-variable-not-assigned
 def _notify_about_error(msg: str) -> None:
     """Function that handles messages due to invalid fields in config"""
 

@@ -1,7 +1,7 @@
 """Module for configuring a new build"""
 
 import pickle
-from os import getcwd, path
+from os import path
 from platform import machine as local_arch
 from typing import Any
 
