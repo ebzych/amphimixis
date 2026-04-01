@@ -29,10 +29,10 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    if args.all and not args.clean is not None:
+    if args.all and args.clean is None:
         parser.error(f"--all can only be used with --clean")
     if args.clean is not None:
-        builds: dict[str, general.Build] = []
+        builds: dict[str, general.Build] = {}
         try:
             with open(
                 path.join(getcwd(), Builder._BUILDS_LIST_FILE_NAME), "rb"

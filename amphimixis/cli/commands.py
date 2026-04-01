@@ -231,29 +231,20 @@ def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bo
 
 
 def clean(*builds: Build) -> bool:
-    project_file = glob.glob("./*.project")[0]
+    project: Project
     try:
-        with open(
-            path.join(getcwd(), project_file),
-            "rb",
-        ) as file:
-            project = pickle.load(file)
+        project = tools.get_cache_project()
     except FileNotFoundError:
         pass
-
     for b in builds:
         Builder.clean(project, b)
 
 
 def interactive_clean() -> bool:
     builds: dict[str, Build] = {}
-    project_file = glob.glob("./*.project")[0]
+    project: Project
     try:
-        with open(
-            path.join(getcwd(), project_file),
-            "rb",
-        ) as file:
-            project = pickle.load(file)
+        project: Project = tools.get_cache_project()
         with open(path.join(getcwd(), Builder._BUILDS_LIST_FILE_NAME), "rb") as file:
             builds: dict[str, Build] = pickle.load(file)
     except FileNotFoundError:
@@ -262,11 +253,13 @@ def interactive_clean() -> bool:
     success = True
     try:
         print("\033[?1049h", end="")
+
         for i, build_name in enumerate(builds.keys()):
             print(f"{i + 1}.\t{build_name}")
         nums = [
             int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
         ]
+
         for i, build in enumerate(builds.values()):
             if i in nums:
                 if Builder.clean(project, build):
@@ -279,5 +272,6 @@ def interactive_clean() -> bool:
         pass
     finally:
         print("\033[?1049l", end="")
+
     print("\033[?1049l", end="")
     return success
