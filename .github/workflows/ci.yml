@@ -3,11 +3,29 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build-Ubuntu:
+  linters:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+      - name: Install mdl
+        run: sudo apt-get update && sudo apt-get install -y ruby-mdl
+      - name: Run linters
+        run: |
+          shellcheck ci/*.sh
+          ci/mdl.sh
+          ci/black.sh
+          ci/mypy.sh
+          ci/pylint.sh
+          ci/ruff.sh
+
+  unit-tests:
+    needs: linters
+    runs-on: ubuntu-latest
     steps:
       - name: Install perf
         run: |
@@ -22,26 +40,102 @@ jobs:
 
           if [ ! -f /usr/libexec/perf-core/perf-archive ]; then
               sudo mkdir -p /usr/libexec/perf-core
-              curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive 
+              curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive
               sudo chmod +x /usr/libexec/perf-core/perf-archive
           fi
           perf --version
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Run CI
+          python-version: "3.13"
+      - name: Run unit tests
         run: |
           echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid
-          sudo apt install ruby-mdl
-          ci/runner.sh
-
+          uv run pytest -m unit
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: temp_folder
+          name: test_workspaces-unit
+          include-hidden-files: true
+          path: |
+            /tmp/test_workspace_*
+
+  integration-tests-docker:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install perf
+        run: |
+          sudo apt update
+          sudo apt-get install -y linux-tools-azure
+          if ! perf --version; then
+              export PERF_PATH=$(find -L /usr/lib/linux-tools/ -name perf -type f | head -n 1)
+              if [ -n "$PERF_PATH" ]; then
+                  sudo ln -sf "$PERF_PATH" /usr/bin/perf
+              fi
+          fi
+
+          if [ ! -f /usr/libexec/perf-core/perf-archive ]; then
+              sudo mkdir -p /usr/libexec/perf-core
+              curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive
+              sudo chmod +x /usr/libexec/perf-core/perf-archive
+          fi
+          perf --version
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+      - name: Run docker integration tests
+        run: |
+          echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid
+          uv run pytest -m integration -k docker
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test_workspaces-integration-docker
+          include-hidden-files: true
+          path: |
+            /tmp/test_workspace_*
+
+  integration-tests-local:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install perf
+        run: |
+          sudo apt update
+          sudo apt-get install -y linux-tools-azure
+          if ! perf --version; then
+              export PERF_PATH=$(find -L /usr/lib/linux-tools/ -name perf -type f | head -n 1)
+              if [ -n "$PERF_PATH" ]; then
+                  sudo ln -sf "$PERF_PATH" /usr/bin/perf
+              fi
+          fi
+
+          if [ ! -f /usr/libexec/perf-core/perf-archive ]; then
+              sudo mkdir -p /usr/libexec/perf-core
+              curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive
+              sudo chmod +x /usr/libexec/perf-core/perf-archive
+          fi
+          perf --version
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+      - name: Run local integration tests
+        run: |
+          echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid
+          uv run pytest -m integration -k local
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test_workspaces-integration-local
           include-hidden-files: true
           path: |
             /tmp/test_workspace_*
