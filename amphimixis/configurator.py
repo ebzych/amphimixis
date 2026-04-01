@@ -81,19 +81,19 @@ def parse_config(
                 recipe_info,
             ) = _configure_build(input_config, build)
 
-        if build_machine_info == {} or run_machine_info == {} or recipe_info == {}:
-            return False
+            if build_machine_info == {} or run_machine_info == {} or recipe_info == {}:
+                return False
 
-        if not _create_build(
-            project,
-            build_machine_info,
-            run_machine_info,
-            recipe_info,
-            executables,
-            ui,
-        ):
-            ui.mark_failed("Failed to create build")
-            return False
+            if not _create_build(
+                project,
+                build_machine_info,
+                run_machine_info,
+                recipe_info,
+                executables,
+                ui,
+            ):
+                ui.mark_failed("Failed to create build")
+                return False
 
     config_path = path.join(getcwd(), tools.project_name(project) + ".project")
     with open(config_path, "wb") as file:
