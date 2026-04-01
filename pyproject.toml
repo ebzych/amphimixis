@@ -14,9 +14,13 @@ dependencies = [
 
 [tool.setuptools]
 py-modules = ["amixis"]
+include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["amphimixis*"]
+
+[tool.setuptools.package-data]
+"amphimixis" = ["samples/*.yml"]
 
 [dependency-groups]
 dev = [
