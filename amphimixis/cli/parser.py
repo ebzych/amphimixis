@@ -113,8 +113,6 @@ def create_parser():
         usage=argparse.SUPPRESS,
         add_help=True,
     )
-    add_path_arg(parser)
-    add_config_arg(parser)
 
     subparsers = parser.add_subparsers(dest="command", title="subcommands")
 
