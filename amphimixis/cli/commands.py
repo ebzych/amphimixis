@@ -1,14 +1,94 @@
 """CLI command implementations for Amphimixis."""
 
+import os
+import pickle
 import shutil
+import subprocess
 import tempfile
 from os import path
-import pickle
+from pathlib import Path
 
-from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
-from amphimixis.general import IUI, NullUI, Project, Build, constants, tools
+import yaml
+
+from amphimixis import (
+    Builder,
+    Profiler,
+    Shell,
+    analyze,
+    general,
+    parse_config,
+    validate,
+)
+from amphimixis.general import IUI, Build, NullUI, Project, constants, tools
 from amphimixis.general.general import ProjectStats
 from amphimixis.perf_analyzer import main as compare_perf
+
+CONFIG_TEMPLATE = """# Amphimixis Configuration Template
+# Uncomment and configure the fields below:
+
+# Build system (optional, default: CMake)
+# build_system: CMake
+
+# Runner (optional, default: Make)
+# runner: Make
+
+platforms:
+  # - id: 1
+  #   arch: x86
+  #   address: user@remote-host
+  #   username: user
+  #   password: secret
+  #   port: 22
+
+recipes:
+  # - id: 1
+  #   config_flags: -DCMAKE_BUILD_TYPE=Release
+  #   compiler_flags:
+  #     c_flags: -O2
+  #     cxx_flags: -O2
+  #   toolchain: my_toolchain
+  #   sysroot: /path/to/sysroot
+  #   jobs: 8
+
+builds:
+  # - build_machine: 1
+  #   run_machine: 1
+  #   recipe_id: 1
+  #   executables:
+  #     - bin/my_app
+"""
+
+TOOLCHAIN_TEMPLATE = """# Toolchain Configuration Template
+# Uncomment and fill in the fields below:
+
+name: test # Required: unique toolchain name
+
+# Target architecture
+target_arch: x86 # Options: x86_64, riscv64, aarch64, etc.
+
+# Sysroot (optional)
+sysroot: /path/to/sysroot
+
+# Toolchain attributes (uncomment and configure as needed)
+attributes:
+  c_compiler: /usr/bin/riscv64-unknown-elf-gcc
+  cxx_compiler: /usr/bin/riscv64-unknown-elf-g++
+
+# Tools (uncomment as needed)
+ar: /usr/bin/riscv64-unknown-elf-ar
+as: /usr/bin/riscv64-unknown-elf-as
+ld: /usr/bin/riscv64-unknown-elf-ld
+rm: /usr/bin/riscv64-unknown-elf-rm
+objcopy: /usr/bin/riscv64-unknown-elf-objcopy
+objdump: /usr/bin/riscv64-unknown-elf-objdump
+ranlib: /usr/bin/riscv64-unknown-elf-ranlib
+readelf: /usr/bin/riscv64-unknown-elf-readelf
+strip: /usr/bin/riscv64-unknown-elf-strip
+
+# Compiler flags (optional)
+cflags: -O2 -march=rv64gc
+cxxflags: -O2 -march=rv64gc
+"""
 
 
 def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
@@ -150,7 +230,7 @@ def show_profiling_result(project: general.Project):
         print("\n[i] Only one profiling result was generated.")
         print("\tTo compare two results, run profiling again with a different build.")
         print("\tOnce you have two .scriptout files, compare them with:")
-        print("\tamixis --compare <file1.scriptout> <file2.scriptout>")
+        print("\tamixis compare <file1.scriptout> <file2.scriptout>")
         return
 
     def _find_matching_exe() -> tuple[str, str, str]:
@@ -188,7 +268,7 @@ def show_profiling_result(project: general.Project):
     file2 = tools.build_filename(build2, exe) + constants.PERF_SCRIPT_EXT
 
     print("\n[>] To compare two profiling results, use:")
-    print(f"\tamixis --compare {file1} {file2}")
+    print(f"\tamixis compare {file1} {file2}")
 
 
 def setup_profiling_environment(project: general.Project, ui: general.IUI) -> bool:
@@ -285,3 +365,202 @@ def interactive_clean() -> bool:
     except KeyboardInterrupt:
         print("Cancelled")
     return success
+
+
+def run_add_input() -> bool:
+    """Interactively create input.yml configuration file.
+
+    Opens an editor with a template, validates the result,
+    and saves to input.yml on success.
+    """
+    config_path = Path("input.yml")
+    editor = os.environ.get("EDITOR", "nano")
+
+    if config_path.exists():
+        print(f"{config_path} already exists.")
+        print("This will overwrite the existing file. Continue? [Y/n]: ", end="")
+        try:
+            response = input().strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nCancelled.")
+            return False
+        if response != "y":
+            print("Cancelled.")
+            return False
+
+    template = CONFIG_TEMPLATE
+
+    print(f"Opening editor: {editor}")
+    print("Edit the configuration template and save to validate.")
+    print("The editor will reopen if validation fails.\n")
+
+    while True:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yml", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(template)
+            temp_path = Path(f.name)
+
+        try:
+            subprocess.call([editor, str(temp_path)])
+        except FileNotFoundError:
+            print(f"Error: Editor '{editor}' not found.")
+            print("Please set the EDITOR environment variable to a valid editor.")
+            os.unlink(temp_path)
+            return False
+        except OSError as e:
+            print(f"Error launching editor: {e}")
+            os.unlink(temp_path)
+            return False
+
+        try:
+            with open(temp_path, "r", encoding="utf-8") as f:
+                template = f.read()
+        except OSError as e:
+            print(f"Error reading file: {e}")
+            os.unlink(temp_path)
+            return False
+
+        if validate(str(temp_path)):
+            try:
+                shutil.move(str(temp_path), str(config_path))
+            except OSError as e:
+                print(f"Error saving file: {e}")
+                return False
+            print("Configuration file input.yml successfully created!")
+            return True
+
+        print("\nValidation failed. Please fix the errors above.")
+        print("Editor will reopen for corrections...")
+        try:
+            input("Press Enter to continue...")
+        except (EOFError, KeyboardInterrupt):
+            print("\nCancelled.")
+            if temp_path.exists():
+                os.unlink(temp_path)
+            return False
+
+
+# pylint: disable=too-many-branches,too-many-statements
+def run_add_toolchain() -> bool:
+    """Interactively add a toolchain to input.yml.
+
+    Opens an editor with a toolchain template, validates the result,
+    and adds the toolchain to input.yml on success.
+    """
+    config_path = Path("input.yml")
+    editor = os.environ.get("EDITOR", "nano")
+
+    if not config_path.exists():
+        print("Error: input.yml not found.")
+        print("Please run 'amixis add input' first to create a configuration file.")
+        return False
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f) or {}
+    except yaml.YAMLError as e:
+        print(f"Error reading input.yml: {e}")
+        return False
+
+    if "toolchains" not in config:
+        config["toolchains"] = []
+
+    template = TOOLCHAIN_TEMPLATE
+
+    print(f"Opening editor: {editor}")
+    print("Edit the toolchain template and save to validate.")
+    print("The editor will reopen if validation fails.\n")
+
+    while True:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yml", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(template)
+            temp_path = Path(f.name)
+
+        try:
+            subprocess.call([editor, str(temp_path)])
+        except FileNotFoundError:
+            print(f"Error: Editor '{editor}' not found.")
+            print("Please set the EDITOR environment variable to a valid editor.")
+            os.unlink(temp_path)
+            return False
+        except OSError as e:
+            print(f"Error launching editor: {e}")
+            os.unlink(temp_path)
+            return False
+
+        try:
+            with open(temp_path, "r", encoding="utf-8") as f:
+                template = f.read()
+        except OSError as e:
+            print(f"Error reading file: {e}")
+            os.unlink(temp_path)
+            return False
+
+        try:
+            new_toolchain = yaml.safe_load(template)
+        except yaml.YAMLError as e:
+            print(f"\nYAML parse error: {e}")
+            print("Editor will reopen for corrections...")
+            try:
+                input("Press Enter to continue...")
+            except (EOFError, KeyboardInterrupt):
+                print("\nCancelled.")
+                if temp_path.exists():
+                    os.unlink(temp_path)
+                return False
+            continue
+
+        if not isinstance(new_toolchain, dict):
+            print("\nError: Toolchain must be a dictionary.")
+            print("Editor will reopen for corrections...")
+            try:
+                input("Press Enter to continue...")
+            except (EOFError, KeyboardInterrupt):
+                print("\nCancelled.")
+                if temp_path.exists():
+                    os.unlink(temp_path)
+                return False
+            continue
+
+        if "name" not in new_toolchain or not new_toolchain["name"]:
+            print("\nError: Toolchain must have a 'name' field.")
+            print("Editor will reopen for corrections...")
+            try:
+                input("Press Enter to continue...")
+            except (EOFError, KeyboardInterrupt):
+                print("\nCancelled.")
+                if temp_path.exists():
+                    os.unlink(temp_path)
+                return False
+            continue
+
+        if validate(str(config_path)):
+            config["toolchains"].append(new_toolchain)
+            try:
+                with open(config_path, "w", encoding="utf-8") as f:
+                    yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+            except OSError as e:
+                print(f"Error saving file: {e}")
+                if temp_path.exists():
+                    os.unlink(temp_path)
+                return False
+
+            if temp_path.exists():
+                os.unlink(temp_path)
+            print(
+                f"Toolchain '{new_toolchain['name']}' successfully added to input.yml!"
+            )
+            return True
+
+        print("\nValidation failed. Please fix the errors above.")
+        print("Editor will reopen for corrections...")
+        try:
+            input("Press Enter to continue...")
+        except (EOFError, KeyboardInterrupt):
+            print("\nCancelled.")
+            if temp_path.exists():
+                os.unlink(temp_path)
+            return False

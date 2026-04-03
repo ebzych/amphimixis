@@ -1,6 +1,8 @@
 """CLI module"""
 
 from .commands import (
+    run_add_input,
+    run_add_toolchain,
     run_analyze,
     run_build,
     run_compare,
@@ -17,6 +19,8 @@ __all__ = [
     "run_build",
     "run_compare",
     "run_profile",
+    "run_add_input",
+    "run_add_toolchain",
     "clean",
     "interactive_clean",
     "DEFAULT_CONFIG_PATH",
