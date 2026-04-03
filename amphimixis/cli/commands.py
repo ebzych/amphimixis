@@ -255,8 +255,7 @@ def clean(*builds: Build) -> bool:
 
 
 def interactive_clean() -> bool:
-    """Open alternative terminal buffer, enumerate builds "
-    "names and suggest choose which will be cleaned"""
+    """Enumerate builds names and suggest choose which will be cleaned"""
     builds: dict[str, Build] = {}
     project: Project
     try:
@@ -268,15 +267,11 @@ def interactive_clean() -> bool:
 
     success = True
     try:
-        open_alternate_term()
-
         for i, build_name in enumerate(builds.keys()):
             print(f"{i + 1}.\t{build_name}")
         nums = [
             int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
         ]
-
-        close_alternate_term()
 
         for i, build in enumerate(builds.values()):
             if i in nums:
@@ -285,12 +280,8 @@ def interactive_clean() -> bool:
                 else:
                     success = False
                     print(f"{build.build_name} failed to clean")
-
-    except KeyboardInterrupt:
-        close_alternate_term()
     except ValueError:
-        close_alternate_term()
         print("Not a number")
-    finally:
-        close_alternate_term()
+    except KeyboardInterrupt:
+        print("Cancelled")
     return success
