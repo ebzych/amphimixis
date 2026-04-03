@@ -1,4 +1,4 @@
-"""Parser"""
+"""Parser for Amphimixis CLI with subcommands."""
 
 import argparse
 import textwrap
@@ -10,9 +10,7 @@ RESET = "\033[0m"
 DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
 
 
-class CustomFormatterClass(
-    argparse.RawTextHelpFormatter,
-):
+class CustomHelpFormatter(argparse.RawTextHelpFormatter):
     """Custom formatter class for argparse to enhance help output."""
 
     def __init__(self, prog):
@@ -45,136 +43,174 @@ class CustomFormatterClass(
                   → Main mode. Performs full project analysis, generates configuration files,
                     runs the build process, and performs profiling.
 
-              amixis --analyze /path/to/folder/with/project
+              amixis analyze /path/to/folder/with/project
                   → Performs project analysis. Detects existing CI, tests, benchmarks, etc.
 
-              amixis --build /path/to/folder/with/project
-                  → Builds the project, implicitly calling --configure to generate.
+              amixis build /path/to/folder/with/project
+                  → Builds the project, implicitly calling --configure to generate
                     configuration files.
 
-              amixis --config=config_file /path/to/folder/with/project
-                  → Specifies a custom configuration file to be used for the configuration process;
-                    runs all steps including analysis, configuration, building, and profiling.
-                    If no config file is specified, defaults to 'input.yml', 
-                    which must be located in the working directory.
+              amixis profile /path/to/folder/with/project --events cycles cache-misses
+                  → Runs only the profiling step and records only the specified perf events.
 
-              amixis --validate=file_name
+              amixis validate file_name
                   → Checks the config file correctness.
-                
-              amixis --compare buildname1.scriptout buildname2.scriptout
+
+              amixis compare filename1.scriptout filename2.scriptout
                   → Compares two perf output files (.scriptout)
                     and displays the results in the console.
 
-              amixis --compare filename1.scriptout filename2.scriptout --max-rows=10
+              amixis compare filename1.scriptout filename2.scriptout --max-rows 10
                   → Compares two perf output files (.scriptout)
                     and displays up to 10 symbols with the biggest delta per event.
 
-              amixis /path/to/folder/with/project --events cycles cache-misses 
-                  → Runs the full pipeline and records only the specified perf events.
+              amixis add input
+                  → Opens an editor with a configuration template.
+                    After saving, validates the file and saves to input.yml.
 
-              amixis /path/to/folder/with/project --profile --events cycles cache-misses 
-                  → Runs only the profiling step and records only the specified perf events.
+              amixis add toolchain
+                  → Opens an editor with a toolchain template.
+                    After saving, validates and adds the toolchain to input.yml.
 
-              amixis --compare a.scriptout b.scriptout --events cycles cache-misses
-                  → Compares only the specified events from two .scriptout files.
+              amixis clean
+                  → Interactive mode: select builds to clean.
+
+              amixis clean --all
+                  → Cleans all builds.
             """
         )
 
         return f"{banner}\n{help_text}\n{examples}"
 
 
-def create_parser():
-    """Create parser with parser argiments"""
-
-    parser = argparse.ArgumentParser(
-        prog="amixis",
-        formatter_class=CustomFormatterClass,
-        usage=argparse.SUPPRESS,
-        add_help=True,
-    )
-
-    parser.add_argument(
-        "path",
-        nargs="?",
-        type=str,
-        help="project path (required for analyze/build/profile and main modes)",
-    )
-
-    parser.add_argument(
-        "-v",
-        "--validate",
-        type=str,
-        metavar="FILE",
-        default=None,
-        help="check correctness of the configuration file.",
-    )
+def add_config_arg(parser):
+    """Add argument config"""
 
     parser.add_argument(
         "--config",
         nargs="?",
         const=str(DEFAULT_CONFIG_PATH),
         metavar="CONFIG",
-        help="use a specific config file (default: input.yml)\n"
-        "for all steps: analysis, configuration, building, and profiling.",
+        help="use a specific config file (default: input.yml)",
     )
 
+def add_path_arg(parser):
+    """Add argument path of project"""
+
     parser.add_argument(
-        "-a",
-        "--analyze",
-        action="store_true",
+        "path",
+        type=str,
+        help="path to the project directory",
+    )
+
+
+def create_parser():
+    """Create parser with subcommands."""
+
+    parser = argparse.ArgumentParser(
+        prog="amixis",
+        formatter_class=CustomHelpFormatter,
+        usage=argparse.SUPPRESS,
+        add_help=True,
+    )
+    add_path_arg(parser)
+    add_config_arg(parser)
+
+    subparsers = parser.add_subparsers(dest="command", title="subcommands")
+
+    parser_analyze = subparsers.add_parser(
+        "analyze",
         help="analyze the project and detect existing CI, tests, build systems, etc.",
     )
+    add_path_arg(parser_analyze)
+    add_config_arg(parser_analyze)
 
-    parser.add_argument(
-        "-b",
-        "--build",
-        action="store_true",
+    parser_build = subparsers.add_parser(
+        "build",
         help="build the project according to the generated configuration files.",
     )
+    add_path_arg(parser_build)
+    add_config_arg(parser_build)
 
-    parser.add_argument(
-        "-p",
-        "--profile",
-        action="store_true",
+    parser_profile = subparsers.add_parser(
+        "profile",
         help="profile the performance of builds.",
     )
-
-    parser.add_argument(
-        "-c",
-        "--compare",
-        nargs=2,
-        metavar=("FILE1", "FILE2"),
-        help="compare two perf output files (.scriptout) and display the results.",
+    add_path_arg(parser_profile)
+    add_config_arg(parser_profile)
+    parser_profile.add_argument(
+        "--events",
+        nargs="*",
+        help="space-separated perf events (e.g., cycles cache-misses)",
     )
 
-    parser.add_argument(
+    parser_validate = subparsers.add_parser(
+        "validate",
+        help="check correctness of the configuration file.",
+    )
+    parser_validate.add_argument(
+        "config_file",
+        type=str,
+        metavar="FILE",
+        help="path to the configuration file",
+    )
+
+    parser_compare = subparsers.add_parser(
+        "compare",
+        help="compare two perf output files (.scriptout) and display the results.",
+    )
+    parser_compare.add_argument(
+        "file1",
+        type=str,
+        metavar="FILE1",
+        help="path to first perf output file",
+    )
+    parser_compare.add_argument(
+        "file2",
+        type=str,
+        metavar="FILE2",
+        help="path to second perf output file",
+    )
+    parser_compare.add_argument(
         "--max-rows",
         type=int,
         default=20,
-        help="maximum number of rows(symbols) to display per event in comparison (default: 20).",
+        help="maximum number of rows (symbols) to display per event (default: 20)",
     )
 
-    parser.add_argument(
-        "--events",
+    parser_clean = subparsers.add_parser(
+        "clean",
+        help="clean build directories"
+    )
+    parser_clean.add_argument(
+        "build_names",
         nargs="*",
-        help="space-separated perf events (e.g., cycles cache-misses).\n"
-        "With the main pipeline or --profile, records only these events;"
-        " with --compare, shows only these events.",
+        metavar="BUILD_NAMES",
+        help="name of buillds to clean (if none, interactive mode)",
     )
-
-    parser.add_argument(
-        "--clean",
-        nargs="*",
-        metavar="[ build_name_1 [ build_name_2 [ ... ] ] ]",
-        help="clean specified builds directories.\n"
-        "Clean ALL builds directories with --all.\n"
-        "If no builds is specified, then switches to interactive mode.",
-    )
-
-    parser.add_argument(
+    parser_clean.add_argument(
         "--all",
         action="store_true",
-        help="used with --clean for cleaning all builds directories.",
+        help="clean all builds",
+    )
+
+    parser_add = subparsers.add_parser(
+        "add",
+        help="add configuration files or toolchains interactively",
+    )
+    add_subparsers = parser_add.add_subparsers(
+        dest="add_subcommand", title="add options"
+    )
+    add_subparsers.required = True
+
+    add_subparsers.add_parser(
+        "input",
+        help="interactively create input.yml configuration file",
+    )
+
+    add_subparsers.add_parser(
+        "toolchain",
+        help="interactively add a toolchain to input.yml",
     )
 
     return parser
