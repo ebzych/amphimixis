@@ -94,6 +94,7 @@ def add_config_arg(parser):
         help="use a specific config file (default: input.yml)",
     )
 
+
 def add_path_arg(parser):
     """Add argument path of project"""
 
@@ -176,10 +177,7 @@ def create_parser():
         help="maximum number of rows (symbols) to display per event (default: 20)",
     )
 
-    parser_clean = subparsers.add_parser(
-        "clean",
-        help="clean build directories"
-    )
+    parser_clean = subparsers.add_parser("clean", help="clean build directories")
     parser_clean.add_argument(
         "build_names",
         nargs="*",

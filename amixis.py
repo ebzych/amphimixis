@@ -29,9 +29,17 @@ from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
 def main():
     """Main function for the Amphimixis CLI tool."""
 
-    known_commands = {"analyze", "build", "profile", "validate", "compare", "add", "clean"}
+    known_commands = {
+        "analyze",
+        "build",
+        "profile",
+        "validate",
+        "compare",
+        "add",
+        "clean",
+    }
 
-    non_opts = [arg for arg in sys.argv[1:] if not arg.startswith('-')]
+    non_opts = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
     if non_opts and not any(arg in known_commands for arg in non_opts):
         path, config_file = parse_full_pipeline_args()
         if path is None or config_file is None:
@@ -43,8 +51,10 @@ def main():
             print(f"Error: path is not a directory: {path}")
             return 1
         if config_file != DEFAULT_CONFIG_PATH and not config_file.exists():
-            print(f"Error: config file '{config_file}' not found. "
-                  f"Please specify the full filename with .yml extension.")
+            print(
+                f"Error: config file '{config_file}' not found. "
+                f"Please specify the full filename with .yml extension."
+            )
             return 1
         ui = ConsoleAnimationPrinter()
         return run_full_pipeline(str(path), config_file, ui)
@@ -72,7 +82,9 @@ def main():
             if args.all:
                 return 0 if clean(*builds.values()) else 1
             if args.build_names:
-                to_clean = [b for b in builds.values() if b.build_name in args.build_names]
+                to_clean = [
+                    b for b in builds.values() if b.build_name in args.build_names
+                ]
                 if not to_clean:
                     print("No matching builds found")
                     return 1

@@ -1,3 +1,5 @@
+"""Configuration and toolchain templates for Amphimixis CLI."""
+
 CONFIG_TEMPLATE = """# Amphimixis Configuration Template
 # Uncomment and configure the fields below:
 
