@@ -209,6 +209,6 @@ if __name__ == "__main__":
     )
 
     if Builder.build_for_linux(project_, build_):
-        print("Successfully builded!")
+        print("Successfully built!")
     else:
         print("Build failed!")
