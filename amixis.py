@@ -2,7 +2,6 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
-import os
 import pickle
 import sys
 from pathlib import Path
@@ -13,31 +12,18 @@ from amphimixis.cli import (
     clean,
     create_parser,
     interactive_clean,
+    parse_full_pipeline_args,
     run_add_input,
     run_add_toolchain,
     run_analyze,
     run_build,
     run_compare,
+    run_full_pipeline,
     run_profile,
     show_profiling_result,
 )
 from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
 
-
-def run_full_pipeline(path: str, config_file: Path, ui) -> int:
-    """Run the full pipeline: analyze, build, profile"""
-    project = general.Project(str(Path(path).expanduser().resolve()))
-    if not run_analyze(project, ui):
-        return 1
-
-    if not run_build(project, config_file_path=str(config_file), ui=ui):
-        return 1
-
-    if not run_profile(project, config_file_path=str(config_file), ui=ui):
-        return 1
-
-    show_profiling_result(project)
-    return 0
 
 # pylint: disable=too-many-branches,too-many-statements,too-many-return-statements
 def main():
@@ -45,60 +31,29 @@ def main():
 
     known_commands = {"analyze", "build", "profile", "validate", "compare", "add", "clean"}
 
-    if len(sys.argv) > 1 and sys.argv[1] not in known_commands and not sys.argv[1].startswith('-'):
-        path = None
-        config_file = DEFAULT_CONFIG_PATH
-        i = 1
-        while i < len(sys.argv):
-            arg = sys.argv[i]
-            if arg == '--config':
-                if i+1 < len(sys.argv):
-                    config_file = Path(sys.argv[i+1]).expanduser().resolve()
-                    i += 2
-                else:
-                    print("Error: --config requires a value")
-                    return 1
-            elif arg.startswith('-'):
-                print(f"Error: unknown option {arg}")
-                return 1
-            else:
-                if path is None:
-                    path = arg
-                    i += 1
-                else:
-                    print(f"Error: multiple paths provided: {path} and {arg}")
-                    return 1
-        if not path:
-            print("Error: no project path provided")
+    non_opts = [arg for arg in sys.argv[1:] if not arg.startswith('-')]
+    if non_opts and not any(arg in known_commands for arg in non_opts):
+        path, config_file = parse_full_pipeline_args()
+        if path is None or config_file is None:
             return 1
-        path_obj = Path(path).expanduser().resolve()
-        if not path_obj.exists():
+        if not path.exists():
             print(f"Error: path does not exist: {path}")
             return 1
-        if not os.path.isdir(path_obj):
+        if not path.is_dir():
             print(f"Error: path is not a directory: {path}")
             return 1
+        if config_file != DEFAULT_CONFIG_PATH and not config_file.exists():
+            print(f"Error: config file '{config_file}' not found. "
+                  f"Please specify the full filename with .yml extension.")
+            return 1
         ui = ConsoleAnimationPrinter()
-        return run_full_pipeline(str(path_obj), config_file, ui)
+        return run_full_pipeline(str(path), config_file, ui)
 
     parser = create_parser()
     args = parser.parse_args()
     ui = ConsoleAnimationPrinter()
 
     if args.command is None:
-        if args.path:
-            path_obj = Path(args.path).expanduser().resolve()
-            if not path_obj.exists():
-                print(f"Error: path does not exist: {args.path}")
-                return 1
-            if not os.path.isdir(path_obj):
-                print(f"Error: path is not a directory: {args.path}")
-                return 1
-            if args.config:
-                config_file = Path(args.config).expanduser().resolve()
-            else:
-                config_file = DEFAULT_CONFIG_PATH
-            return run_full_pipeline(args.path, config_file, ui)
         parser.print_help()
         return 0
 
@@ -173,7 +128,6 @@ def main():
             return 0
 
         case "compare":
-
             if not run_compare(
                 args.file1,
                 args.file2,
