@@ -16,6 +16,7 @@ from amphimixis import (
     Shell,
     analyze,
     general,
+    laboratory_assistant,
     parse_config,
     validate,
 )
@@ -29,67 +30,64 @@ CONFIG_TEMPLATE = """# Amphimixis Configuration Template
 # Build system (optional, default: CMake)
 # build_system: CMake
 
-# Runner (optional, default: Make)
+# Runner / low-level build system (optional, default: Make)
 # runner: Make
 
 platforms:
-  # - id: 1
-  #   arch: x86
-  #   address: user@remote-host
-  #   username: user
-  #   password: secret
-  #   port: 22
+  # - id: 1                        # Unique platform id
+  #   address:                     # IP/domain (omit for local machine)
+  #   arch: x86                    # Architecture (e.g. x86, riscv64, aarch64)
+  #   username: root               # SSH username (required for remote)
+  #   password: secret             # SSH password (or use SSH keys)
+  #   port: 22                     # SSH port (optional, default: 22)
 
 recipes:
-  # - id: 1
-  #   config_flags: -DCMAKE_BUILD_TYPE=Release
-  #   compiler_flags:
-  #     c_flags: -O2
-  #     cxx_flags: -O2
-  #   toolchain: my_toolchain
-  #   sysroot: /path/to/sysroot
-  #   jobs: 8
+  # - id: 1                        # Unique recipe id
+  #   config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo"  # Build configuration options
+  #   compiler_flags:              # Compiler flags dictionary
+  #     cxx_flags: "-O2"           # C++ compiler flags
+  #   toolchain:                   # Toolchain configuration (dict or name)
+  #     cxx_compiler: "/usr/bin/g++"
+  #   sysroot: "/"                 # Path to system headers/libraries
 
 builds:
-  # - build_machine: 1
-  #   run_machine: 1
-  #   recipe_id: 1
-  #   executables:
-  #     - bin/my_app
+  # - build_machine: 1             # platform_id to build on
+  #   run_machine: 1                # platform_id to run on
+  #   recipe_id: 1                  # recipe_id to use
+  #   executables:                  # Executables to profile (relative to build dir)
+  #     - test/run-tests
 """
 
 TOOLCHAIN_TEMPLATE = """# Toolchain Configuration Template
 # Uncomment and fill in the fields below:
 
-name: test # Required: unique toolchain name
-
-# Target architecture
-target_arch: x86 # Options: x86_64, riscv64, aarch64, etc.
+# name: my_toolchain   # Required: unique toolchain name
+# platform: riscv64   # Options: x86_64, riscv64, etc.
 
 # Sysroot (optional)
-sysroot: /path/to/sysroot
+# sysroot: /path/to/sysroot
 
-# Toolchain attributes (uncomment and configure as needed)
-attributes:
-  c_compiler: /usr/bin/riscv64-unknown-elf-gcc
-  cxx_compiler: /usr/bin/riscv64-unknown-elf-g++
+# Toolchain attributes (uncomment and cpnfigure as needed)
+# attributes:
+#    # Compilers
+#    # c_compiler: /usr/bin/riscv64-unknown-elf-gcc
+#    # cxx_compiler: /usr/bin/riscv64-unknown-elf-g++
 
-# Tools (uncomment as needed)
-ar: /usr/bin/riscv64-unknown-elf-ar
-as: /usr/bin/riscv64-unknown-elf-as
-ld: /usr/bin/riscv64-unknown-elf-ld
-rm: /usr/bin/riscv64-unknown-elf-rm
-objcopy: /usr/bin/riscv64-unknown-elf-objcopy
-objdump: /usr/bin/riscv64-unknown-elf-objdump
-ranlib: /usr/bin/riscv64-unknown-elf-ranlib
-readelf: /usr/bin/riscv64-unknown-elf-readelf
-strip: /usr/bin/riscv64-unknown-elf-strip
+#    #Tools
+#    # ar: /usr/bin/riscv64-unknown-elf-ar
+#    # as: /usr/bin/riscv64-unknown-elf-as
+#    # ld: /usr/bin/riscv64-unknown-elf-ld
+#    # nm: /usr/bin/riscv64-unknown-elf-nm
+#    # objcopy: /usr/bin/riscv64-unknown-elf-objcopy
+#    # objdump: /usr/bin/riscv64-unknown-elf-objdump
+#    # ranlib: /usr/bin/riscv64-unknown-elf-ranlib
+#    # readelf: /usr/bin/riscv64-unknown-elf-readelf
+#    # strip: /usr/bin/riscv64-unknown-elf-strip
 
-# Compiler flags (optional)
-cflags: -O2 -march=rv64gc
-cxxflags: -O2 -march=rv64gc
+#    # Compiler flags (optional)
+#    # cflags: -O2 -march=rv64gc
+#    # cxxflags: -O2 -march=rv64gc
 """
-
 
 def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
     """Execute project analysis.
@@ -370,35 +368,27 @@ def interactive_clean() -> bool:
 def run_add_input() -> bool:
     """Interactively create input.yml configuration file.
 
-    Opens an editor with a template, validates the result,
-    and saves to input.yml on success.
+    Opens an editor with existing file if it exists, or with a template
+    if not. Validates the result and saves to input.yml on success.
     """
     config_path = Path("input.yml")
     editor = os.environ.get("EDITOR", "nano")
 
     if config_path.exists():
-        print(f"{config_path} already exists.")
-        print("This will overwrite the existing file. Continue? [Y/n]: ", end="")
-        try:
-            response = input().strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            print("\nCancelled.")
-            return False
-        if response != "y":
-            print("Cancelled.")
-            return False
-
-    template = CONFIG_TEMPLATE
+        with open(config_path, "r", encoding="utf-8") as f:
+            current_content = f.read()
+    else:
+        current_content = CONFIG_TEMPLATE
 
     print(f"Opening editor: {editor}")
-    print("Edit the configuration template and save to validate.")
+    print("Edit the configuration and save to validate.")
     print("The editor will reopen if validation fails.\n")
 
     while True:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".yml", delete=False, encoding="utf-8"
         ) as f:
-            f.write(template)
+            f.write(current_content)
             temp_path = Path(f.name)
 
         try:
@@ -415,7 +405,7 @@ def run_add_input() -> bool:
 
         try:
             with open(temp_path, "r", encoding="utf-8") as f:
-                template = f.read()
+                current_content = f.read()
         except OSError as e:
             print(f"Error reading file: {e}")
             os.unlink(temp_path)
@@ -443,30 +433,19 @@ def run_add_input() -> bool:
 
 # pylint: disable=too-many-branches,too-many-statements
 def run_add_toolchain() -> bool:
-    """Interactively add a toolchain to input.yml.
+    """Interactively add a toolchain to global config.
 
     Opens an editor with a toolchain template, validates the result,
-    and adds the toolchain to input.yml on success.
+    and adds the toolchain to global config (~/.config/amphimixis/toolbox.yml).
     """
-    config_path = Path("input.yml")
     editor = os.environ.get("EDITOR", "nano")
 
-    if not config_path.exists():
-        print("Error: input.yml not found.")
-        print("Please run 'amixis add input' first to create a configuration file.")
-        return False
+    toolbox = laboratory_assistant.LaboratoryAssistant.parse_config_file()
 
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            config = yaml.safe_load(f) or {}
-    except yaml.YAMLError as e:
-        print(f"Error reading input.yml: {e}")
-        return False
+    if "toolchains" not in toolbox:
+        toolbox["toolchains"] = {}
 
-    if "toolchains" not in config:
-        config["toolchains"] = []
-
-    template = TOOLCHAIN_TEMPLATE
+    current_content = TOOLCHAIN_TEMPLATE
 
     print(f"Opening editor: {editor}")
     print("Edit the toolchain template and save to validate.")
@@ -476,7 +455,7 @@ def run_add_toolchain() -> bool:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".yml", delete=False, encoding="utf-8"
         ) as f:
-            f.write(template)
+            f.write(current_content)
             temp_path = Path(f.name)
 
         try:
@@ -493,14 +472,14 @@ def run_add_toolchain() -> bool:
 
         try:
             with open(temp_path, "r", encoding="utf-8") as f:
-                template = f.read()
+                current_content = f.read()
         except OSError as e:
             print(f"Error reading file: {e}")
             os.unlink(temp_path)
             return False
 
         try:
-            new_toolchain = yaml.safe_load(template)
+            new_toolchain = yaml.safe_load(current_content)
         except yaml.YAMLError as e:
             print(f"\nYAML parse error: {e}")
             print("Editor will reopen for corrections...")
@@ -537,30 +516,50 @@ def run_add_toolchain() -> bool:
                 return False
             continue
 
-        if validate(str(config_path)):
-            config["toolchains"].append(new_toolchain)
+        toolchain_name = new_toolchain["name"]
+
+        if toolchain_name in toolbox.get("toolchains", {}):
+            print(f"\nWarning: Toolchain '{toolchain_name}' already exists.")
+            print("Not overwriting. Please choose a different name.")
+            print("Editor will reopen for corrections...")
             try:
-                with open(config_path, "w", encoding="utf-8") as f:
-                    yaml.dump(config, f, default_flow_style=False, sort_keys=False)
-            except OSError as e:
-                print(f"Error saving file: {e}")
+                input("Press Enter to continue...")
+            except (EOFError, KeyboardInterrupt):
+                print("\nCancelled.")
                 if temp_path.exists():
                     os.unlink(temp_path)
                 return False
+            continue
 
-            if temp_path.exists():
-                os.unlink(temp_path)
-            print(
-                f"Toolchain '{new_toolchain['name']}' successfully added to input.yml!"
-            )
-            return True
+        target_arch = new_toolchain.get("target_arch")
+        sysroot = new_toolchain.get("sysroot")
+        platform = new_toolchain.get("platform")
+        attributes = new_toolchain.get("attributes", {})
 
-        print("\nValidation failed. Please fix the errors above.")
-        print("Editor will reopen for corrections...")
+        if platform:
+            platform_value = platform
+        else:
+            platform_value = "localhost"
+
+        toolchain_data: dict = {"attributes": attributes}
+        if target_arch:
+            toolchain_data["target_arch"] = target_arch
+        if sysroot:
+            toolchain_data["sysroot"] = sysroot
+        if platform:
+            toolchain_data["platform"] = platform_value
+
+        toolbox["toolchains"][toolchain_name] = toolchain_data
+
         try:
-            input("Press Enter to continue...")
-        except (EOFError, KeyboardInterrupt):
-            print("\nCancelled.")
+            laboratory_assistant.LaboratoryAssistant._dump_config(toolbox)
+        except OSError as e:
+            print(f"Error saving toolchain: {e}")
             if temp_path.exists():
                 os.unlink(temp_path)
             return False
+
+        if temp_path.exists():
+            os.unlink(temp_path)
+        print(f"Toolchain '{toolchain_name}' added successfully!")
+        return True

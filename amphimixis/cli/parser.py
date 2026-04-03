@@ -70,7 +70,7 @@ class CustomHelpFormatter(argparse.RawTextHelpFormatter):
 
               amixis add toolchain
                   → Opens an editor with a toolchain template.
-                    After saving, validates and adds the toolchain to input.yml.
+                    After saving, validates and adds the toolchain to global config.
 
               amixis clean
                   → Interactive mode: select builds to clean.
@@ -208,7 +208,7 @@ def create_parser():
 
     add_subparsers.add_parser(
         "toolchain",
-        help="interactively add a toolchain to input.yml",
+        help="interactively add a toolchain to global config",
     )
 
     return parser
