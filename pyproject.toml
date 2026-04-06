@@ -4,6 +4,14 @@ version = "0.2.0"
 description = "Build automation and profiling tool for Linux projects across various architectures."
 readme = "README.md"
 license-files = ["LICENSE", "third_party_licenses/*.LICENSE"]
+authors = [
+    {name = "Egor Bzychkin", email = "bzychkin.egor@gmail.com"},
+    {name = "Dmitrii Bordukov", email = "dabordukov@mail.ru"},
+    {name = "Valeria Churikova", email = "curikovalera3@gmail.com"},
+    {name = "Michael Mishin", email = "mishamishin17@gmail.com"},
+    {name = "Julia Adodina", email = "juliaadod@gmail.com"},
+    {name = "Maria Novik", email = "novikmaria36@gmail.com"}
+]
 requires-python = ">=3.12"
 
 dependencies = [
