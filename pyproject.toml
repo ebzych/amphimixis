@@ -20,7 +20,7 @@ include-package-data = true
 include = ["amphimixis*"]
 
 [tool.setuptools.package-data]
-"amphimixis" = ["samples/*.yml"]
+"amphimixis" = ["../samples/*.yml"]
 
 [dependency-groups]
 dev = [
