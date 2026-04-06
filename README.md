@@ -10,8 +10,6 @@
 
 Amphimixis is an automated project intelligence and evaluation tool for performance and migration readiness. It helps inspect a project for existing infrastructure such as CI, tests, benchmarks, dependencies, and build scripts, then runs builds and collects performance data for further comparison.
 
-> Amphimixis is currently in a very early pre-release state.
-
 ## Quick run
 
 If you want to try Amphimixis right away, create a virtual environment, install the package from GitHub, and run the full pipeline on a target project:
