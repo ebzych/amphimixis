@@ -54,6 +54,14 @@ def main():
     if args.config is not None:
         config_file = Path(args.config).expanduser().resolve()
     else:
+        if not Path("input.yml").exists():
+            import shutil
+
+            script_dir = Path(__file__).parent.resolve()
+            shutil.copy(
+                script_dir / "samples" / "local.yml", Path("input.yml").resolve()
+            )
+            print("Created input.yml from samples/local.yml")
         config_file = DEFAULT_CONFIG_PATH
 
     if args.validate:
