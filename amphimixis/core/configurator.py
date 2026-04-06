@@ -200,10 +200,15 @@ def _has_valid_arch(
 
     if machine.address is None:
         if machine.arch.lower() not in local_arch().lower():
+            supported_archs = ", ".join(arch.value for arch in general.Arch)
             _logger.error(
-                "Invalid local machine arch: %s, your machine is %s",
+                "Invalid local machine arch: %s, your machine is %s. Supported: %s",
                 machine.arch.name.lower(),
                 local_arch().lower(),
+                supported_archs,
+            )
+            ui.mark_failed(
+                f"Config: invalid local architecture. Supported: {supported_archs}"
             )
             return False
         return True
@@ -221,12 +226,16 @@ def _has_valid_arch(
 
     remote_arch = stdout[0][0]
     if machine.arch.lower() not in remote_arch.lower():
+        supported_archs = ", ".join(arch.value for arch in general.Arch)
         _logger.error(
-            "Invalid remote machine arch: %s, remote machine is %s",
+            "Invalid remote machine arch: %s, remote machine is %s. Supported: %s",
             machine.arch.name.lower(),
             remote_arch.lower(),
+            supported_archs,
         )
-        ui.mark_failed("Config: invalid remote architecture")
+        ui.mark_failed(
+            f"Config: invalid remote architecture. Supported: {supported_archs}"
+        )
         return False
 
     return True
