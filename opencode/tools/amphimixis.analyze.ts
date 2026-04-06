@@ -1,6 +1,7 @@
-import { tool } from '@opencode-ai/plugin';
-import process from 'process';
-import path from 'path';
+import { tool } from "@opencode-ai/plugin";
+import process from "process";
+import path from "path";
+import { spawn } from "child_process";
 
 export default tool({
     description: 'Analyze project repository: find CI, tests, benchmarks, dependencies, documentation, build systems',
@@ -12,7 +13,7 @@ export default tool({
         const config_dir = process.env.XDG_CONFIG_HOME != undefined ? process.env.XDG_CONFIG_HOME : path.join(process.env.HOME as string, '.config');
         const opencode_tools_dir = path.join(config_dir, 'opencode', 'tools');
         const amixis = path.join(opencode_tools_dir, '.venv', 'bin', 'amixis');
-        let cmd = [amixis, '--analyze', args.project_path]
+        let cmd = [amixis, '--analyze', args.project_path];
         if (args.config)
             cmd.push(`--config=${args.config}`);
 
