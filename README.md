@@ -17,7 +17,7 @@ If you want to try Amphimixis right away, create a virtual environment, install 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/ebzych/amphimixis.git
+pip install git+https://github.com/ebzych/amphimixis.git@stable
 amixis /path/to/project
 ```
 
