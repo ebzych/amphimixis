@@ -4,6 +4,7 @@ import shutil
 import tempfile
 from os import path
 import pickle
+import yaml
 
 from amphimixis import Builder, Profiler, Shell, analyze, general, parse_config
 from amphimixis.general import IUI, NullUI, Project, Build, constants, tools
@@ -20,10 +21,13 @@ def run_analyze(project: general.Project, ui: IUI = NullUI()) -> bool:
     project_name = path.basename(path.normpath(project.path))
     ui.update_message(project_name, "Analyzing project...")
 
-    if not analyze(project):
+    results = analyze(project)
+    if not results:
         ui.mark_failed("Analysis failed. See amphimixis.log for details.")
         return False
-    ui.mark_success("Analysis completed! See amphimixis.log for details.")
+    ui.mark_success("Analysis completed!")
+    sresults = yaml.safe_dump(results)
+    ui.send_message(path.basename(project.path), sresults)
     return True
 
 
