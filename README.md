@@ -128,3 +128,7 @@ ci/runner.sh
 ## License
 
 The project is distributed under the license in [LICENSE](LICENSE).
+
+## Third-Party Licenses
+
+This project includes dependencies under various licenses. See [NOTICE.md](NOTICE.md) and the [third_party_licenses/](third_party_licenses/) directory for details.
