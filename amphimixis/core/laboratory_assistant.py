@@ -26,6 +26,7 @@ _SYSROOT = "sysroot"
 _ADDRESS = "address"
 _PORT = "port"
 _ARCH = "arch"
+_EVENTS = "events"
 _AUTH = "auth"
 _USERNAME = "username"
 _PASSWORD = "password"
@@ -108,6 +109,7 @@ class LaboratoryAssistant:
                 Arch(machine[_ARCH]),
                 machine[_ADDRESS] if _ADDRESS in machine else None,
                 auth,
+                machine[_EVENTS] if _EVENTS in machine else None,
             )
         return None
 

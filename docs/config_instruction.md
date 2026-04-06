@@ -49,6 +49,7 @@ The **platforms** section describes the machines on which the project will be bu
 |                 username                  | string  | (**Optional**) Username of the remote machine  |
 |   port<sup><a href="#note3">3</a></sup>   | integer | (**Optional**) Port of the remote machine      |
 | password<sup><a href="#note4">4</a></sup> | string  | (**Optional**) Password for the remote machine |
+| events<sup><a href="#note5">5</a></sup>   | list[str] or string | (**Optional**) CPU events name for the machine |
 
 ---
 
@@ -60,6 +61,12 @@ The **platforms** section describes the machines on which the project will be bu
 <p id="note4">
 
 4. If the user uses SSH keys, start `ssh-agent` in the current shell and add the required keys for each remote machine manually with `ssh-add` before running Amphimixis. In this case, the password does not need to be provided. **Please note that passwords are passed to SSH through sshpass, which is not secure.**
+
+</p>
+
+<p id="note5">
+
+5. If events are passed as a string, they must be separated by whitespace.
 
 </p>
 
