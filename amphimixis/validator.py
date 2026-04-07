@@ -5,7 +5,6 @@
 from ipaddress import ip_address
 from os import path
 from re import compile as re_compile
-from types import NoneType
 from typing import Any
 
 import yaml
@@ -117,15 +116,15 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
     """Function to check whether recipe is valid"""
 
     re_id = recipe.get("id")
-    if not isinstance(re_id, int):
+    if not isinstance(re_id, int | str):
         _notify_about_error(f"Invalid id in recipe: {re_id}")
 
     config_flags = recipe.get("config_flags")
-    if not isinstance(config_flags, str | NoneType):
+    if not isinstance(config_flags, str | None):
         _notify_about_error(f"Invalid config_flags in recipe {re_id}: {config_flags}")
 
     compiler_flags = recipe.get("compiler_flags")
-    if not isinstance(compiler_flags, dict | NoneType):
+    if not isinstance(compiler_flags, dict | None):
         _notify_about_error(
             f"Invalid compiler_flags in recipe {re_id}: {compiler_flags}"
         )
@@ -188,7 +187,7 @@ def _is_valid_build(input_config: dict[str, Any], build: dict[str, int | str]):
 
 def _is_valid_toolchain(toolchain: Any) -> None:
 
-    if not isinstance(toolchain, dict | str | NoneType):
+    if not isinstance(toolchain, dict | str | None):
         _notify_about_error(f"Invalid toolchain in build: '{toolchain}'")
 
     if isinstance(toolchain, str) and not LaboratoryAssistant.find_toolchain_by_name(
