@@ -54,34 +54,34 @@ def parse_config(
     with open(config_file_path, "r", encoding="UTF-8") as file:
         input_config = yaml.safe_load(file)
 
-        build_system: str | None = str(input_config.get("build_system")).lower()
-        if build_system not in build_systems_dict:
-            if not (build_system := _get_analyzed_build_system()):
-                _logger.error("Did not find any proper build_system")
-                ui.mark_failed("Config: no build system found")
-                return False
-        runner_name = str(input_config.get("runner", None)).lower()
-        if (
-            runner_name
-            and runner_name in runners_dict
-            and runners_dict[runner_name] in build_systems_dict[build_system][1]
-        ):
-            runner = runners_dict[runner_name](project, ui)
-        elif len(build_systems_dict[build_system][1]) > 0:
-            runner = build_systems_dict[build_system][1][0](project, ui)
-        else:  # if build system doesn't have runners (like Make)
-            runner = DummyRunner()
-        project.build_system = build_systems_dict[build_system][0](project, runner, ui)
+    build_system: str | None = str(input_config.get("build_system")).lower()
+    if build_system not in build_systems_dict:
+        if not (build_system := _get_analyzed_build_system()):
+            _logger.error("Did not find any proper build_system")
+            ui.mark_failed("Config: no build system found")
+            return False
+    runner_name = str(input_config.get("runner", None)).lower()
+    if (
+        runner_name
+        and runner_name in runners_dict
+        and runners_dict[runner_name] in build_systems_dict[build_system][1]
+    ):
+        runner = runners_dict[runner_name](project, ui)
+    elif len(build_systems_dict[build_system][1]) > 0:
+        runner = build_systems_dict[build_system][1][0](project, ui)
+    else:  # if build system doesn't have runners (like Make)
+        runner = DummyRunner()
+    project.build_system = build_systems_dict[build_system][0](project, runner, ui)
 
-        for build in input_config["builds"]:
-            if not _create_build(
-                project,
-                input_config,
-                build,
-                ui,
-            ):
-                ui.mark_failed("Failed to create build")
-                return False
+    for build in input_config["builds"]:
+        if not _create_build(
+            project,
+            input_config,
+            build,
+            ui,
+        ):
+            ui.mark_failed("Failed to create build")
+            return False
 
     config_path = tools.project_name(project) + ".project"
     with open(config_path, "wb") as file:
@@ -199,27 +199,28 @@ def _has_valid_arch(
                 local_arch().lower(),
             )
             return False
+        return True
 
-    else:
-        ui.update_message("Config", "Checking remote architecture for validity...")
-        shell = Shell(project, machine, ui).connect()
-        error_code, stdout, _ = shell.run("uname -m")
-        if error_code != 0:
-            _logger.error(
-                "An error occured during reading remote machine arch, check remote machine"
-            )
-            ui.mark_failed("Config: failed to check remote architecture")
-            return False
+    # remote case
+    ui.update_message("Config", "Checking remote architecture for validity...")
+    shell = Shell(project, machine, ui).connect()
+    error_code, stdout, _ = shell.run("uname -m")
+    if error_code != 0:
+        _logger.error(
+            "An error occured during reading remote machine arch, check remote machine"
+        )
+        ui.mark_failed("Config: failed to check remote architecture")
+        return False
 
-        remote_arch = stdout[0][0]
-        if machine.arch.lower() not in remote_arch.lower():
-            _logger.error(
-                "Invalid remote machine arch: %s, remote machine is %s",
-                machine.arch.name.lower(),
-                remote_arch.lower(),
-            )
-            ui.mark_failed("Config: invalid remote architecture")
-            return False
+    remote_arch = stdout[0][0]
+    if machine.arch.lower() not in remote_arch.lower():
+        _logger.error(
+            "Invalid remote machine arch: %s, remote machine is %s",
+            machine.arch.name.lower(),
+            remote_arch.lower(),
+        )
+        ui.mark_failed("Config: invalid remote architecture")
+        return False
 
     return True
 
@@ -240,27 +241,30 @@ def _get_analyzed_build_system() -> str | None:
 
     with open(ANALYZED_FILE_NAME, "r", encoding="UTF-8") as file:
         analyzed = yaml.safe_load(file)
-        if analyzed:
-            if not isinstance(analyzed, dict):
-                raise TypeError("Incorrect analyzer output file")
 
-            if "build_systems" not in analyzed:
-                raise TypeError("Missing 'build_systems' key in analyzer output file")
-
-            build_systems = analyzed["build_systems"]
-            if not isinstance(build_systems, list) or not build_systems:
-                raise TypeError("'Build_systems' must be a non-empty list")
-
-            if not isinstance(build_systems[0], str):
-                raise TypeError("Incorrect build systems list")
-
-            build_system = build_systems[0].lower()
-            if (
-                build_system in build_systems_dict
-            ):  # take first (in priority) found build system
-                return build_system
-
+    if not analyzed:
         return None
+
+    if not isinstance(analyzed, dict):
+        raise TypeError("Incorrect analyzer output file")
+
+    if "build_systems" not in analyzed:
+        raise TypeError("Missing 'build_systems' key in analyzer output file")
+
+    build_systems = analyzed["build_systems"]
+    if not isinstance(build_systems, list) or not build_systems:
+        raise TypeError("'Build_systems' must be a non-empty list")
+
+    if not isinstance(build_systems[0], str):
+        raise TypeError("Incorrect build systems list")
+
+    build_system = build_systems[0].lower()
+    if (
+        build_system in build_systems_dict
+    ):  # take first (in priority) found build system
+        return build_system
+
+    return None
 
 
 def create_machine(machine_info: dict[str, int | str]) -> general.MachineInfo:
@@ -319,17 +323,17 @@ def create_flags(
     """Function to create new flags"""
 
     if compiler_flags_dict is None:
-        return compiler_flags_dict
+        return None
 
     compiler_flags = general.CompilerFlags()
-    for flag in compiler_flags_dict:
-        if flag.lower() in general.CompilerFlagsAttrs:
-            compiler_flags.set(
-                general.CompilerFlagsAttrs(flag.lower()), compiler_flags_dict[flag]
-            )
-        else:
+    for key, value in compiler_flags_dict.items():
+        flag = key.lower()
+        if flag not in general.CompilerFlagsAttrs:
             _logger.info(
                 "Unknown compiler flag attribute: %s, skipping...", flag.lower()
             )
+            continue
+
+        compiler_flags.set(general.CompilerFlagsAttrs(flag), value)
 
     return compiler_flags
