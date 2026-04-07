@@ -11,7 +11,7 @@ from typing import Any
 import yaml
 
 from amphimixis.build_systems import build_systems_dict, runners_dict
-from amphimixis.general import general, NullUI, IUI
+from amphimixis.general import IUI, NullUI, general
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
 
@@ -39,42 +39,42 @@ def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
         return False
 
     with open(config_file_path, "r", encoding="UTF-8") as file:
-        file_dict = yaml.safe_load(file)
+        input_config = yaml.safe_load(file)
 
-        build_system = file_dict.get("build_system")
-        if (
-            isinstance(build_system, str)
-            and str(build_system).lower() not in build_systems_dict
-        ):
-            _notify_about_error(f"Invalid build_system: {build_system}")
+    build_system = input_config.get("build_system")
+    if (
+        isinstance(build_system, str)
+        and str(build_system).lower() not in build_systems_dict
+    ):
+        _notify_about_error(f"Invalid build_system: {build_system}")
 
-        runner = file_dict.get("runner")
-        if isinstance(runner, str) and runner.lower() not in runners_dict:
-            _notify_about_error(f"Invalid runner: {runner}")
+    runner = input_config.get("runner")
+    if isinstance(runner, str) and runner.lower() not in runners_dict:
+        _notify_about_error(f"Invalid runner: {runner}")
 
-        # validate platforms
-        platforms = file_dict.get("platforms", {})
-        if platforms == {}:
-            _notify_about_error("Platforms not found")
+    # validate platforms
+    platforms = input_config.get("platforms", {})
+    if platforms == {}:
+        _notify_about_error("Platforms not found")
 
-        for platform in platforms:
-            _is_valid_platform(platform)
+    for platform in platforms:
+        _is_valid_platform(platform)
 
-        # validate recipes
-        recipes = file_dict.get("recipes", {})
-        if recipes == {}:
-            _notify_about_error("Recipes not found")
+    # validate recipes
+    recipes = input_config.get("recipes", {})
+    if recipes == {}:
+        _notify_about_error("Recipes not found")
 
-        for recipe in recipes:
-            _is_valid_recipe(recipe)
+    for recipe in recipes:
+        _is_valid_recipe(recipe)
 
-        # validate builds
-        builds = file_dict.get("builds", {})
-        if builds == {}:
-            _notify_about_error("Builds not found")
+    # validate builds
+    builds = input_config.get("builds", {})
+    if builds == {}:
+        _notify_about_error("Builds not found")
 
-        for build in builds:
-            _is_valid_build(build)
+    for build in builds:
+        _is_valid_build(build)
 
     _logger.info("Validation completed, errors found: %s", _errors_count)
 
@@ -159,23 +159,23 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
 def _is_valid_build(build: dict[str, int | str]):
     """Function to check whether build is valid"""
 
-    build_machine = build.get("build_machine")
-    if not isinstance(build_machine, int | str):
-        _notify_about_error(f"Invalid build_machine in build: {build_machine}")
+    build_machine_id = build.get("build_machine")
+    if not isinstance(build_machine_id, int | str):
+        _notify_about_error(f"Invalid build_machine in build: {build_machine_id}")
 
-    if isinstance(build_machine, str) and not LaboratoryAssistant.find_platform(
-        build_machine
+    if isinstance(build_machine_id, str) and not LaboratoryAssistant.find_platform(
+        build_machine_id
     ):
-        _notify_about_error(f"Unknown build machine: {build_machine}")
+        _notify_about_error(f"Unknown build machine: {build_machine_id}")
 
-    run_machine = build.get("run_machine")
-    if not isinstance(run_machine, int | str):
-        _notify_about_error(f"Invalid run_machine in build: {run_machine}")
+    run_machine_id = build.get("run_machine")
+    if not isinstance(run_machine_id, int | str):
+        _notify_about_error(f"Invalid run_machine in build: {run_machine_id}")
 
-    if isinstance(run_machine, str) and not LaboratoryAssistant.find_platform(
-        run_machine
+    if isinstance(run_machine_id, str) and not LaboratoryAssistant.find_platform(
+        run_machine_id
     ):
-        _notify_about_error(f"Unknown run machine: {run_machine}")
+        _notify_about_error(f"Unknown run machine: {run_machine_id}")
 
     recipe_id = build.get("recipe_id")
     if not isinstance(recipe_id, int):
