@@ -92,19 +92,16 @@ def _is_valid_platform(platform: dict[str, int | str]):
         _notify_about_error(f"Invalid arch in platform {pl_id}: {arch}")
 
     address = platform.get("address")
-    if address is not None and (
-        not isinstance(address, str) or not _is_valid_address(address)
-    ):
-        _notify_about_error(f"Invalid address in platform {pl_id}: {address}")
+    if address is not None:
+        if not isinstance(address, str) or not _is_valid_address(address):
+            _notify_about_error(f"Invalid address in platform {pl_id}: {address}")
 
     username = platform.get("username")
-    if (
-        address is None and (username is not None and not isinstance(username, str))
-    ) or (address is not None and not isinstance(username, str)):
+    if not isinstance(username, str) and not (address is None or username is None):
         _notify_about_error(f"Invalid username in platform {pl_id}: {username}")
 
     password = platform.get("password")
-    if password is not None and not isinstance(password, int | str):
+    if not isinstance(password, int | str | None):
         _notify_about_error(f"Invalid password in platform {pl_id}: {password}")
 
     port = platform.get("port", DEFAULT_PORT)
@@ -145,14 +142,15 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
     _is_valid_toolchain(toolchain)
 
     sysroot = recipe.get("sysroot")
-    if sysroot is not None and not isinstance(sysroot, str):
+    if not isinstance(sysroot, str | None):
         _notify_about_error(f"Invalid sysroot in build: {sysroot}")
 
     jobs = recipe.get("jobs")
-    if jobs is not None and (not isinstance(jobs, int) or jobs <= 0):
-        _notify_about_error(
-            f"Invalid jobs number in recipe: '{jobs}' is not positive number"
-        )
+    if jobs is not None:
+        if not isinstance(jobs, int) or jobs <= 0:
+            _notify_about_error(
+                f"Invalid jobs number in recipe: '{jobs}' is not positive number"
+            )
 
 
 def _is_valid_build(input_config: dict[str, Any], build: dict[str, int | str]):
