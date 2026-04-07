@@ -74,7 +74,7 @@ def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
         _notify_about_error("Builds not found")
 
     for build in builds:
-        _is_valid_build(build)
+        _is_valid_build(input_config, build)
 
     _logger.info("Validation completed, errors found: %s", _errors_count)
 
@@ -156,33 +156,31 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
         )
 
 
-def _is_valid_build(build: dict[str, int | str]):
+def _is_valid_build(input_config: dict[str, Any], build: dict[str, int | str]):
     """Function to check whether build is valid"""
 
     build_machine_id = build.get("build_machine")
-    if not isinstance(build_machine_id, int | str):
+    if (
+        not isinstance(build_machine_id, int | str)
+        or not _get_by_id(input_config["platforms"], build_machine_id)
+        and not LaboratoryAssistant.find_platform(str(build_machine_id))
+    ):
         _notify_about_error(f"Invalid build_machine in build: {build_machine_id}")
 
-    if isinstance(build_machine_id, str) and not LaboratoryAssistant.find_platform(
-        build_machine_id
-    ):
-        _notify_about_error(f"Unknown build machine: {build_machine_id}")
-
     run_machine_id = build.get("run_machine")
-    if not isinstance(run_machine_id, int | str):
-        _notify_about_error(f"Invalid run_machine in build: {run_machine_id}")
-
-    if isinstance(run_machine_id, str) and not LaboratoryAssistant.find_platform(
-        run_machine_id
+    if (
+        not isinstance(run_machine_id, int | str)
+        or not _get_by_id(input_config["platforms"], run_machine_id)
+        and not LaboratoryAssistant.find_platform(str(run_machine_id))
     ):
-        _notify_about_error(f"Unknown run machine: {run_machine_id}")
+        _notify_about_error(f"Invalid run_machine in build: {run_machine_id}")
 
     recipe_id = build.get("recipe_id")
     if not isinstance(recipe_id, int):
         _notify_about_error(f"Invalid recipe_id in build: {recipe_id}")
 
     executables = build.get("executables")
-    if executables is not None and not isinstance(executables, list):
+    if not isinstance(executables, list | None):
         _notify_about_error(f"Invalid executables in build: {executables}")
 
 
@@ -237,6 +235,24 @@ def _is_valid_address(address: str) -> bool:
             r"(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$"
         )
         return bool(hostname_pattern.match(address))
+
+
+def _get_by_id(
+    items: list[dict[str, str | int]], target_id: int | str
+) -> dict[str, str | int]:
+    """Function to find item in dict by id"""
+
+    for item in items:
+        id_ = item["id"]
+        if not isinstance(id_, int | str):
+            msg = f"Error: not integer or string id '{id_}' of item: {item}"
+            _logger.fatal(msg)
+            raise ValueError(msg)
+        if id_ == target_id:
+            return item
+
+    _logger.error("Item id didn't match any existed id, check input file")
+    return {}
 
 
 # pylint: disable=global-variable-not-assigned
