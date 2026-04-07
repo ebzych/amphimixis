@@ -3,12 +3,12 @@
 import pickle
 from os import path
 from platform import machine as local_arch
-from typing import Any
+from typing import Any, SupportsInt
 
 import yaml
 
 from amphimixis.build_systems import build_systems_dict, runners_dict
-from amphimixis.general import IUI, DummyRunner, NullUI, general, tools
+from amphimixis.general import IUI, DummyRunner, MachineInfo, NullUI, general, tools
 from amphimixis.general.constants import ANALYZED_FILE_NAME
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
@@ -74,22 +74,10 @@ def parse_config(
         project.build_system = build_systems_dict[build_system][0](project, runner, ui)
 
         for build in input_config["builds"]:
-            (
-                executables,
-                build_machine_info,
-                run_machine_info,
-                recipe_info,
-            ) = _configure_build(input_config, build)
-
-            if build_machine_info == {} or run_machine_info == {} or recipe_info == {}:
-                return False
-
             if not _create_build(
                 project,
-                build_machine_info,
-                run_machine_info,
-                recipe_info,
-                executables,
+                input_config,
+                build,
                 ui,
             ):
                 ui.mark_failed("Failed to create build")
@@ -103,77 +91,44 @@ def parse_config(
     return True
 
 
-def _configure_build(input_config: dict[str, Any], build: dict[str, Any]) -> tuple[
-    list[str],
-    str | dict[str, int | str],
-    str | dict[str, int | str],
-    dict[str, Any],
-]:
-    """Function to configure fields of a single build"""
-
-    executables = build.get("executables", [])
-
-    build_machine_info = build["build_machine"]
-    if str(build_machine_info).isdecimal():
-        build_machine_info = _get_by_id(
-            input_config["platforms"], build["build_machine"]
-        )
-
-    run_machine_info = build["run_machine"]
-    if str(run_machine_info).isdecimal():
-        run_machine_info = _get_by_id(input_config["platforms"], build["run_machine"])
-
-    recipe_info = _get_by_id(input_config["recipes"], build["recipe_id"])
-
-    return (
-        executables,
-        build_machine_info,
-        run_machine_info,
-        recipe_info,
-    )
-
-
 def _create_build(  # pylint: disable=R0913,R0914,R0917
     project: general.Project,
-    build_machine_info: str | dict[str, int | str],
-    run_machine_info: str | dict[str, int | str],
-    recipe_info: dict[str, Any],
-    executables: list[str],
+    input_config: dict[str, Any],
+    build_dict: dict[str, Any],
     ui: IUI = NullUI(),
 ) -> bool:
     """Function to create a new build and save its configuration to a Pickle file"""
 
-    id_name_build_machine = (
-        build_machine_info
-        if isinstance(build_machine_info, str)
-        else build_machine_info["id"]
-    )
-    id_name_run_machine = (
-        run_machine_info
-        if isinstance(run_machine_info, str)
-        else run_machine_info["id"]
-    )
+    build_machine_id = str(build_dict["build_machine"])
+    run_machine_id = str(build_dict["run_machine"])
+    recipe_id = str(build_dict["recipe_id"])
+    executables = build_dict.get("executables", [])
+
     build_name = _generate_build_name(
-        str(id_name_build_machine), str(id_name_run_machine), recipe_info["id"]
+        build_dict["build_machine"], build_dict["run_machine"], build_dict["recipe_id"]
     )
 
-    if isinstance(build_machine_info, str):
-        if (
-            build_machine := LaboratoryAssistant.find_platform(build_machine_info)
-        ) is None:
-            msg = f"Build '{build_name}': unknown build machine: '{build_machine_info}'"
-            _logger.fatal(msg)
-            raise ValueError(msg)
+    build_machine: MachineInfo
+    if dict_from_input := _get_by_id(input_config["platforms"], build_machine_id):
+        build_machine = create_machine(dict_from_input)
+    elif machine_from_la := LaboratoryAssistant.find_platform(build_machine_id):
+        build_machine = machine_from_la
     else:
-        build_machine = create_machine(build_machine_info)
+        msg = f"Build '{build_name}': unknown build machine: '{build_machine_id}'"
+        _logger.fatal(msg)
+        raise ValueError(msg)
 
-    if isinstance(run_machine_info, str):
-        if (run_machine := LaboratoryAssistant.find_platform(run_machine_info)) is None:
-            msg = f"Build '{build_name}': unknown run machine: '{run_machine_info}'"
-            _logger.fatal(msg)
-            raise ValueError(msg)
+    run_machine: MachineInfo
+    if dict_from_input := _get_by_id(input_config["platforms"], run_machine_id):
+        run_machine = create_machine(dict_from_input)
+    elif machine_from_la := LaboratoryAssistant.find_platform(run_machine_id):
+        run_machine = machine_from_la
     else:
-        run_machine = create_machine(run_machine_info)
+        msg = f"Build '{build_name}': unknown run machine: '{run_machine_id}'"
+        _logger.fatal(msg)
+        raise ValueError(msg)
+
+    recipe_info = _get_by_id(input_config["recipes"], recipe_id)
 
     if not _has_valid_arch(project, run_machine, ui):
         return False
@@ -186,9 +141,13 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     if sysroot is None and toolchain is not None:
         sysroot = toolchain.sysroot
 
-    config_flags = recipe_info.get("config_flags", "")
-    compiler_flags = create_flags(recipe_info.get("compiler_flags"))
-    jobs = recipe_info.get("jobs", None)
+    config_flags = recipe_info.get("config_flags")
+    compiler_flags = create_flags(recipe_info.get("compiler_flags"))  # type: ignore
+    jobs = recipe_info.get("jobs")
+    if not isinstance(jobs, SupportsInt | None):
+        msg = f"Build '{build_name}': invalid jobs: '{jobs}'"
+        _logger.fatal(msg)
+        raise ValueError(msg)
 
     build = general.Build(
         build_machine,
@@ -196,10 +155,10 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
         build_name,
         executables,
         toolchain,
-        sysroot,
+        str(sysroot) if sysroot else None,
         compiler_flags,
-        config_flags,
-        jobs,
+        str(config_flags) if config_flags else None,
+        int(jobs) if jobs else None,
     )
 
     project.builds.append(build)
@@ -213,15 +172,13 @@ def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
     return f"{build_id}_{run_id}_{recipe_id}"
 
 
-def _get_by_id(items: list[dict[str, str]], target_id: int) -> dict[str, str]:
+def _get_by_id(
+    items: list[dict[str, str | int]], target_id: str
+) -> dict[str, str | int]:
     """Function to find item in dict by id"""
 
     for item in items:
-        id_ = item["id"]
-        if not isinstance(id_, int):
-            msg = f"Error: not integer id '{id_}' of item: {item}"
-            _logger.fatal(msg)
-            raise ValueError(msg)
+        id_ = str(item["id"])
         if id_ == target_id:
             return item
 
@@ -328,25 +285,27 @@ def create_machine(machine_info: dict[str, int | str]) -> general.MachineInfo:
 
 
 def create_toolchain(
-    toolchain_dict: dict[str, str] | str,
+    toolchain_dict: dict[str, str | int] | str | int,
 ) -> general.Toolchain | None:
     """Function to create a new toolchain"""
 
-    if isinstance(toolchain_dict, str):
-        return LaboratoryAssistant.find_toolchain_by_name(toolchain_dict)
+    if isinstance(toolchain_dict, str | int):
+        return LaboratoryAssistant.find_toolchain_by_name(str(toolchain_dict))
 
     toolchain = general.Toolchain()
     for attr in toolchain_dict:
         if attr.lower() in general.ToolchainAttrs:
-            toolchain.set(general.ToolchainAttrs(attr.lower()), toolchain_dict[attr])
+            toolchain.set(
+                general.ToolchainAttrs(attr.lower()), str(toolchain_dict[attr])
+            )
 
         elif attr.lower() in general.CompilerFlagsAttrs:
             toolchain.set(
-                general.CompilerFlagsAttrs(attr.lower()), toolchain_dict[attr]
+                general.CompilerFlagsAttrs(attr.lower()), str(toolchain_dict[attr])
             )
 
         elif attr.lower() == "sysroot":
-            toolchain.sysroot = toolchain_dict[attr]
+            toolchain.sysroot = str(toolchain_dict[attr])
 
         else:
             _logger.info("Unknown toolchain attribute: %s, skipping...", attr.lower())

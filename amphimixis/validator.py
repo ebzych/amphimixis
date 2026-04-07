@@ -84,7 +84,7 @@ def _is_valid_platform(platform: dict[str, int | str]):
     """Function to check whether plafrom is valid"""
 
     pl_id = platform.get("id")
-    if not isinstance(pl_id, int):
+    if not isinstance(pl_id, int | str):
         _notify_about_error(f"Invalid id in platform: {pl_id}")
 
     arch = platform.get("arch")
