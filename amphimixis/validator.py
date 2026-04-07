@@ -195,6 +195,7 @@ def _is_valid_toolchain(toolchain: Any) -> None:
 
     if isinstance(toolchain, dict):
         for attr, value in toolchain.items():
+            value = str(value)
             if not isinstance(attr, str):
                 _notify_about_error(f"Invalid toolchain: invalid attribute '{attr}'")
                 continue
