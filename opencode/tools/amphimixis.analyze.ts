@@ -10,11 +10,13 @@ export default tool({
     },
     async execute(args) {
         const config_dir = process.env.XDG_CONFIG_HOME != undefined ? process.env.XDG_CONFIG_HOME : path.join(process.env.HOME as string, '.config');
-        const opencode_tools_dir = path.join(config_dir, 'opencode/tools');
-        const activate_path = path.join(opencode_tools_dir, '.venv/bin/activate');
-        const configArg = args.config ? `--config=${args.config}` : '';
+        const opencode_tools_dir = path.join(config_dir, 'opencode', 'tools');
+        const amixis = path.join(opencode_tools_dir, '.venv', 'bin', 'amixis');
+        let cmd = [amixis, '--analyze', args.project_path]
+        if (args.config)
+            cmd.push(`--config=${args.config}`);
 
-        const result = await Bun.$`bash -c "source ${activate_path} && PYTHONPATH=${opencode_tools_dir} amixis --analyze ${args.project_path} ${configArg}"`.text();
+        const result = await Bun.$`${cmd}`.text();
         return result.trim();
     },
 });
