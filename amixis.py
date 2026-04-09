@@ -2,6 +2,7 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
+import shutil
 import pickle
 import sys
 from pathlib import Path
@@ -55,8 +56,6 @@ def main():
         config_file = Path(args.config).expanduser().resolve()
     else:
         if not Path("input.yml").exists():
-            import shutil
-
             script_dir = Path(__file__).parent.resolve()
             shutil.copy(
                 script_dir / "samples" / "local.yml", Path("input.yml").resolve()
