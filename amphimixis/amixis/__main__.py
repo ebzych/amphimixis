@@ -2,6 +2,7 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -74,11 +75,17 @@ def main() -> bool:
             return False
         project = general.Project(str(Path(args.path).expanduser().resolve()))
 
-    config_file = None
+    config_file = DEFAULT_CONFIG_PATH
     if args.command in ("run", "build", "profile"):
-        config_file = DEFAULT_CONFIG_PATH
         if args.config is not None:
-            config_file = Path(args.config).expanduser().resolve()
+            if not DEFAULT_CONFIG_PATH.exists():
+                script_dir = Path(__file__).parent.resolve()
+                shutil.copy(
+                    script_dir / "samples" / "local.yml", Path("input.yml").resolve()
+                )
+                print("Created input.yml from samples/local.yml")
+        else:
+            config_file = Path(args.config).expanduser().resolve()  # type: ignore[arg-type]
 
     target_events = args.events if hasattr(args, "events") else None
     match args.command:
