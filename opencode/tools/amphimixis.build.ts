@@ -11,14 +11,14 @@ function getVenvCommand(opencode_tools_dir: string): string {
 export default tool({
     description: "Build project by simple scenario: configure with build system and then run building. Return log of building",
     args: {
-        project_path: tool.schema.string().optional().describe("Path to repository of building project (default: current directory)"),
-        config: tool.schema.string().optional().describe("Path to config file (input.yml). If not specified, checks for input.yml in project directory"),
-        build_system_name: tool.schema.string().optional().describe("Build system name (cmake/meson/make/ninja/bazel). If config not provided, defaults to cmake"),
-        runner_name: tool.schema.string().optional().describe("Runner name (make/ninja). If config not provided, defaults to make"),
+        project_path: tool.schema.string().describe("Path to repository of building project"),
+        config: tool.schema.string().optional().describe("Path to config file. If not specified, checks for input.yml in current directory or automatically create it"),
+        build_system_name: tool.schema.string().optional().describe("Build system name (cmake/make)"),
+        runner_name: tool.schema.string().optional().describe("Runner name (make/ninja)"),
         config_flags: tool.schema.string().optional().describe("Configuration flags for build system (e.g., -DCMAKE_BUILD_TYPE=Release)"),
-        compiler_flags: tool.schema.string().array().optional().describe("List of compiler flags. Format: --<lang>_flags <flags> (e.g., --cxx_flags -O2 --c_flags -O2)"),
-        toolchain_attributes: tool.schema.string().array().optional().describe("List of toolchain compilers. Format: --<tool> <path> (e.g., --cxx_compiler /usr/bin/g++ --c_compiler /usr/bin/gcc)"),
-        sysroot: tool.schema.string().optional().describe("Path to sysroot for toolchain"),
+        compiler_flags: tool.schema.string().array().optional().describe("List of compiler flags. Format: --<lang>_flags <flags> (e.g., --cxx_flags '-O2' --c_flags '-O2')"),
+        toolchain_attributes: tool.schema.string().array().optional().describe("List of toolchain compilers. Format: --<tool> <absolute_path> (e.g., --cxx_compiler /usr/bin/g++ --c_compiler /usr/bin/gcc)"),
+        sysroot: tool.schema.string().optional().describe("Absolute path to sysroot for toolchain"),
         executables: tool.schema.string().array().optional().describe("List of paths to executable files to build"),
     },
     async execute(args) {
