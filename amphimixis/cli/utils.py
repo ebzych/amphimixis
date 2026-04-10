@@ -6,7 +6,11 @@ DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
 
 
 def add_config_arg(parser):
-    """Add --config argument to a parser."""
+    """Add --config argument to a parser.
+
+    :param parser: subcommand parser to which arguments are added
+    """
+
     parser.add_argument(
         "--config",
         nargs="?",
@@ -17,7 +21,11 @@ def add_config_arg(parser):
 
 
 def add_path_arg(parser):
-    """Add positional 'path' argument to a parser."""
+    """Add positional 'path' argument to a parser.
+
+    :param parser: subcommand parser to which arguments are added
+    """
+
     parser.add_argument(
         "path",
         type=str,
