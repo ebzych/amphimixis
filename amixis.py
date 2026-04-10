@@ -18,7 +18,8 @@ def print_short_help(commands):
 
     print("amixis [-h] {run,analyze,build,profile,validate,compare,clean,add} ...\n")
     print(
-        "Amphimixis - an automated project intelligence and evaluation tool for performance and migration readiness.\n"
+        "Amphimixis — an automated project intelligence and evaluation tool\n"
+        "for performance and migration readiness.\n"
     )
     print("options:")
     print("  -h, --short-help  show short help without examples")
@@ -33,7 +34,8 @@ def print_full_help(commands):
 
     print("amixis [-h] {run,analyze,build,profile,validate,compare,clean,add} ...\n")
     print(
-        "Amphimixis - an automated project intelligence and evaluation tool for performance and migration readiness.\n"
+        "Amphimixis — an automated project intelligence and evaluation tool\n"
+        "for performance and migration readiness.\n"
     )
     print("options:")
     print("  -h, --short-help  show short help without examples")
@@ -78,43 +80,42 @@ def main():
         result = cmd.run_full_pipeline(project, config_file, ui)
         return 0 if result else 1
 
-    elif args.command == "analyze":
+    if args.command == "analyze":
         project = general.Project(str(Path(args.path).expanduser().resolve()))
         result = cmd.run_analyze(project, ui)
         return 0 if result else 1
 
-    elif args.command == "build":
+    if args.command == "build":
         project = general.Project(str(Path(args.path).expanduser().resolve()))
         config_file_path = args.config or "input.yml"
         result = cmd.run_build(project, config_file_path, ui)
         return 0 if result else 1
 
-    elif args.command == "profile":
+    if args.command == "profile":
         project = general.Project(str(Path(args.path).expanduser().resolve()))
         config_file_path = args.config or "input.yml"
         target_events = args.events if args.events else None
         result = cmd.run_profile(project, config_file_path, ui, events=target_events)
         return 0 if result else 1
 
-    elif args.command == "validate":
+    if args.command == "validate":
         result = cmd.validate_cmd(args, ui)
         return 0 if result else 1
 
-    elif args.command == "compare":
+    if args.command == "compare":
         result = cmd.run_compare(args, ui)
         return 0 if result else 1
 
-    elif args.command == "clean":
+    if args.command == "clean":
         result = cmd.run_clean(args, ui)
         return 0 if result else 1
 
-    elif args.command == "add":
+    if args.command == "add":
         result = cmd.run_add(args, ui)
         return 0 if result else 1
 
-    else:
-        parser.print_help()
-        return 1
+    parser.print_help()
+    return 1
 
 
 if __name__ == "__main__":
