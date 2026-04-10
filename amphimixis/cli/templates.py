@@ -1,66 +1,90 @@
 """Configuration and toolchain templates for Amphimixis CLI."""
 
 CONFIG_TEMPLATE = """# Amphimixis Configuration Template
-# Uncomment and configure the fields below:
+# Uncomment and fill the fields below:
 
-# Build system (optional, default: CMake)
-# build_system: CMake
-
-# Runner / low-level build system (optional, default: Make)
-# runner: Make
+# build_system:                 # Optional
+# runner:                       # Low-level build system (optional)
 
 platforms:
-  # - id: 1                        # Unique platform id
-  #   address:                     # IP/domain (omit for local machine)
-  #   arch: x86                    # Architecture (e.g. x86, riscv64, aarch64)
-  #   username: root               # SSH username (required for remote)
-  #   password: secret             # SSH password (or use SSH keys)
-  #   port: 22                     # SSH port (optional, default: 22)
+- id: 1                         # Unique platform id
+  arch:                         # Architecture (e.g. x86, riscv, arm)
+#   address:                    # IP/domain address (omit for local machine)
+#   username:                   # SSH username (required for remote)
+#   password:                   # SSH password (or use SSH keys)
+#   port: 22                    # SSH port (optional, default: 22)
 
 recipes:
-  # - id: 1                        # Unique recipe id
-  #   config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo"  # Build configuration options
-  #   compiler_flags:              # Compiler flags dictionary
-  #     cxx_flags: "-O2"           # C++ compiler flags
-  #   toolchain:                   # Toolchain configuration (dict or name)
-  #     cxx_compiler: "/usr/bin/g++"
-  #   sysroot: "/"                 # Path to system headers/libraries
+- id: 1                                              # Unique recipe id
+  config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo"  # Build configuration options
+#   compiler_flags:                                  # Compiler flags dictionary
+#     cxx_flags:                                     # C++ compiler flags
+#   toolchain:                                       # Toolchain configuration (dict or name)
+#     cxx_compiler:
+#   sysroot:                                         # Path to system headers/libraries
 
 builds:
-  # - build_machine: 1             # platform_id to build on
-  #   run_machine: 1                # platform_id to run on
-  #   recipe_id: 1                  # recipe_id to use
-  #   executables:                  # Executables to profile (relative to build dir)
-  #     - test/run-tests
+- build_machine: 1              # platform_id to build on
+  run_machine: 1                # platform_id to run on
+  recipe_id: 1                  # recipe_id to use
+#   executables:                # Executables to profile (relative to build dir)
+#     - test/run-tests
 """
 
 TOOLCHAIN_TEMPLATE = """# Toolchain Configuration Template
 # Uncomment and fill in the fields below:
 
-# name: my_toolchain   # Required: unique toolchain name
-# platform: riscv64   # Options: x86_64, riscv64, etc.
+name:  # Required: unique toolchain name
+arch:  # Options: riscv, x86, arm
 
 # Sysroot (optional)
-# sysroot: /path/to/sysroot
+# sysroot:
 
-# Toolchain attributes (uncomment and cpnfigure as needed)
-# attributes:
+# Toolchain attributes (optional)
+attributes:
 #    # Compilers
-#    # c_compiler: /usr/bin/riscv64-unknown-elf-gcc
-#    # cxx_compiler: /usr/bin/riscv64-unknown-elf-g++
+#    c_compiler: 
+#    cxx_compiler:
+#    csharp_compiler:
+#    cuda_compiler:
+#    objc_compiler:
+#    objcxx_compiler:
+#    fortran_compiler:
+#    hip_compiler:
+#    ispc_compiler:
+#    swift_compiler:
+#    asm_compiler:
+#    asm_nasm_compiler:
+#    asm_marmasm_compiler:
+#    asm_masm_compiler:
+#    asm_att_compiler:
 
-#    #Tools
-#    # ar: /usr/bin/riscv64-unknown-elf-ar
-#    # as: /usr/bin/riscv64-unknown-elf-as
-#    # ld: /usr/bin/riscv64-unknown-elf-ld
-#    # nm: /usr/bin/riscv64-unknown-elf-nm
-#    # objcopy: /usr/bin/riscv64-unknown-elf-objcopy
-#    # objdump: /usr/bin/riscv64-unknown-elf-objdump
-#    # ranlib: /usr/bin/riscv64-unknown-elf-ranlib
-#    # readelf: /usr/bin/riscv64-unknown-elf-readelf
-#    # strip: /usr/bin/riscv64-unknown-elf-strip
+#    # Tools
+#    ar:
+#    as:
+#    ld:
+#    nm:
+#    objcopy:
+#    objdump:
+#    ranlib:
+#    readelf:
+#    strip:
 
-#    # Compiler flags (optional)
-#    # cflags: -O2 -march=rv64gc
-#    # cxxflags: -O2 -march=rv64gc
+
+#    # Compiler flags
+#    c_flags:
+#    cxx_flags:
+#    csharp_flags:
+#    cuda_flags:
+#    objc_flags:
+#    objcxx_flags:
+#    fortran_flags:
+#    hip_flags:
+#    ispc_flags:
+#    swift_flags:
+#    asm_flags:
+#    asm_nasm_flags:
+#    asm_marmasm_flags:
+#    asm_masm_flags:
+#    asm_att_flags:
 """
