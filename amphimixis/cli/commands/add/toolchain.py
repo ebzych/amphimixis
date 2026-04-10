@@ -1,63 +1,20 @@
 """Add toolchain command."""
 
+# pylint: disable=R0801
+
 import os
-import subprocess
-import tempfile
 from pathlib import Path
 
 import yaml
 
 from amphimixis.cli.templates import TOOLCHAIN_TEMPLATE
+from amphimixis.cli.utils import (
+    create_temp_file,
+    launch_editor,
+    prompt_continue,
+    read_file_content,
+)
 from amphimixis.laboratory_assistant import LaboratoryAssistant
-
-
-def _create_temp_file(content: str) -> Path:
-    """Create a temporary file with given content.
-
-    :param content: Content to write to the file
-    """
-
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".yml", delete=False, encoding="utf-8"
-    ) as f:
-        f.write(content)
-        return Path(f.name)
-
-
-def _launch_editor(editor: str, temp_path: Path) -> bool:
-    """Launch the editor with the given file.
-
-    :param editor: Editor command to use
-    :param temp_path: Path to the file to edit
-    """
-
-    try:
-        subprocess.call([editor, str(temp_path)])
-        return True
-    except FileNotFoundError:
-        print(f"Error: Editor '{editor}' not found.")
-        print("Please set the EDITOR environment variable to a valid editor.")
-        os.unlink(temp_path)
-        return False
-    except OSError as e:
-        print(f"Error launching editor: {e}")
-        os.unlink(temp_path)
-        return False
-
-
-def _read_file_content(temp_path: Path) -> str | None:
-    """Read content from the file after editing.
-
-    :param temp_path: Path to the file to read
-    """
-
-    try:
-        with open(temp_path, "r", encoding="utf-8") as f:
-            return f.read()
-    except OSError as e:
-        print(f"Error reading file: {e}")
-        os.unlink(temp_path)
-        return None
 
 
 def _validate_toolchain_yaml(content: str) -> tuple[dict | None, bool]:
@@ -153,17 +110,6 @@ def _save_toolchain_to_config(
     return True
 
 
-def _prompt_continue() -> bool:
-    """Prompt user to continue after validation failure."""
-
-    try:
-        input("Press Enter to continue...")
-        return True
-    except (EOFError, KeyboardInterrupt):
-        print("\nCancelled.")
-        return False
-
-
 def run_add_toolchain() -> bool:
     """Interactively add a toolchain to global config.
 
@@ -185,12 +131,12 @@ def run_add_toolchain() -> bool:
     print("The editor will reopen if validation fails.\n")
 
     while True:
-        temp_path = _create_temp_file(current_content)
+        temp_path = create_temp_file(current_content)
 
-        if not _launch_editor(editor, temp_path):
+        if not launch_editor(editor, temp_path):
             return False
 
-        new_content = _read_file_content(temp_path)
+        new_content = read_file_content(temp_path)
         if new_content is None:
             return False
 
@@ -198,7 +144,7 @@ def run_add_toolchain() -> bool:
 
         new_toolchain, is_valid = _validate_toolchain_yaml(current_content)
         if not is_valid or new_toolchain is None:
-            if not _prompt_continue():
+            if not prompt_continue():
                 if temp_path.exists():
                     os.unlink(temp_path)
                 return False
@@ -207,7 +153,7 @@ def run_add_toolchain() -> bool:
         toolchain_name = new_toolchain["name"]
 
         if _check_toolchain_exists(toolchain_name, toolbox):
-            if not _prompt_continue():
+            if not prompt_continue():
                 if temp_path.exists():
                     os.unlink(temp_path)
                 return False

@@ -96,7 +96,6 @@ def run_clean(args) -> bool:
     """Execute clean command.
 
     :param args: Parsed command line arguments
-    :param ui: User interface for progress display
     """
 
     project: tools.Project

@@ -1,7 +1,7 @@
 """Add subcommands."""
 
-import amphimixis.cli.commands.add.input
-import amphimixis.cli.commands.add.toolchain
+from amphimixis.cli.commands.add.input import run_add_input
+from amphimixis.cli.commands.add.toolchain import run_add_toolchain
 
 HELP_MESSAGE = "Add configuration files or toolchains interactively"
 
@@ -30,14 +30,13 @@ def run_add(args):
     """Execute add subcommand.
 
     :param args: Parsed command line arguments
-    :param ui: User interface for progress display
     """
     add_subcommand = args.add_subcommand
 
     if add_subcommand == "input":
-        return amphimixis.cli.commands.add.input.run_add_input()
+        return run_add_input()
 
     if add_subcommand == "toolchain":
-        return amphimixis.cli.commands.add.toolchain.run_add_toolchain()
+        return run_add_toolchain()
 
     return False
