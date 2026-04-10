@@ -46,6 +46,7 @@ def print_full_help(commands):
     print("\n" + MAIN_EXAMPLES)
 
 
+# pylint: disable=R0912
 def main():
     """Main function for the Amphimixis CLI tool."""
     parser = create_parser()
@@ -70,29 +71,29 @@ def main():
         parser.print_help()
         return 1
 
+    project = None
+    if args.command in ("run", "analyze", "build", "profile"):
+        project = general.Project(str(Path(args.path).expanduser().resolve()))
+
     if args.command == "run":
         config_file = (
             Path(args.config).expanduser().resolve()
             if args.config
             else DEFAULT_CONFIG_PATH
         )
-        project = general.Project(str(Path(args.path).expanduser().resolve()))
         result = cmd.run_full_pipeline(project, config_file, ui)
         return 0 if result else 1
 
     if args.command == "analyze":
-        project = general.Project(str(Path(args.path).expanduser().resolve()))
         result = cmd.run_analyze(project, ui)
         return 0 if result else 1
 
     if args.command == "build":
-        project = general.Project(str(Path(args.path).expanduser().resolve()))
         config_file_path = args.config or "input.yml"
         result = cmd.run_build(project, config_file_path, ui)
         return 0 if result else 1
 
     if args.command == "profile":
-        project = general.Project(str(Path(args.path).expanduser().resolve()))
         config_file_path = args.config or "input.yml"
         target_events = args.events if args.events else None
         result = cmd.run_profile(project, config_file_path, ui, events=target_events)
@@ -107,11 +108,11 @@ def main():
         return 0 if result else 1
 
     if args.command == "clean":
-        result = cmd.run_clean(args, ui)
+        result = cmd.run_clean(args)
         return 0 if result else 1
 
     if args.command == "add":
-        result = cmd.run_add(args, ui)
+        result = cmd.run_add(args)
         return 0 if result else 1
 
     parser.print_help()
