@@ -2,7 +2,6 @@
 
 import amphimixis.cli.commands.add.input
 import amphimixis.cli.commands.add.toolchain
-from amphimixis.general import IUI, NullUI
 
 HELP_MESSAGE = "Add configuration files or toolchains interactively"
 
