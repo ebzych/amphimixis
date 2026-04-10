@@ -2,8 +2,10 @@
 
 from os import path
 
-from amphimixis.analyzer import analyze as analyze_func
+from amphimixis.analyzer import analyze
 from amphimixis.general import IUI, NullUI, Project
+
+from amphimixis.cli.utils import add_config_arg, add_path_arg
 
 HELP_MESSAGE = "Analyze the project and detect existing CI, tests, build systems, etc."
 
@@ -14,14 +16,8 @@ def add_args(parser):
     :param parser: subcommand parser to which arguments are added
     """
 
-    parser.add_argument("path", type=str, help="path to the project directory")
-    parser.add_argument(
-        "--config",
-        nargs="?",
-        const="input.yml",
-        metavar="CONFIG",
-        help="use a specific config file (default: input.yml)",
-    )
+    add_path_arg(parser)
+    add_config_arg(parser)
 
 
 def run_analyze(project: Project, ui: IUI = NullUI()) -> bool:
@@ -34,7 +30,7 @@ def run_analyze(project: Project, ui: IUI = NullUI()) -> bool:
     project_name = path.basename(path.normpath(project.path))
     ui.update_message(project_name, "Analyzing project...")
 
-    if not analyze_func(project):
+    if not analyze(project):
         ui.mark_failed("Analysis failed. See amphimixis.log for details.")
         return False
     ui.mark_success("Analysis completed! See amphimixis.log for details.")

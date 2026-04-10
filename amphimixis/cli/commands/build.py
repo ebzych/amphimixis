@@ -3,6 +3,8 @@
 from amphimixis import Builder, parse_config
 from amphimixis.general import IUI, NullUI, Project
 
+from amphimixis.cli.utils import add_config_arg, add_path_arg
+
 HELP_MESSAGE = "Build the project according to the generated configuration files"
 
 
@@ -12,14 +14,8 @@ def add_args(parser):
     :param parser: subcommand parser to which arguments are added
     """
 
-    parser.add_argument("path", type=str, help="path to the project directory")
-    parser.add_argument(
-        "--config",
-        nargs="?",
-        const="input.yml",
-        metavar="CONFIG",
-        help="use a specific config file (default: input.yml)",
-    )
+    add_path_arg(parser)
+    add_config_arg(parser)
 
 
 def run_build(project: Project, config_file_path: str, ui: IUI = NullUI()) -> bool:

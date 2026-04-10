@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from amphimixis.cli.commands import COMMANDS
+from .commands import COMMANDS
 
 DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
 
@@ -89,10 +89,11 @@ class CustomHelpFormatter(argparse.RawTextHelpFormatter):
 
 def create_parser():
     """Create the main argument parser with subcommands."""
+
     parser = argparse.ArgumentParser(
         prog="amixis",
         formatter_class=CustomHelpFormatter,
-        add_help=False,  # отключаем стандартный --help
+        add_help=False,
         usage=argparse.SUPPRESS,
     )
 

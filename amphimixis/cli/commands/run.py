@@ -1,10 +1,12 @@
 """Run command - full pipeline."""
 
-from amphimixis.cli.commands.analyze import run_analyze
-from amphimixis.cli.commands.build import run_build
-from amphimixis.cli.commands.profile import run_profile
 from amphimixis.general import IUI, Project, constants, tools
 from amphimixis.general.general import ProjectStats
+
+from amphimixis.cli.utils import add_config_arg, add_path_arg
+from .analyze import run_analyze
+from .build import run_build
+from .profile import run_profile
 
 HELP_MESSAGE = "Run full pipeline: analyze, build and profile a project"
 
@@ -15,14 +17,8 @@ def add_args(parser):
     :param parser: subcommand parser to which arguments are added
     """
 
-    parser.add_argument("path", type=str, help="path to the project directory")
-    parser.add_argument(
-        "--config",
-        nargs="?",
-        const="input.yml",
-        metavar="CONFIG",
-        help="use a specific config file (default: input.yml)",
-    )
+    add_path_arg(parser)
+    add_config_arg(parser)
 
 
 def show_profiling_result(project: Project):

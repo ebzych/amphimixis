@@ -1,8 +1,6 @@
 """CLI commands package."""
 
-from amphimixis.cli.commands import add, analyze, build
-from amphimixis.cli.commands import clean as clean_module
-from amphimixis.cli.commands import compare, profile, run, validate
+from . import add, analyze, build, clean, compare, profile, run, validate
 
 COMMANDS = {
     "run": run,
@@ -11,6 +9,6 @@ COMMANDS = {
     "profile": profile,
     "validate": validate,
     "compare": compare,
-    "clean": clean_module,
+    "clean": clean,
     "add": add,
 }

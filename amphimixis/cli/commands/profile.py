@@ -7,6 +7,8 @@ from os import path
 from amphimixis import Profiler, Shell, parse_config
 from amphimixis.general import IUI, NullUI, Project
 
+from amphimixis.cli.utils import add_config_arg, add_path_arg
+
 HELP_MESSAGE = "Profile the performance of builds"
 
 
@@ -16,14 +18,8 @@ def add_args(parser):
     :param parser: subcommand parser to which arguments are added
     """
 
-    parser.add_argument("path", type=str, help="path to the project directory")
-    parser.add_argument(
-        "--config",
-        nargs="?",
-        const="input.yml",
-        metavar="CONFIG",
-        help="use a specific config file (default: input.yml)",
-    )
+    add_path_arg(parser)
+    add_config_arg(parser)
     parser.add_argument(
         "--events",
         nargs="*",
