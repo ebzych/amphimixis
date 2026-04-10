@@ -1,91 +1,143 @@
 """Parser for Amphimixis CLI with subcommands."""
 
 import argparse
-import textwrap
 from pathlib import Path
 
-YELLOW = "\033[93m"
-GRAY = "\033[90m"
-RESET = "\033[0m"
+from amphimixis.cli.commands import COMMANDS
+
 DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
+
+MAIN_EXAMPLES = """
+Examples:
+  amixis run /path/to/project
+      → Run full pipeline (analyze, build, profile)
+
+  amixis analyze /path/to/project
+      → Analyze project
+
+  amixis build /path/to/project
+      → Build project
+
+  amixis profile /path/to/project --events cycles
+      → Profile with perf events
+
+  amixis validate input.yml
+      → Validate config
+
+  amixis compare file1.scriptout file2.scriptout
+      → Compare two perf outputs
+
+  amixis add input
+      → Create input.yml interactively
+
+  amixis add toolchain
+      → Add toolchain to global config
+
+  amixis clean
+      → Clean builds interactively
+
+  amixis clean --all
+      → Clean all builds
+"""
+
+EXAMPLES = {
+    "run": """Examples:
+  amixis run /path/to/project
+      → Run full pipeline (analyze, build, profile) on project""",
+    "analyze": """Examples:
+  amixis analyze /path/to/project
+      → Analyze project and detect existing CI, tests, build systems, etc.""",
+    "build": """Examples:
+  amixis build /path/to/project
+      → Build project according to generated configuration files
+  amixis build /path/to/project --config custom.yml
+      → Build with custom config file""",
+    "profile": """Examples:
+  amixis profile /path/to/project
+      → Profile performance of builds
+  amixis profile /path/to/project --events cycles cache-misses
+      → Profile with specific perf events""",
+    "validate": """Examples:
+  amixis validate input.yml
+      → Check config file correctness""",
+    "compare": """Examples:
+  amixis compare file1.scriptout file2.scriptout
+      → Compare two perf output files
+  amixis compare file1.scriptout file2.scriptout --max-rows 10
+      → Compare with max 10 rows per event""",
+    "clean": """Examples:
+  amixis clean
+      → Interactive mode: select builds to clean
+  amixis clean --all
+      → Clean all builds
+  amixis clean build1 build2
+      → Clean specific builds""",
+    "add": """Examples:
+  amixis add input
+      → Interactively create input.yml configuration file
+  amixis add toolchain
+      → Interactively add a toolchain to global config""",
+}
 
 
 class CustomHelpFormatter(argparse.RawTextHelpFormatter):
-    """Custom formatter class for argparse to enhance help output."""
+    """Custom formatter for better alignment."""
 
     def __init__(self, prog):
         super().__init__(prog, max_help_position=35)
 
-    def _format_action(self, action):
-        parts = super()._format_action(action)
-        return parts + "\n"
 
-    def format_help(self) -> str:
-        """Format help message with custom banner and examples."""
+def create_parser():
+    """Create the main argument parser with subcommands."""
+    parser = argparse.ArgumentParser(
+        prog="amixis",
+        formatter_class=CustomHelpFormatter,
+        add_help=False,  # отключаем стандартный --help
+        usage=argparse.SUPPRESS,
+    )
 
-        banner = textwrap.dedent(
-            f"""
-            {GRAY}*****************************************************************{RESET}
+    parser.add_argument(
+        "-h",
+        "--short-help",
+        action="store_true",
+        dest="short_help",
+        help="show short help without examples",
+    )
+    parser.add_argument(
+        "--help",
+        action="store_true",
+        dest="full_help",
+        help="show full help with examples",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 0.1.0",
+        help="show version and exit",
+    )
 
-                 {YELLOW}✰  Amphimixis — build automation and profiling tool  ✰{RESET}
+    subparsers = parser.add_subparsers(
+        dest="command",
+        title="subcommands",
+        required=False,
+        metavar="<command>",
+    )
 
-            {GRAY}*****************************************************************{RESET}
-        """
+    for name, cmd in COMMANDS.items():
+        epilog = EXAMPLES.get(name, "")
+        subparser = subparsers.add_parser(
+            name,
+            help=cmd.HELP_MESSAGE,
+            epilog=epilog,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
+        cmd.add_args(subparser)
 
-        help_text = super().format_help()
-
-        examples = textwrap.dedent(
-            """
-            Examples:
-
-              amixis /path/to/folder/with/project
-                  → Main mode. Performs full project analysis, generates configuration files,
-                    runs the build process, and performs profiling.
-
-              amixis analyze /path/to/folder/with/project
-                  → Performs project analysis. Detects existing CI, tests, benchmarks, etc.
-
-              amixis build /path/to/folder/with/project
-                  → Builds the project, implicitly calling --configure to generate
-                    configuration files.
-
-              amixis profile /path/to/folder/with/project --events cycles cache-misses
-                  → Runs only the profiling step and records only the specified perf events.
-
-              amixis validate file_name
-                  → Checks the config file correctness.
-
-              amixis compare filename1.scriptout filename2.scriptout
-                  → Compares two perf output files (.scriptout)
-                    and displays the results in the console.
-
-              amixis compare filename1.scriptout filename2.scriptout --max-rows 10
-                  → Compares two perf output files (.scriptout)
-                    and displays up to 10 symbols with the biggest delta per event.
-
-              amixis add input
-                  → Opens an editor with a configuration template.
-                    After saving, validates the file and saves to input.yml.
-
-              amixis add toolchain
-                  → Opens an editor with a toolchain template.
-                    After saving, validates and adds the toolchain to global config.
-
-              amixis clean
-                  → Interactive mode: select builds to clean.
-
-              amixis clean --all
-                  → Cleans all builds.
-            """
-        )
-
-        return f"{banner}\n{help_text}\n{examples}"
+    return parser
 
 
 def add_config_arg(parser):
-    """Add argument config"""
-
+    """Add --config argument to a parser."""
     parser.add_argument(
         "--config",
         nargs="?",
@@ -96,117 +148,9 @@ def add_config_arg(parser):
 
 
 def add_path_arg(parser):
-    """Add argument path of project"""
-
+    """Add positional 'path' argument to a parser."""
     parser.add_argument(
         "path",
         type=str,
         help="path to the project directory",
     )
-
-
-def create_parser():
-    """Create parser with subcommands."""
-
-    parser = argparse.ArgumentParser(
-        prog="amixis",
-        formatter_class=CustomHelpFormatter,
-        usage=argparse.SUPPRESS,
-        add_help=True,
-    )
-
-    subparsers = parser.add_subparsers(dest="command", title="subcommands")
-
-    parser_analyze = subparsers.add_parser(
-        "analyze",
-        help="analyze the project and detect existing CI, tests, build systems, etc.",
-    )
-    add_path_arg(parser_analyze)
-    add_config_arg(parser_analyze)
-
-    parser_build = subparsers.add_parser(
-        "build",
-        help="build the project according to the generated configuration files.",
-    )
-    add_path_arg(parser_build)
-    add_config_arg(parser_build)
-
-    parser_profile = subparsers.add_parser(
-        "profile",
-        help="profile the performance of builds.",
-    )
-    add_path_arg(parser_profile)
-    add_config_arg(parser_profile)
-    parser_profile.add_argument(
-        "--events",
-        nargs="*",
-        help="space-separated perf events (e.g., cycles cache-misses)",
-    )
-
-    parser_validate = subparsers.add_parser(
-        "validate",
-        help="check correctness of the configuration file.",
-    )
-    parser_validate.add_argument(
-        "config_file",
-        type=str,
-        metavar="FILE",
-        help="path to the configuration file",
-    )
-
-    parser_compare = subparsers.add_parser(
-        "compare",
-        help="compare two perf output files (.scriptout) and display the results.",
-    )
-    parser_compare.add_argument(
-        "file1",
-        type=str,
-        metavar="FILE1",
-        help="path to first perf output file",
-    )
-    parser_compare.add_argument(
-        "file2",
-        type=str,
-        metavar="FILE2",
-        help="path to second perf output file",
-    )
-    parser_compare.add_argument(
-        "--max-rows",
-        type=int,
-        default=20,
-        help="maximum number of rows (symbols) to display per event (default: 20)",
-    )
-
-    parser_clean = subparsers.add_parser("clean", help="clean build directories")
-    parser_clean.add_argument(
-        "build_names",
-        nargs="*",
-        metavar="BUILD_NAMES",
-        help="name of buillds to clean (if none, interactive mode)",
-    )
-    parser_clean.add_argument(
-        "--all",
-        action="store_true",
-        help="clean all builds",
-    )
-
-    parser_add = subparsers.add_parser(
-        "add",
-        help="add configuration files or toolchains interactively",
-    )
-    add_subparsers = parser_add.add_subparsers(
-        dest="add_subcommand", title="add options"
-    )
-    add_subparsers.required = True
-
-    add_subparsers.add_parser(
-        "input",
-        help="interactively create input.yml configuration file",
-    )
-
-    add_subparsers.add_parser(
-        "toolchain",
-        help="interactively add a toolchain to global config",
-    )
-
-    return parser
