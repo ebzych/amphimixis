@@ -56,7 +56,7 @@ Prepare a working directory with an `input.yml` configuration file. The configur
 Run the full workflow for a project:
 
 ```bash
-amixis /path/to/project
+amixis run /path/to/project
 ```
 
 This command:
@@ -69,10 +69,10 @@ This command:
 To compare two collected `perf` outputs:
 
 ```bash
-amixis --compare build1.scriptout build2.scriptout --max-rows 10
+amixis compare build1.scriptout build2.scriptout --max-rows 10
 ```
 
-`--compare` accepts exactly two `.scriptout` files. `--max-rows` limits how many symbols with the largest delta are shown for each event.
+`compare` accepts exactly two `.scriptout` files. `--max-rows` limits how many symbols with the largest delta are shown for each event.
 
 For step-by-step command examples, custom configuration files, and `--events` usage, see [docs/usage_guide.md](docs/usage_guide.md).
 

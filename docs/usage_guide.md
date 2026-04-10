@@ -72,7 +72,7 @@ ssh-add ~/.ssh/id_remote_machine
 To analyze, build, and profile a project in one command:
 
 ```bash
-amixis /path/to/project
+amixis run /path/to/project
 ```
 
 The full pipeline:
@@ -87,80 +87,76 @@ The full pipeline:
 Analyze only:
 
 ```bash
-amixis --analyze /path/to/project
+amixis analyze /path/to/project
 ```
 
 Build only:
 
 ```bash
-amixis --build /path/to/project
+amixis build /path/to/project
 ```
 
 Profile only:
 
 ```bash
-amixis --profile /path/to/project
+amixis profile /path/to/project
 ```
 
 Validate a configuration file:
 
 ```bash
-amixis --validate ./input.yml
+amixis validate ./input.yml
 ```
 
 Use a custom configuration file:
 
 ```bash
-amixis --config ./my_input.yml /path/to/project
+amixis run --config ./my_input.yml /path/to/project
 ```
 
 ## Work with perf events
 
-To record only selected `perf` events in the full pipeline:
-
-```bash
-amixis /path/to/project --events cycles cache-misses
-```
-
 The same flag works with profiling-only mode:
 
 ```bash
-amixis --profile /path/to/project --events cycles cache-misses
+amixis profile /path/to/project --events cycles cache-misses
 ```
 
-With the main pipeline or `--profile`, `--events` tells `perf record` which events to collect.
+With the main pipeline or `profile`, `--events` tells `perf record` which events to collect.
 
 ## Compare profiling outputs
 
 To compare two collected `.scriptout` files:
 
 ```bash
-amixis --compare build1.scriptout build2.scriptout
+amixis compare build1.scriptout build2.scriptout
 ```
 
 To limit how many symbols with the largest delta are shown for each event:
 
 ```bash
-amixis --compare build1.scriptout build2.scriptout --max-rows 10
+amixis compare build1.scriptout build2.scriptout --max-rows 10
 ```
 
-To compare only selected events:
+## Add a toolchain
+
+Add a new toolchain to the global configuration file:
 
 ```bash
-amixis --compare build1.scriptout build2.scriptout --events cycles cache-misses
+amixis add toolchain
 ```
 
-With `--compare`, `--events` filters the output to the listed events.
+## Clean build directories
 
-## Centralized management
-
-If you want to clean up on your machines, use:
+If you want to clean up on your build directories from previous builds, use:
 
 ```bash
-# To specify build names manually
-amixis --clean build-name1 build-name-2 ...
 # To use interactive mode with selecting builds to clean
-amixis --clean
+amixis clean
+
+# To specify build names manually
+amixis clean build-name1 build-name-2 ...
+
 # To clean all builds
-amixis --clean --all
+amixis clean --all
 ```
