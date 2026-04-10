@@ -5,13 +5,12 @@
 from ipaddress import ip_address
 from os import path
 from re import compile as re_compile
-from types import NoneType
 from typing import Any
 
 import yaml
 
 from amphimixis.build_systems import build_systems_dict, runners_dict
-from amphimixis.general import general, NullUI, IUI
+from amphimixis.general import IUI, NullUI, general
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 from amphimixis.logger import setup_logger
 
@@ -39,42 +38,42 @@ def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
         return False
 
     with open(config_file_path, "r", encoding="UTF-8") as file:
-        file_dict = yaml.safe_load(file)
+        input_config = yaml.safe_load(file)
 
-        build_system = file_dict.get("build_system")
-        if (
-            isinstance(build_system, str)
-            and str(build_system).lower() not in build_systems_dict
-        ):
-            _notify_about_error(f"Invalid build_system: {build_system}")
+    build_system = input_config.get("build_system")
+    if (
+        isinstance(build_system, str)
+        and str(build_system).lower() not in build_systems_dict
+    ):
+        _notify_about_error(f"Invalid build_system: {build_system}")
 
-        runner = file_dict.get("runner")
-        if isinstance(runner, str) and runner.lower() not in runners_dict:
-            _notify_about_error(f"Invalid runner: {runner}")
+    runner = input_config.get("runner")
+    if isinstance(runner, str) and runner.lower() not in runners_dict:
+        _notify_about_error(f"Invalid runner: {runner}")
 
-        # validate platforms
-        platforms = file_dict.get("platforms", {})
-        if platforms == {}:
-            _notify_about_error("Platforms not found")
+    # validate platforms
+    platforms = input_config.get("platforms", {})
+    if platforms == {}:
+        _notify_about_error("Platforms not found")
 
-        for platform in platforms:
-            _is_valid_platform(platform)
+    for platform in platforms:
+        _is_valid_platform(platform)
 
-        # validate recipes
-        recipes = file_dict.get("recipes", {})
-        if recipes == {}:
-            _notify_about_error("Recipes not found")
+    # validate recipes
+    recipes = input_config.get("recipes", {})
+    if recipes == {}:
+        _notify_about_error("Recipes not found")
 
-        for recipe in recipes:
-            _is_valid_recipe(recipe)
+    for recipe in recipes:
+        _is_valid_recipe(recipe)
 
-        # validate builds
-        builds = file_dict.get("builds", {})
-        if builds == {}:
-            _notify_about_error("Builds not found")
+    # validate builds
+    builds = input_config.get("builds", {})
+    if builds == {}:
+        _notify_about_error("Builds not found")
 
-        for build in builds:
-            _is_valid_build(build)
+    for build in builds:
+        _is_valid_build(input_config, build)
 
     _logger.info("Validation completed, errors found: %s", _errors_count)
 
@@ -85,7 +84,7 @@ def _is_valid_platform(platform: dict[str, int | str]):
     """Function to check whether plafrom is valid"""
 
     pl_id = platform.get("id")
-    if not isinstance(pl_id, int):
+    if not isinstance(pl_id, int | str):
         _notify_about_error(f"Invalid id in platform: {pl_id}")
 
     arch = platform.get("arch")
@@ -93,19 +92,16 @@ def _is_valid_platform(platform: dict[str, int | str]):
         _notify_about_error(f"Invalid arch in platform {pl_id}: {arch}")
 
     address = platform.get("address")
-    if address is not None and (
-        not isinstance(address, str) or not _is_valid_address(address)
-    ):
-        _notify_about_error(f"Invalid address in platform {pl_id}: {address}")
+    if address is not None:
+        if not isinstance(address, str) or not _is_valid_address(address):
+            _notify_about_error(f"Invalid address in platform {pl_id}: {address}")
 
     username = platform.get("username")
-    if (
-        address is None and (username is not None and not isinstance(username, str))
-    ) or (address is not None and not isinstance(username, str)):
+    if not isinstance(username, str) and not (address is None or username is None):
         _notify_about_error(f"Invalid username in platform {pl_id}: {username}")
 
     password = platform.get("password")
-    if password is not None and not isinstance(password, int | str):
+    if not isinstance(password, int | str | None):
         _notify_about_error(f"Invalid password in platform {pl_id}: {password}")
 
     port = platform.get("port", DEFAULT_PORT)
@@ -117,15 +113,15 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
     """Function to check whether recipe is valid"""
 
     re_id = recipe.get("id")
-    if not isinstance(re_id, int):
+    if not isinstance(re_id, int | str):
         _notify_about_error(f"Invalid id in recipe: {re_id}")
 
     config_flags = recipe.get("config_flags")
-    if not isinstance(config_flags, str | NoneType):
+    if not isinstance(config_flags, str | None):
         _notify_about_error(f"Invalid config_flags in recipe {re_id}: {config_flags}")
 
     compiler_flags = recipe.get("compiler_flags")
-    if not isinstance(compiler_flags, dict | NoneType):
+    if not isinstance(compiler_flags, dict | None):
         _notify_about_error(
             f"Invalid compiler_flags in recipe {re_id}: {compiler_flags}"
         )
@@ -146,49 +142,50 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
     _is_valid_toolchain(toolchain)
 
     sysroot = recipe.get("sysroot")
-    if sysroot is not None and not isinstance(sysroot, str):
+    if not isinstance(sysroot, str | None):
         _notify_about_error(f"Invalid sysroot in build: {sysroot}")
 
     jobs = recipe.get("jobs")
-    if jobs is not None and (not isinstance(jobs, int) or jobs <= 0):
-        _notify_about_error(
-            f"Invalid jobs number in recipe: '{jobs}' is not positive number"
-        )
+    if jobs is not None:
+        if not isinstance(jobs, int) or jobs <= 0:
+            _notify_about_error(
+                f"Invalid jobs number in recipe: '{jobs}' is not positive number"
+            )
 
 
-def _is_valid_build(build: dict[str, int | str]):
+def _is_valid_build(input_config: dict[str, Any], build: dict[str, int | str]):
     """Function to check whether build is valid"""
 
-    build_machine = build.get("build_machine")
-    if not isinstance(build_machine, int | str):
-        _notify_about_error(f"Invalid build_machine in build: {build_machine}")
-
-    if isinstance(build_machine, str) and not LaboratoryAssistant.find_platform(
-        build_machine
+    build_machine_id = build.get("build_machine")
+    if (
+        not isinstance(build_machine_id, int | str)
+        or not _get_by_id(input_config["platforms"], build_machine_id)
+        and not LaboratoryAssistant.find_platform(str(build_machine_id))
     ):
-        _notify_about_error(f"Unknown build machine: {build_machine}")
+        _notify_about_error(f"Invalid build_machine in build: {build_machine_id}")
 
-    run_machine = build.get("run_machine")
-    if not isinstance(run_machine, int | str):
-        _notify_about_error(f"Invalid run_machine in build: {run_machine}")
-
-    if isinstance(run_machine, str) and not LaboratoryAssistant.find_platform(
-        run_machine
+    run_machine_id = build.get("run_machine")
+    if (
+        not isinstance(run_machine_id, int | str)
+        or not _get_by_id(input_config["platforms"], run_machine_id)
+        and not LaboratoryAssistant.find_platform(str(run_machine_id))
     ):
-        _notify_about_error(f"Unknown run machine: {run_machine}")
+        _notify_about_error(f"Invalid run_machine in build: {run_machine_id}")
 
     recipe_id = build.get("recipe_id")
-    if not isinstance(recipe_id, int):
+    if not isinstance(recipe_id, int | str) or not _get_by_id(
+        input_config["recipes"], recipe_id
+    ):
         _notify_about_error(f"Invalid recipe_id in build: {recipe_id}")
 
     executables = build.get("executables")
-    if executables is not None and not isinstance(executables, list):
+    if not isinstance(executables, list | None):
         _notify_about_error(f"Invalid executables in build: {executables}")
 
 
 def _is_valid_toolchain(toolchain: Any) -> None:
 
-    if not isinstance(toolchain, dict | str | NoneType):
+    if not isinstance(toolchain, dict | str | None):
         _notify_about_error(f"Invalid toolchain in build: '{toolchain}'")
 
     if isinstance(toolchain, str) and not LaboratoryAssistant.find_toolchain_by_name(
@@ -198,6 +195,7 @@ def _is_valid_toolchain(toolchain: Any) -> None:
 
     if isinstance(toolchain, dict):
         for attr, value in toolchain.items():
+            value = str(value)
             if not isinstance(attr, str):
                 _notify_about_error(f"Invalid toolchain: invalid attribute '{attr}'")
                 continue
@@ -237,6 +235,24 @@ def _is_valid_address(address: str) -> bool:
             r"(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$"
         )
         return bool(hostname_pattern.match(address))
+
+
+def _get_by_id(
+    items: list[dict[str, str | int]], target_id: int | str
+) -> dict[str, str | int]:
+    """Function to find item in dict by id"""
+
+    for item in items:
+        id_ = item["id"]
+        if not isinstance(id_, int | str):
+            msg = f"Error: not integer or string id '{id_}' of item: {item}"
+            _logger.fatal(msg)
+            raise ValueError(msg)
+        if id_ == target_id:
+            return item
+
+    _logger.error("Item id didn't match any existed id, check input file")
+    return {}
 
 
 # pylint: disable=global-variable-not-assigned
