@@ -108,7 +108,7 @@ Validate a configuration file:
 amixis validate ./input.yml
 ```
 
-Use a custom configuration file:
+Specify the path to the configuration file:
 
 ```bash
 amixis run --config ./my_input.yml /path/to/project
@@ -155,7 +155,7 @@ If you want to clean up on your build directories from previous builds, use:
 amixis clean
 
 # To specify build names manually
-amixis clean build-name1 build-name-2 ...
+amixis clean build-name-1 build-name-2 ...
 
 # To clean all builds
 amixis clean --all

@@ -193,3 +193,22 @@ builds:
       - bin/my_app
       - tests/my_benchmark
 ```
+
+Example:
+
+```yaml
+# Define a reusable list of executables
+executables: &my_executables
+  - bin/my_app
+  - tests/my_benchmark
+
+builds:
+  - build_machine: 1
+    run_machine: 1
+    recipe_id: 1
+    executables: *my_executables   # reference the list above
+```
+
+> **<u>Note:</u>**
+>
+> - YAML references (& and *) let you reuse the same `executables` list across multiple builds, reducing duplication.

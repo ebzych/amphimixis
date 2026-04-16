@@ -10,34 +10,39 @@ DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
 MAIN_EXAMPLES = """
 Examples:
   amixis run /path/to/project
-      → Run full pipeline (analyze, build, profile)
+      → Performs full project analysis, generates configuration files,
+        runs the build process, and performs profiling.
+
+  amixis run --config=config_file /path/to/project
+      → Uses a custom configuration file (default: input.yml) for all steps:
+        analysis, configuration, building, and profiling.
 
   amixis analyze /path/to/project
-      → Analyze project
+      → Analyzes the project and detects existing CI, tests, benchmarks, etc.
 
   amixis build /path/to/project
-      → Build project
+      → Builds the project according to the generated configuration.
 
   amixis profile /path/to/project --events cycles
-      → Profile with perf events
+      → Profiles the project using specified perf events (e.g., cycles).
 
   amixis validate input.yml
-      → Validate config
+      → Checks the correctness of the configuration file.
 
   amixis compare file1.scriptout file2.scriptout
-      → Compare two perf outputs
+      → Compares two perf output files (.scriptout) and displays the results.
 
   amixis add input
-      → Create input.yml interactively
+      → Interactively creates an input.yml configuration file.
 
   amixis add toolchain
-      → Add toolchain to global config
+      → Interactively adds a toolchain to the global configuration.
 
   amixis clean
-      → Clean builds interactively
+      → Interactively cleans build directories.
 
   amixis clean --all
-      → Clean all builds
+      → Cleans all build directories.
 """
 
 EXAMPLES = {

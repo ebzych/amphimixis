@@ -23,12 +23,21 @@ recipes:
 #     cxx_compiler:
 #   sysroot:                                         # Path to system headers/libraries
 
+# Reusable executables list (YAML anchor)
+executables: &common_exe
+  - test/run-tests
+  - bin/my_app
+
 builds:
 - build_machine: 1              # platform_id to build on
   run_machine: 1                # platform_id to run on
   recipe_id: 1                  # recipe_id to use
-#   executables:                # Executables to profile (relative to build dir)
-#     - test/run-tests
+  # Option 1: reference the reusable list (uncomment the line below)
+  # executables: *common_exe
+  # Option 2: specify executables inline (uncomment and edit)
+  # executables:
+  #   - test/run-tests
+  #   - bin/my_app
 """
 
 TOOLCHAIN_TEMPLATE = """# Toolchain Configuration Template
