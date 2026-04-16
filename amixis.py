@@ -76,36 +76,27 @@ def main() -> bool:
         if args.config is not None:
             config_file = Path(args.config).expanduser().resolve()
 
-    if args.command == "run":
-        result = cmd.run_full_pipeline(project, config_file, ui)
-
-    if args.command == "analyze":
-        result = cmd.run_analyze(project, ui)
-
-    if args.command == "build":
-        result = cmd.run_build(project, config_file, ui)
-
-    if args.command == "profile":
-        target_events = args.events if args.events else None
-        result = cmd.run_profile(project, config_file, ui, events=target_events)
-
-    if args.command == "validate":
-        result = cmd.validate_cmd(args, ui)
-
-    if args.command == "compare":
-        result = cmd.run_compare(args, ui)
-
-    if args.command == "clean":
-        result = cmd.run_clean(args)
-
-    if args.command == "add":
-        result = cmd.run_add(args)
-
-    else:
-        parser.print_help()
-        return False
-
-    return result
+    match args.command:
+        case "run":
+            return cmd.run_full_pipeline(project, config_file, ui)
+        case "analyze":
+            return cmd.run_analyze(project, ui)
+        case "build":
+            return cmd.run_build(project, config_file, ui)
+        case "profile":
+            target_events = args.events if args.events else None
+            return cmd.run_profile(project, config_file, ui, events=target_events)
+        case "validate":
+            return cmd.validate_cmd(args, ui)
+        case "compare":
+            return cmd.run_compare(args, ui)
+        case "clean":
+            return cmd.run_clean(args)
+        case "add":
+            return cmd.run_add(args)
+        case _:
+            parser.print_help()
+            return False
 
 
 if __name__ == "__main__":
