@@ -10,6 +10,8 @@ from amphimixis.cli.utils import (
     edit_and_read_temp_file,
     prompt_continue,
 )
+from amphimixis.configurator import create_toolchain
+from amphimixis.general.general import Arch
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 
 
@@ -39,14 +41,13 @@ def _validate_toolchain_yaml(content: str) -> tuple[dict | None, bool]:
     return toolchain, True
 
 
-def _check_toolchain_exists(toolchain_name: str, toolbox: dict) -> bool:
+def _check_toolchain_exists(toolchain_name: str) -> bool:
     """Check if toolchain with given name already exists.
 
     :param toolchain_name: Name of the toolchain
-    :param toolbox: Toolbox configuration
     """
 
-    if toolchain_name in toolbox.get("toolchains", {}):
+    if LaboratoryAssistant.find_toolchain_by_name(toolchain_name) is not None:
         print(f"\nWarning: Toolchain '{toolchain_name}' already exists.")
         print("Not overwriting. Please choose a different name.")
         print("Editor will reopen for corrections...")
@@ -54,66 +55,10 @@ def _check_toolchain_exists(toolchain_name: str, toolbox: dict) -> bool:
     return False
 
 
-def _build_toolchain_data(new_toolchain: dict) -> dict:
-    """Build toolchain data dict from user input.
-
-    :param new_toolchain: Raw toolchain data from user
-    """
-
-    target_arch = new_toolchain.get("target_arch")
-    sysroot = new_toolchain.get("sysroot")
-    platform = new_toolchain.get("platform")
-    attributes = new_toolchain.get("attributes", {})
-
-    platform_value = platform if platform else "localhost"
-
-    toolchain_data: dict = {"attributes": attributes}
-    if target_arch:
-        toolchain_data["target_arch"] = target_arch
-    if sysroot:
-        toolchain_data["sysroot"] = sysroot
-    if platform:
-        toolchain_data["platform"] = platform_value
-
-    return toolchain_data
-
-
-def _save_toolchain_to_config(
-    toolbox: dict, toolchain_name: str, toolchain_data: dict
-) -> bool:
-    """Save toolchain to global config.
-
-    :param toolbox: Toolbox configuration
-    :param toolchain_name: Name of the toolchain
-    :param toolchain_data: Toolchain data to save
-    :param temp_path: Temporary file path to clean up
-    """
-
-    toolbox["toolchains"][toolchain_name] = toolchain_data
-    try:
-        # pylint: disable=protected-access
-        LaboratoryAssistant._dump_config(toolbox)
-    except OSError as e:
-        print(f"Error saving toolchain: {e}")
-        return False
-    print(f"Toolchain '{toolchain_name}' added successfully!")
-    return True
-
-
 def run_add_toolchain() -> bool:
-    """Interactively add a toolchain to global config.
-
-    Opens an editor with a toolchain template, validates the result,
-    and adds the toolchain to global config (~/.config/amphimixis/toolbox.yml).
-    """
+    """Interactively add a toolchain to global config."""
 
     editor = os.environ.get("EDITOR", "nano")
-
-    toolbox = LaboratoryAssistant.parse_config_file()
-
-    if "toolchains" not in toolbox:
-        toolbox["toolchains"] = {}
-
     current_content = TOOLCHAIN_TEMPLATE
 
     print(f"Opening editor: {editor}")
@@ -136,13 +81,30 @@ def run_add_toolchain() -> bool:
 
             toolchain_name = new_toolchain["name"]
 
-            if _check_toolchain_exists(toolchain_name, toolbox):
+            if _check_toolchain_exists(toolchain_name):
                 if not prompt_continue():
                     return False
                 continue
 
-            toolchain_data = _build_toolchain_data(new_toolchain)
-            return _save_toolchain_to_config(toolbox, toolchain_name, toolchain_data)
+            toolchain = create_toolchain(new_toolchain)
+            if toolchain is None:
+                print("Error: Failed to create toolchain object.")
+                return False
+
+            platform = new_toolchain.get("platform", "localhost")
+            target_arch_str = new_toolchain.get("target_arch", "x86")
+            try:
+                target_arch = Arch(target_arch_str.lower())
+            except ValueError:
+                print(f"Error: Unsupported architecture '{target_arch_str}'")
+                return False
+
+            if LaboratoryAssistant.add_toolchain(toolchain, platform, target_arch):
+                print(f"Toolchain '{toolchain_name}' added successfully!")
+                return True
+            print(f"Failed to add toolchain '{toolchain_name}'.")
+            return False
+
         finally:
             if temp_path.exists():
                 os.unlink(temp_path)
