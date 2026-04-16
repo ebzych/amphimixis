@@ -2,6 +2,7 @@
 
 from os import path
 
+from amphimixis.cli.utils import add_events_arg
 from amphimixis.general import IUI, NullUI
 from amphimixis.perf_analyzer import main as compare_perf
 
@@ -13,7 +14,7 @@ def add_args(parser):
 
     :param parser: subcommand parser to which arguments are added
     """
-
+    add_events_arg(parser)
     parser.add_argument(
         "file1",
         type=str,
@@ -50,7 +51,9 @@ def run_compare(args, ui: IUI = NullUI()) -> bool:
         return False
 
     if (
-        compare_perf(args.file1, args.file2, target_events=None, max_rows=args.max_rows)
+        compare_perf(
+            args.file1, args.file2, target_events=args.events, max_rows=args.max_rows
+        )
         != 0
     ):
         ui.mark_failed("Comparison failed.")

@@ -33,6 +33,8 @@ def test_e2e_local_machine(clone_repo, create_working_space):
             orig_dir / "amixis.py",
             "run",
             str(repo_path),
+            "--events",
+            "cycles",
         ]
 
         result = subprocess.run(command, check=False)

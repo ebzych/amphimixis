@@ -17,6 +17,9 @@ Examples:
       → Uses a custom configuration file (default: input.yml) for all steps:
         analysis, configuration, building, and profiling.
 
+  amixis run /path/to/project --events cycles
+      → Run pipeline and profile only the 'cycles' event.
+
   amixis analyze /path/to/project
       → Analyzes the project and detects existing CI, tests, benchmarks, etc.
 
@@ -31,6 +34,9 @@ Examples:
 
   amixis compare file1.scriptout file2.scriptout
       → Compares two perf output files (.scriptout) and displays the results.
+
+  amixis compare file1.scriptout file2.scriptout --events cycles
+      → Compares two perf output files (.scriptout) using only the 'cycles' event.
 
   amixis add input
       → Interactively creates an input.yml configuration file.
@@ -48,7 +54,11 @@ Examples:
 EXAMPLES = {
     "run": """Examples:
   amixis run /path/to/project
-      → Run full pipeline (analyze, build, profile) on project""",
+      → Run full pipeline (analyze, build, profile) on project
+  amixis run --config=config_file /path/to/project
+      → Run with custom config file
+  amixis run /path/to/project --events cycles
+      → Run pipeline and profile only the 'cycles' event""",
     "analyze": """Examples:
   amixis analyze /path/to/project
       → Analyze project and detect existing CI, tests, build systems, etc.""",
@@ -69,7 +79,9 @@ EXAMPLES = {
   amixis compare file1.scriptout file2.scriptout
       → Compare two perf output files
   amixis compare file1.scriptout file2.scriptout --max-rows 10
-      → Compare with max 10 rows per event""",
+      → Compare with max 10 rows per event
+  amixis compare file1.scriptout file2.scriptout --events cycles
+      → Compare only the 'cycles' event""",
     "clean": """Examples:
   amixis clean
       → Interactive mode: select builds to clean

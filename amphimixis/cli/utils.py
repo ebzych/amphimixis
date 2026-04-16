@@ -25,7 +25,6 @@ def add_config_arg(parser):
 
 def add_path_arg(parser):
     """Add positional 'path' argument to a parser.
-
     :param parser: subcommand parser to which arguments are added
     """
 
@@ -33,6 +32,19 @@ def add_path_arg(parser):
         "path",
         type=str,
         help="path to the project directory",
+    )
+
+
+def add_events_arg(parser):
+    """Add --events argument to a parser.
+
+    :param parser: subcommand parser to which arguments are added
+    """
+
+    parser.add_argument(
+        "--events",
+        nargs="*",
+        help="space-separated perf events (e.g., cycles cache-misses)",
     )
 
 

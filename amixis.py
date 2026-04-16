@@ -78,7 +78,8 @@ def main() -> bool:
 
     match args.command:
         case "run":
-            return cmd.run_full_pipeline(project, config_file, ui)
+            target_events = args.events if args.events else None
+            return cmd.run_full_pipeline(project, config_file, ui, events=target_events)
         case "analyze":
             return cmd.run_analyze(project, ui)
         case "build":

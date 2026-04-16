@@ -1,6 +1,6 @@
 """Run command - full pipeline."""
 
-from amphimixis.cli.utils import add_config_arg, add_path_arg
+from amphimixis.cli.utils import add_config_arg, add_events_arg, add_path_arg
 from amphimixis.general import IUI, Project, constants, tools
 from amphimixis.general.general import ProjectStats
 
@@ -19,6 +19,7 @@ def add_args(parser):
 
     add_path_arg(parser)
     add_config_arg(parser)
+    add_events_arg(parser)
 
 
 def show_profiling_result(project: Project):
@@ -85,12 +86,15 @@ def show_profiling_result(project: Project):
     print(f"\tamixis compare {file1} {file2}")
 
 
-def run_full_pipeline(project: Project, config_file, ui: IUI) -> bool:
+def run_full_pipeline(
+    project: Project, config_file, ui: IUI, events: list | None = None
+) -> bool:
     """Execute full pipeline: analyze, build, and profile a project.
 
     :param project: Project instance
     :param config_file: Path to configuration file
     :param ui: User interface for progress display
+    :param events: List of perf events to record
     """
 
     if not run_analyze(project, ui):
@@ -99,7 +103,7 @@ def run_full_pipeline(project: Project, config_file, ui: IUI) -> bool:
     if not run_build(project, str(config_file), ui):
         return False
 
-    if not run_profile(project, str(config_file), ui):
+    if not run_profile(project, str(config_file), ui, events=events):
         return False
 
     show_profiling_result(project)
