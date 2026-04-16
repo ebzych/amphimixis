@@ -21,8 +21,7 @@ def test_e2e_local_machine(clone_repo, create_working_space):
         add_jobs_cmd = [
             "bash",
             "-c",
-            "sed 's/jobs:/jobs: {os.cpu_count() or 8}/' "
-            f"{orig_file} > {config_file}",
+            f"sed 's/jobs:/jobs: {{os.cpu_count() or 8}}/' {orig_file} > {config_file}",
         ]
         subprocess.check_call(
             add_jobs_cmd,
@@ -32,9 +31,8 @@ def test_e2e_local_machine(clone_repo, create_working_space):
         command = [
             "python3",
             orig_dir / "amixis.py",
+            "run",
             str(repo_path),
-            "--events",
-            "cycles",
         ]
 
         result = subprocess.run(command, check=False)
