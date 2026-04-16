@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
+from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 
 
 def add_config_arg(parser):

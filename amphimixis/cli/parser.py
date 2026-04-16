@@ -1,11 +1,8 @@
 """Parser for Amphimixis CLI with subcommands."""
 
 import argparse
-from pathlib import Path
 
 from .commands import COMMANDS
-
-DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
 
 MAIN_EXAMPLES = """
 Examples:
