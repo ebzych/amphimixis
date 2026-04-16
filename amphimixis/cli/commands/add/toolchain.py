@@ -1,18 +1,14 @@
 """Add toolchain command."""
 
-# pylint: disable=R0801
-
 import os
-from pathlib import Path
 
 import yaml
 
 from amphimixis.cli.templates import TOOLCHAIN_TEMPLATE
 from amphimixis.cli.utils import (
     create_temp_file,
-    launch_editor,
+    edit_and_read_temp_file,
     prompt_continue,
-    read_file_content,
 )
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 
@@ -83,7 +79,7 @@ def _build_toolchain_data(new_toolchain: dict) -> dict:
 
 
 def _save_toolchain_to_config(
-    toolbox: dict, toolchain_name: str, toolchain_data: dict, temp_path: Path
+    toolbox: dict, toolchain_name: str, toolchain_data: dict
 ) -> bool:
     """Save toolchain to global config.
 
@@ -94,18 +90,12 @@ def _save_toolchain_to_config(
     """
 
     toolbox["toolchains"][toolchain_name] = toolchain_data
-
     try:
         # pylint: disable=protected-access
         LaboratoryAssistant._dump_config(toolbox)
     except OSError as e:
         print(f"Error saving toolchain: {e}")
-        if temp_path.exists():
-            os.unlink(temp_path)
         return False
-
-    if temp_path.exists():
-        os.unlink(temp_path)
     print(f"Toolchain '{toolchain_name}' added successfully!")
     return True
 
@@ -132,38 +122,27 @@ def run_add_toolchain() -> bool:
 
     while True:
         temp_path = create_temp_file(current_content)
-
-        if not launch_editor(editor, temp_path):
-            return False
-
-        new_content = read_file_content(temp_path)
-        if new_content is None:
-            return False
-
-        current_content = new_content
-
-        new_toolchain, is_valid = _validate_toolchain_yaml(current_content)
-        if not is_valid or new_toolchain is None:
-            if not prompt_continue():
-                if temp_path.exists():
-                    os.unlink(temp_path)
+        try:
+            new_content, ok = edit_and_read_temp_file(editor, temp_path)
+            if not ok:
                 return False
-            continue
+            current_content = new_content
 
-        toolchain_name = new_toolchain["name"]
+            new_toolchain, is_valid = _validate_toolchain_yaml(current_content)
+            if not is_valid or new_toolchain is None:
+                if not prompt_continue():
+                    return False
+                continue
 
-        if _check_toolchain_exists(toolchain_name, toolbox):
-            if not prompt_continue():
-                if temp_path.exists():
-                    os.unlink(temp_path)
-                return False
-            continue
+            toolchain_name = new_toolchain["name"]
 
-        toolchain_data = _build_toolchain_data(new_toolchain)
+            if _check_toolchain_exists(toolchain_name, toolbox):
+                if not prompt_continue():
+                    return False
+                continue
 
-        if _save_toolchain_to_config(
-            toolbox, toolchain_name, toolchain_data, temp_path
-        ):
-            return True
-
-        return False
+            toolchain_data = _build_toolchain_data(new_toolchain)
+            return _save_toolchain_to_config(toolbox, toolchain_name, toolchain_data)
+        finally:
+            if temp_path.exists():
+                os.unlink(temp_path)

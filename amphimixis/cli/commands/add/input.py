@@ -1,7 +1,5 @@
 """Add input command."""
 
-# pylint: disable=R0801
-
 import os
 import shutil
 from pathlib import Path
@@ -11,9 +9,8 @@ import yaml
 from amphimixis.cli.templates import CONFIG_TEMPLATE
 from amphimixis.cli.utils import (
     create_temp_file,
-    launch_editor,
+    edit_and_read_temp_file,
     prompt_continue,
-    read_file_content,
 )
 from amphimixis.validator import validate
 
@@ -89,13 +86,9 @@ def run_add_input() -> bool:
     while True:
         temp_path = create_temp_file(current_content)
 
-        if not launch_editor(editor, temp_path):
+        new_content, ok = edit_and_read_temp_file(editor, temp_path)
+        if not ok:
             return False
-
-        new_content = read_file_content(temp_path)
-        if new_content is None:
-            return False
-
         current_content = new_content
 
         if _validate_config(temp_path):

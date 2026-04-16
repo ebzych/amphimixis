@@ -94,3 +94,18 @@ def prompt_continue() -> bool:
     except (EOFError, KeyboardInterrupt):
         print("\nCancelled.")
         return False
+
+
+def edit_and_read_temp_file(editor: str, temp_path: Path) -> tuple[str, bool]:
+    """Launch editor, read content, and handle errors.
+
+    :param editor: Editor command (e.g., 'nano', 'vim').
+    :param temp_path: Path to the temporary file to be edit.
+    """
+
+    if not launch_editor(editor, temp_path):
+        return "", False
+    content = read_file_content(temp_path)
+    if content is None:
+        return "", False
+    return content, True
