@@ -7,16 +7,22 @@ from pathlib import Path
 
 from amphimixis import general
 from amphimixis.cli import create_parser
-from amphimixis.cli.commands import COMMANDS  # type: ignore[attr-defined]
+from amphimixis.cli.commands import COMMANDS
 from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
 from amphimixis.cli.parser import MAIN_EXAMPLES
 from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 
 
-def print_short_help(commands):
-    """Print short help without examples."""
+def print_help(commands, full=False):
+    """Print short help without examples.
 
-    print("amixis [-h] {run,analyze,build,profile,validate,compare,clean,add} ...\n")
+    :param commands: Dictionary of subcommands (name -> module).
+    :param full: Whether to show full help with examples.
+    """
+
+    print(
+        "amixis [-h] {run, analyze, build, profile, validate, compare, clean, add} ...\n"
+    )
     print(
         "Amphimixis — an automated project intelligence and evaluation tool\n"
         "for performance and migration readiness.\n"
@@ -27,97 +33,80 @@ def print_short_help(commands):
     print("subcommands:")
     for name, cmd in commands.items():
         print(f"  {name:12} - {cmd.HELP_MESSAGE}")
+    if full:
+        print("\n" + MAIN_EXAMPLES)
 
 
-def print_full_help(commands):
-    """Print full help with examples."""
-
-    print("amixis [-h] {run,analyze,build,profile,validate,compare,clean,add} ...\n")
-    print(
-        "Amphimixis — an automated project intelligence and evaluation tool\n"
-        "for performance and migration readiness.\n"
-    )
-    print("options:")
-    print("  -h, --short-help  show short help without examples")
-    print("  --help           show full help with examples\n")
-    print("subcommands:")
-    for name, cmd in commands.items():
-        print(f"  {name:12} - {cmd.HELP_MESSAGE}")
-    print("\n" + MAIN_EXAMPLES)
-
-
-# pylint: disable=R0912
-def main():
+# pylint: disable=too-many-branches
+def main() -> bool:
     """Main function for the Amphimixis CLI tool."""
+
     parser = create_parser()
     args = parser.parse_args()
 
     if args.short_help:
-        print_short_help(COMMANDS)
-        return 0
+        print_help(COMMANDS, False)
+        return True
 
     if args.full_help:
-        print_full_help(COMMANDS)
-        return 0
+        print_help(COMMANDS, True)
+        return True
 
     if args.command is None:
-        print_short_help(COMMANDS)
-        return 0
+        print_help(COMMANDS, False)
+        return True
 
     ui = ConsoleAnimationPrinter()
 
     cmd = COMMANDS.get(args.command)
     if cmd is None:
         parser.print_help()
-        return 1
+        return False
 
     project = None
     if args.command in ("run", "analyze", "build", "profile"):
+        if not args.path:
+            parser.print_help()
+            return False
         project = general.Project(str(Path(args.path).expanduser().resolve()))
 
+    config_file = None
+    if args.command in ("run", "build", "profile"):
+        config_file = DEFAULT_CONFIG_PATH
+        if args.config is not None:
+            config_file = Path(args.config).expanduser().resolve()
+
     if args.command == "run":
-        config_file = (
-            Path(args.config).expanduser().resolve()
-            if args.config
-            else DEFAULT_CONFIG_PATH
-        )
         result = cmd.run_full_pipeline(project, config_file, ui)
-        return 0 if result else 1
 
     if args.command == "analyze":
         result = cmd.run_analyze(project, ui)
-        return 0 if result else 1
 
     if args.command == "build":
-        config_file_path = args.config or "input.yml"
-        result = cmd.run_build(project, config_file_path, ui)
-        return 0 if result else 1
+        result = cmd.run_build(project, config_file, ui)
 
     if args.command == "profile":
-        config_file_path = args.config or "input.yml"
         target_events = args.events if args.events else None
-        result = cmd.run_profile(project, config_file_path, ui, events=target_events)
-        return 0 if result else 1
+        result = cmd.run_profile(project, config_file, ui, events=target_events)
 
     if args.command == "validate":
         result = cmd.validate_cmd(args, ui)
-        return 0 if result else 1
 
     if args.command == "compare":
         result = cmd.run_compare(args, ui)
-        return 0 if result else 1
 
     if args.command == "clean":
         result = cmd.run_clean(args)
-        return 0 if result else 1
 
     if args.command == "add":
         result = cmd.run_add(args)
-        return 0 if result else 1
 
-    parser.print_help()
-    return 1
+    else:
+        parser.print_help()
+        return False
+
+    return result
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(0 if main() else 1)

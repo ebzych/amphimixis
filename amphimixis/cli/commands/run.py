@@ -1,9 +1,9 @@
 """Run command - full pipeline."""
 
+from amphimixis.cli.utils import add_config_arg, add_path_arg
 from amphimixis.general import IUI, Project, constants, tools
 from amphimixis.general.general import ProjectStats
 
-from amphimixis.cli.utils import add_config_arg, add_path_arg
 from .analyze import run_analyze
 from .build import run_build
 from .profile import run_profile
@@ -85,7 +85,7 @@ def show_profiling_result(project: Project):
     print(f"\tamixis compare {file1} {file2}")
 
 
-def run_full_pipeline(project: Project, config_file, ui: IUI) -> int:
+def run_full_pipeline(project: Project, config_file, ui: IUI) -> bool:
     """Execute full pipeline: analyze, build, and profile a project.
 
     :param project: Project instance
@@ -94,13 +94,13 @@ def run_full_pipeline(project: Project, config_file, ui: IUI) -> int:
     """
 
     if not run_analyze(project, ui):
-        return 1
+        return False
 
     if not run_build(project, str(config_file), ui):
-        return 1
+        return False
 
     if not run_profile(project, str(config_file), ui):
-        return 1
+        return False
 
     show_profiling_result(project)
-    return 0
+    return True

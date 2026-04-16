@@ -27,6 +27,10 @@ def validate_cmd(args, ui: IUI = NullUI()) -> bool:
     :param ui: User interface for progress display
     """
 
+    ui.update_message("Config", f"Validate {args.config_file}...")
+
     if not validate(args.config_file, ui):
+        ui.mark_failed(f"{args.config_file} is incorrect! See amphimixis.log")
         return False
+    ui.mark_success(f"{args.config_file} is correct!")
     return True
