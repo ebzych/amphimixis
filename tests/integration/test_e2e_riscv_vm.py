@@ -15,7 +15,7 @@ import pytest
 import yaml
 
 IP_ADDRESS = "127.0.0.1"
-PORT = "2222"
+PORT = 3301
 USERNAME = "root"
 PASSWORD = "root"
 WORKDIR = "/tmp/riscv_vm_test"
@@ -143,7 +143,7 @@ def wait_for_ssh(max_retries: int = 30, delay: int = 5) -> None:
                 "-o",
                 "ConnectTimeout=5",
                 "-p",
-                PORT,
+                str(PORT),
                 f"{USERNAME}@{IP_ADDRESS}",
                 "echo SSH ready",
             ],
@@ -177,7 +177,7 @@ def run_command(command: str) -> int:
             "-o",
             "StrictHostKeyChecking=no",
             "-p",
-            PORT,
+            str(PORT),
             f"{USERNAME}@{IP_ADDRESS}",
             command,
         ],
