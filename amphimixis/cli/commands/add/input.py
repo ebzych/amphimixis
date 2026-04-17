@@ -1,5 +1,7 @@
 """Add input command."""
 
+# pylint: disable=duplicate-code
+
 import os
 import shutil
 from pathlib import Path

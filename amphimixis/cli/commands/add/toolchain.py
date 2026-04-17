@@ -1,5 +1,7 @@
 """Add toolchain command."""
 
+# pylint: disable=duplicate-code
+
 import os
 
 import yaml

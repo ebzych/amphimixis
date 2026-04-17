@@ -25,6 +25,7 @@ def add_config_arg(parser):
 
 def add_path_arg(parser):
     """Add positional 'path' argument to a parser.
+
     :param parser: subcommand parser to which arguments are added
     """
 
@@ -101,7 +102,10 @@ def prompt_continue() -> bool:
     """Prompt user to continue after validation failure."""
 
     try:
-        input("Press Enter to continue...")
+        answer = input("Press Enter to continue, or 'q' to cancel: ").strip().lower()
+        if answer in ("q", "n", "no", "cancel"):
+            print("Cancelled.")
+            return False
         return True
     except (EOFError, KeyboardInterrupt):
         print("\nCancelled.")
