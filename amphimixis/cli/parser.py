@@ -14,8 +14,8 @@ Examples:
       → Uses a custom configuration file (default: input.yml) for all steps:
         analysis, configuration, building, and profiling.
 
-  amixis run /path/to/project --events cycles
-      → Run pipeline and profile only the 'cycles' event.
+  amixis run /path/to/project --events cycles cache-misses
+    → Run pipeline and profile only the 'cycles' and 'cache-misses' events.
 
   amixis analyze /path/to/project
       → Analyzes the project and detects existing CI, tests, benchmarks, etc.

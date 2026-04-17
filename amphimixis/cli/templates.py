@@ -22,7 +22,7 @@ recipes:
 #   toolchain:                                       # Toolchain configuration (dict or name)
 #     cxx_compiler:
 #   sysroot:                                         # Path to system headers/libraries
-#   jobs:                                            # Number of parallel jobs (default: number of CPU cores)
+#   jobs:                                            # Number of parallel jobs (default: determined by build system)
 
 # Reusable executables list (YAML anchor)
 # executables: &common_exe
@@ -33,10 +33,12 @@ builds:
 - build_machine: 1              # platform_id to build on
   run_machine: 1                # platform_id to run on
   recipe_id: 1                  # recipe_id to use
+  
 # Option 1: reference the reusable list (uncomment the line below)
-#   executables: *common_exe
+#   executables: *common_exe    # Executables to profile (relative to build dir)
+
 # Option 2: specify executables inline (uncomment and edit)
-#   executables:
+#   executables:                # Executables to profile (relative to build dir)
 #     - test/run-tests
 #     - bin/my_app
 """
