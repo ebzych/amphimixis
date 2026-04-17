@@ -39,7 +39,7 @@ def close_alternate_term():
     print("\033[?1049l", end="")
 
 
-def clean(project: tools.Project, *builds: Build) -> bool:
+def clean(project: general.Project, *builds: Build) -> bool:
     """Clean build directories for specified builds.
 
     :param project: Project instance
