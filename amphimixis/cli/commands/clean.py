@@ -2,7 +2,7 @@
 
 import pickle
 
-from amphimixis import Builder
+from amphimixis import Builder, general
 from amphimixis.general import Build, tools
 
 HELP_MESSAGE = "Clean build directories"
@@ -53,7 +53,7 @@ def clean(project: general.Project, *builds: Build) -> bool:
     return success
 
 
-def interactive_clean(project: tools.Project, builds: dict[str, Build]) -> bool:
+def interactive_clean(project: general.Project, builds: dict[str, Build]) -> bool:
     """Interactive build cleaner.
     Opens an alternate terminal buffer, displays list of available builds,
     prompts user to select builds to clean, and removes selected build directories.
@@ -98,7 +98,7 @@ def run_clean(args) -> bool:
     :param args: Parsed command line arguments
     """
 
-    project: tools.Project
+    project: general.Project
     try:
         project = tools.get_cache_project()
     except FileNotFoundError:
