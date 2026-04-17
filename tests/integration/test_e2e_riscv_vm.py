@@ -107,19 +107,22 @@ def riscv_vm_run_and_install_packages():
         stdin=subprocess.DEVNULL,
     )
 
-    wait_for_ssh(max_retries=60, delay=5)
+    try:
+        wait_for_ssh(max_retries=60, delay=5)
 
-    vm_update_cmd = "apt-get update"
-    vm_install_packages = "apt-get install -y cmake make g++ linux-perf time"
+        vm_update_cmd = "apt-get update"
+        vm_install_packages = "apt-get install -y cmake make g++ linux-perf time"
 
-    exit_code = run_command(str(vm_update_cmd))
-    assert exit_code == 0
+        exit_code = run_command(str(vm_update_cmd))
+        assert exit_code == 0
 
-    exit_code = run_command(str(vm_install_packages))
-    assert exit_code == 0
+        exit_code = run_command(str(vm_install_packages))
+        assert exit_code == 0
 
-    yield process
-    process.terminate()
+        yield process
+
+    finally:
+        process.terminate()
 
 
 def wait_for_ssh(port: int = 2222, max_retries: int = 30, delay: int = 5) -> None:
