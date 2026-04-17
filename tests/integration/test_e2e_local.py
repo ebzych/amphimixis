@@ -21,7 +21,7 @@ def test_e2e_local_machine(clone_repo, create_working_space):
         add_jobs_cmd = [
             "bash",
             "-c",
-            f"sed 's/jobs:/jobs: {{os.cpu_count() or 8}}/' {orig_file} > {config_file}",
+            f"sed 's/jobs:/jobs: {os.cpu_count() or 8}/' {orig_file} > {config_file}",
         ]
         subprocess.check_call(
             add_jobs_cmd,
