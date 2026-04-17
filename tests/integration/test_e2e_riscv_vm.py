@@ -15,6 +15,7 @@ import pytest
 import yaml
 
 IP_ADDRESS = "127.0.0.1"
+PORT = "2223"
 USERNAME = "root"
 PASSWORD = "root"
 WORKDIR = "/tmp/riscv_vm_test"
@@ -86,7 +87,7 @@ def riscv_vm_run_and_install_packages():
         "-device",
         "virtio-net-device,netdev=net",
         "-netdev",
-        "user,id=net,hostfwd=tcp:127.0.0.1:2222-:22",
+        f"user,id=net,hostfwd=tcp:127.0.0.1:{PORT}-:22",
         "-kernel",
         str(kernel),
         "-object",
@@ -125,7 +126,7 @@ def riscv_vm_run_and_install_packages():
         process.terminate()
 
 
-def wait_for_ssh(port: int = 2222, max_retries: int = 30, delay: int = 5) -> None:
+def wait_for_ssh(max_retries: int = 30, delay: int = 5) -> None:
     """Wait for SSH to become available on the VM."""
 
     for attempt in range(max_retries):
@@ -142,7 +143,7 @@ def wait_for_ssh(port: int = 2222, max_retries: int = 30, delay: int = 5) -> Non
                 "-o",
                 "ConnectTimeout=5",
                 "-p",
-                str(port),
+                PORT,
                 f"{USERNAME}@{IP_ADDRESS}",
                 "echo SSH ready",
             ],
@@ -176,7 +177,7 @@ def run_command(command: str) -> int:
             "-o",
             "StrictHostKeyChecking=no",
             "-p",
-            "2222",
+            PORT,
             f"{USERNAME}@{IP_ADDRESS}",
             command,
         ],
@@ -199,7 +200,7 @@ def _create_input_yaml() -> dict:
                 "address": IP_ADDRESS,
                 "arch": "riscv",
                 "username": USERNAME,
-                "port": 2222,
+                "port": PORT,
                 "password": PASSWORD,
             }
         ],
