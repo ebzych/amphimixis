@@ -15,7 +15,7 @@ import pytest
 import yaml
 
 IP_ADDRESS = "127.0.0.1"
-PORT = "2223"
+PORT = "2222"
 USERNAME = "root"
 PASSWORD = "root"
 WORKDIR = "/tmp/riscv_vm_test"
@@ -164,7 +164,7 @@ def wait_for_ssh(max_retries: int = 30, delay: int = 5) -> None:
 def run_command(command: str) -> int:
     """Execute a command inside the RISC-V VM via SSH.
     Uses sshpass for password authentication to connect to the running VM.
-    The VM must be accessible on localhost:2222 with root/root credentials."""
+    The VM must be accessible on localhost with root/root credentials."""
 
     result = subprocess.run(
         [
