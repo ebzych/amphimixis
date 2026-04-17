@@ -65,9 +65,9 @@ def run_add_toolchain() -> bool:
     print("Edit the toolchain template and save to validate.")
     print("The editor will reopen if validation fails.\n")
 
-    while True:
-        temp_path = create_temp_file(current_content)
-        try:
+    temp_path = create_temp_file(current_content)
+    try:
+        while True:
             new_content, ok = edit_and_read_temp_file(editor, temp_path)
             if not ok:
                 return False
@@ -105,6 +105,6 @@ def run_add_toolchain() -> bool:
             print(f"Failed to add toolchain '{toolchain_name}'.")
             return False
 
-        finally:
-            if temp_path.exists():
-                os.unlink(temp_path)
+    finally:
+        if temp_path.exists():
+            os.unlink(temp_path)

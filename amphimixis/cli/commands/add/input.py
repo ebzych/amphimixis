@@ -83,19 +83,21 @@ def run_add_input() -> bool:
     print("Edit the configuration and save to validate.")
     print("The editor will reopen if validation fails.\n")
 
-    while True:
-        temp_path = create_temp_file(current_content)
+    temp_path = create_temp_file(current_content)
+    try:
+        while True:
+            new_content, ok = edit_and_read_temp_file(editor, temp_path)
+            if not ok:
+                return False
+            current_content = new_content
 
-        new_content, ok = edit_and_read_temp_file(editor, temp_path)
-        if not ok:
-            return False
-        current_content = new_content
+            if _validate_config(temp_path):
+                return _save_config(temp_path, config_path)
 
-        if _validate_config(temp_path):
-            return _save_config(temp_path, config_path)
+            print("\nValidation failed. Please fix the errors above.")
+            if not prompt_continue():
+                return False
 
-        print("\nValidation failed. Please fix the errors above.")
-        if not prompt_continue():
-            if temp_path.exists():
-                os.unlink(temp_path)
-            return False
+    finally:
+        if temp_path.exists():
+            os.unlink(temp_path)
