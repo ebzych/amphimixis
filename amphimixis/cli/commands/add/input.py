@@ -45,7 +45,7 @@ def _save_config(temp_path: Path, config_path: Path) -> bool:
     except OSError as e:
         print(f"Error saving file: {e}")
         return False
-    print(f"Configuration file {config_path} successfully created!")
+    print(f"Configuration file {config_path.name} successfully created!")
     return True
 
 
@@ -56,7 +56,7 @@ def _get_unique_path(base_path: Path) -> Path:
         return base_path
     counter = 1
     while True:
-        new_path = base_path.with_stem(f"{base_path.stem}_{counter}")
+        new_path = base_path.with_stem(f"{base_path.stem}-{counter}")
         if not new_path.exists():
             return new_path
         counter += 1
