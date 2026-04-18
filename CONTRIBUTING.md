@@ -8,11 +8,13 @@ Amphimixis is a Python CLI tool for analyzing projects, running builds, profilin
 
 The repository is organized around a few main areas:
 
-- `amixis.py` is the CLI entry point
-- `amphimixis/` contains the application code
+- `amphimixis/` contains the application modules and assets
+   - `core` contains core application modules
+   - `samples` contains example configuration files
+   - `amixis` is console utility module of Amphimixis
+      - `__main__.py` is the CLI entry point
 - `tests/` contains unit and integration tests
 - `docs/` contains user-facing documentation
-- `samples/` contains example configuration files
 - `ci/` contains local scripts that mirror the GitHub Actions checks
 
 ## Development Environment

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import pytest_mock
 
-from amphimixis import Profiler, general
+from amphimixis.core.profiler import Profiler, general
 
 EXECUTABLE_FILENAME = "a.out"
 
@@ -43,7 +43,7 @@ def get_profiler(mocker: pytest_mock.MockerFixture, monkeypatch: pytest.MonkeyPa
         monkeypatch.chdir(path)
         workdir_path_mock = mocker.Mock()
         workdir_path_mock.return_value = str(path)
-        mocker.patch("amphimixis.Shell.get_project_workdir", workdir_path_mock)
+        mocker.patch("amphimixis.core.Shell.get_project_workdir", workdir_path_mock)
         build = general.Build(
             general.MachineInfo(general.Arch.X86, None, None),
             general.MachineInfo(general.Arch.X86, None, None),
@@ -100,7 +100,7 @@ def get_shellmocked_profiler(mocker: pytest_mock.MockerFixture, tmp_path: Path):
         shell_mock.get_source_dir.return_value = str(tmp_path / "source")
         shell_mock.connect.return_value = shell_mock
         shell_ctor = mocker.patch(
-            "amphimixis.profiler.shell.Shell", return_value=shell_mock
+            "amphimixis.core.profiler.shell.Shell", return_value=shell_mock
         )
 
         profiler = Profiler(project, build)

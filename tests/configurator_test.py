@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from amphimixis import configurator
-from amphimixis.general import Arch, Project
+import amphimixis.core.configurator as configurator
+from amphimixis.core.general import Arch, Project
 
 
 @pytest.mark.unit
@@ -39,7 +39,7 @@ class TestConfiguratorWithTestData:
         mock_shell.run.return_value = (0, [["riscv64"]], [])
         mock_shell.connect.return_value = mock_shell
 
-        with patch("amphimixis.configurator.Shell") as mock_shell_class:
+        with patch("amphimixis.core.configurator.Shell") as mock_shell_class:
             mock_shell_class.return_value.connect.return_value = mock_shell
             mock_shell_class.return_value.run.return_value = (0, [["x86_64"]], [])
             yield mock_shell_class

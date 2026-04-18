@@ -6,10 +6,10 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 
-from amphimixis.build_systems.cmake import CMake
-from amphimixis.build_systems.make import Make
-from amphimixis.build_systems.ninja import Ninja
-from amphimixis.general import (
+from amphimixis.core.build_systems.cmake import CMake
+from amphimixis.core.build_systems.make import Make
+from amphimixis.core.build_systems.ninja import Ninja
+from amphimixis.core.general import (
     Arch,
     Build,
     CompilerFlags,
@@ -57,7 +57,7 @@ class TestMake:
 
     @pytest.fixture
     def make_system(self, mock_project, mock_shell):
-        with patch("amphimixis.build_systems.make.Shell", return_value=mock_shell):
+        with patch("amphimixis.core.build_systems.make.Shell", return_value=mock_shell):
             make = Make(mock_project)
             yield make
 
@@ -125,9 +125,9 @@ class TestMake:
         )
 
         with (
-            patch("amphimixis.build_systems.make.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.make.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.make.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.make.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):
@@ -152,7 +152,7 @@ class TestMake:
             jobs=jobs,
         )
 
-        with patch("amphimixis.build_systems.make.Shell", return_value=mock_shell):
+        with patch("amphimixis.core.build_systems.make.Shell", return_value=mock_shell):
             make = Make(mock_project)
             make._build_install_clean(build, configure=False)
 
@@ -162,9 +162,9 @@ class TestMake:
 
     def test_warning_on_build(self, mock_project, mock_shell):
         with (
-            patch("amphimixis.build_systems.make.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.make.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.make.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.make.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):
@@ -203,7 +203,9 @@ class TestNinja:
             jobs=jobs,
         )
 
-        with patch("amphimixis.build_systems.ninja.Shell", return_value=mock_shell):
+        with patch(
+            "amphimixis.core.build_systems.ninja.Shell", return_value=mock_shell
+        ):
             ninja = Ninja(mock_project)
             ninja.run_building(build)
 
@@ -218,7 +220,9 @@ class TestCMake:
 
     @pytest.fixture
     def cmake_system(self, mock_project, mock_shell):
-        with patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell):
+        with patch(
+            "amphimixis.core.build_systems.cmake.Shell", return_value=mock_shell
+        ):
             ninja_runner = Ninja(mock_project)
             cmake = CMake(mock_project, runner=ninja_runner)
             yield cmake
@@ -280,9 +284,9 @@ class TestCMake:
         )
 
         with (
-            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.cmake.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.cmake.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):
@@ -310,9 +314,9 @@ class TestCMake:
         )
 
         with (
-            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.cmake.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.cmake.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):
@@ -326,9 +330,9 @@ class TestCMake:
 
     def test_generator_selection_ninja(self, mock_project, mock_shell):
         with (
-            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.cmake.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.cmake.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):
@@ -353,9 +357,9 @@ class TestCMake:
 
     def test_generator_selection_make(self, mock_project, mock_shell):
         with (
-            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.cmake.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.cmake.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):
@@ -380,9 +384,9 @@ class TestCMake:
 
     def test_config_flags_passed(self, mock_project, mock_shell):
         with (
-            patch("amphimixis.build_systems.cmake.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.cmake.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.cmake.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):
@@ -423,7 +427,7 @@ class TestCMake:
         )
 
         with patch(
-            "amphimixis.build_systems.cmake.BuildSystem.find_relative_path",
+            "amphimixis.core.build_systems.cmake.BuildSystem.find_relative_path",
             return_value=file,
         ):
             cmake_system.build(build)
@@ -455,9 +459,9 @@ class TestBuildSystemIntegration:
         )
 
         with (
-            patch("amphimixis.build_systems.make.Shell", return_value=mock_shell),
+            patch("amphimixis.core.build_systems.make.Shell", return_value=mock_shell),
             patch(
-                "amphimixis.build_systems.make.BuildSystem.find_relative_path",
+                "amphimixis.core.build_systems.make.BuildSystem.find_relative_path",
                 return_value=file,
             ),
         ):

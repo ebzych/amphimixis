@@ -6,8 +6,8 @@ from shutil import rmtree
 import pytest
 import yaml
 
-from amphimixis import LaboratoryAssistant
-from amphimixis.general import (
+from amphimixis.core import LaboratoryAssistant
+from amphimixis.core.general import (
     Arch,
     CompilerFlagsAttrs,
     MachineAuthenticationInfo,
@@ -15,7 +15,7 @@ from amphimixis.general import (
     Toolchain,
     ToolchainAttrs,
 )
-from amphimixis.laboratory_assistant import (
+from amphimixis.core.laboratory_assistant import (
     _ATTRIBUTES,
     _PLATFORM,
     _PLATFORMS,

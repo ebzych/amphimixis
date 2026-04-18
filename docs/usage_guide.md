@@ -35,16 +35,37 @@ Run Amphimixis from a working directory that contains your configuration and any
 
 ### Make sure the required system tools are available
 
-- `rsync` on the machine where you run Amphimixis
-- `perf` in `PATH`
-- `perf archive` on each `run_machine`
+- `rsync` per machine
+- `perf` and `perf archive` on each `run_machine`
 - `sshpass` if your remote connections use passwords
 
 ```bash
-sudo apt install rsync sshpass linux-tools-common linux-tools
+# on the machine where you run Amphimixis
+apt install sshpass
 ```
 
-##
+```bash
+# on each `run_machine`
+apt install linux-tools-common linux-tools
+```
+
+```bash
+# on each machine
+apt install rsync
+```
+
+### perf archive
+
+Check<sup><a href="#note1">1</a></sup> your system for the presence of a `perf archive` by executing this command. If you have problems with this tool, you can use this command that will put the script `perf archive` from the official Linux repository in the right place on your system:
+
+```bash
+mkdir -p /usr/libexec/perf-core
+curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive
+```
+
+<p id="note1">
+
+1. Ubuntu users are experiencing issues with `perf archive`: <a href="https://linux-perf-users.vger.kernel.narkive.com/gjAAds7D/perf-archive-is-not-a-perf-command">linux-perf-users.vger.kernel.narkive.com/perf-archive-is-not-a-perf-command</a>
 
 ### Create a configuration file
 
@@ -54,12 +75,12 @@ sudo apt install rsync sshpass linux-tools-common linux-tools
   amixis init sample-name
   ```
 
-  Available:
+  Available sample name:
   - local
   - distributed
   - distributed-cross
 
-  Or create config with template:
+- Or create config with template:
 
   ```bash
   amixis add input
