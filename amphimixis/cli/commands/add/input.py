@@ -66,7 +66,7 @@ def run_add_input() -> bool:
     """Create input.yml from template using $EDITOR (nano by default).
 
     Validates after editing; reopens editor on failure. If input.yml exists,
-    generates a unique name (input_1.yml, etc.) to avoid overwriting.
+    generates a unique name (input-1.yml, etc.) to avoid overwriting.
     """
 
     base_path = DEFAULT_CONFIG_PATH
