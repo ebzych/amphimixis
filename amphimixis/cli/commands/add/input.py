@@ -14,19 +14,8 @@ from amphimixis.cli.utils import (
     edit_and_read_temp_file,
     prompt_continue,
 )
+from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 from amphimixis.validator import validate
-
-
-def _get_initial_content(config_path: Path) -> str:
-    """Get initial content for the editor.
-
-    :param config_path: Path to the configuration file
-    """
-
-    if config_path.exists():
-        with open(config_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return CONFIG_TEMPLATE
 
 
 def _validate_config(temp_path: Path) -> bool:
@@ -37,20 +26,11 @@ def _validate_config(temp_path: Path) -> bool:
 
     try:
         return validate(str(temp_path))
+
     except yaml.YAMLError as e:
         print(f"\nError: Invalid YAML syntax: {e}")
         print("Editor will reopen for corrections...")
-    except TypeError:
-        print(
-            "\nError: Configuration is invalid. Required fields are missing or empty."
-        )
-        print("Please fill in the required fields (platforms, recipes, builds).")
-        print("Editor will reopen for corrections...")
-    # pylint: disable=broad-except
-    except Exception as e:
-        print(f"\nError: Validation failed: {e}")
-        print("Editor will reopen for corrections...")
-    return False
+        return False
 
 
 def _save_config(temp_path: Path, config_path: Path) -> bool:
@@ -65,21 +45,33 @@ def _save_config(temp_path: Path, config_path: Path) -> bool:
     except OSError as e:
         print(f"Error saving file: {e}")
         return False
-    print("Configuration file input.yml successfully created!")
+    print(f"Configuration file {config_path} successfully created!")
     return True
 
 
-def run_add_input() -> bool:
-    """Interactively create input.yml configuration file.
+def _get_unique_path(base_path: Path) -> Path:
+    """Return a unique file path by adding suffix if base exists."""
 
-    Opens an editor with existing file if it exists, or with a template
-    if not. Validates the result and saves to input.yml on success.
+    if not base_path.exists():
+        return base_path
+    counter = 1
+    while True:
+        new_path = base_path.with_stem(f"{base_path.stem}_{counter}")
+        if not new_path.exists():
+            return new_path
+        counter += 1
+
+
+def run_add_input() -> bool:
+    """Create input.yml from template using $EDITOR (nano by default).
+
+    Validates after editing; reopens editor on failure. If input.yml exists,
+    generates a unique name (input_1.yml, etc.) to avoid overwriting.
     """
 
-    config_path = Path("input.yml")
+    base_path = DEFAULT_CONFIG_PATH
     editor = os.environ.get("EDITOR", "nano")
-
-    current_content = _get_initial_content(config_path)
+    current_content = CONFIG_TEMPLATE
 
     print(f"Opening editor: {editor}")
     print("Edit the configuration and save to validate.")
@@ -94,6 +86,7 @@ def run_add_input() -> bool:
             current_content = new_content
 
             if _validate_config(temp_path):
+                config_path = _get_unique_path(base_path)
                 return _save_config(temp_path, config_path)
 
             print("\nValidation failed. Please fix the errors above.")
