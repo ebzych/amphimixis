@@ -94,7 +94,6 @@ def run_add_input() -> bool:
             new_content = get_content_with_editor(editor, temp_path)
             if new_content is None:
                 return False
-            current_content = new_content
 
             if _validate_config(temp_path):
                 config_path = _get_unique_path(base_path)
