@@ -97,9 +97,6 @@ def run_add_toolchain() -> bool:
                 toolchain = create_toolchain(data)
             except ValueError as e:
                 print(f"Error: {e}")
-                print(
-                    "Please use absolute paths (starting with '/') for compilers and tools."
-                )
                 if not prompt_continue():
                     return False
                 continue

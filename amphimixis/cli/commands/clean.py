@@ -81,9 +81,10 @@ def interactive_clean() -> bool:
     try:
         for i, build_name in enumerate(builds.keys()):
             print(f"{i + 1}.\t{build_name}")
-        nums = [
-            int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
-        ]
+        nums_input = input(
+            "Enter the builds numbers to clean (separate by spaces): "
+        ).split()
+        nums = [int(n) - 1 for n in nums_input]
 
         for i, build in enumerate(builds.values()):
             if i in nums:
@@ -93,7 +94,7 @@ def interactive_clean() -> bool:
                     success = False
                     print(f"{build.build_name} failed to clean")
     except ValueError:
-        print("Not a number")
+        print("Invalid input. Please enter numbers separated by spaces.")
     except KeyboardInterrupt:
         print("Cancelled")
     return success

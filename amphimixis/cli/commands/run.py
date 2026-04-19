@@ -78,7 +78,7 @@ def show_profiling_result(project: Project) -> None:
         print(
             "\tThere is no profiling results for the same executable in different build"
         )
-        print("\b Maybe you should check profiling errors")
+        print("\tMaybe you should check profiling errors")
         return
 
     file1 = tools.build_filename(build1, exe) + constants.PERF_SCRIPT_EXT
