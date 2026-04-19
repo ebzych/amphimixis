@@ -18,6 +18,43 @@ from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 from amphimixis.validator import validate
 
 
+def run_add_input() -> bool:
+    """Create input.yml from template using $EDITOR (nano by default).
+
+    Validates after editing; reopens editor on failure. If input.yml exists,
+    generates a unique name (input-1.yml, etc.) to avoid overwriting.
+
+    :return: True if configuration saved successfully, False otherwise
+    :rtype: bool
+    """
+
+    base_path = DEFAULT_CONFIG_PATH
+    editor = os.environ.get("EDITOR", "nano")
+    current_content = CONFIG_TEMPLATE
+
+    print(f"Opening editor: {editor}")
+    print("Edit the configuration and save to validate.")
+    print("The editor will reopen if validation fails.\n")
+
+    temp_path = create_temp_file(current_content)
+    try:
+        while True:
+            new_content = get_content_with_editor(editor, temp_path)
+            if new_content is None:
+                return False
+
+            if _validate_config(temp_path):
+                config_path = _get_unique_path(base_path)
+                return _save_config(temp_path, config_path)
+
+            print("\nValidation failed. Please fix the errors above.")
+            if not prompt_continue():
+                return False
+    finally:
+        if temp_path.exists():
+            os.unlink(temp_path)
+
+
 def _validate_config(temp_path: Path) -> bool:
     """Validate configuration file with error handling.
 
@@ -68,40 +105,3 @@ def _get_unique_path(base_path: Path) -> Path:
         if not new_path.exists():
             return new_path
         counter += 1
-
-
-def run_add_input() -> bool:
-    """Create input.yml from template using $EDITOR (nano by default).
-
-    Validates after editing; reopens editor on failure. If input.yml exists,
-    generates a unique name (input-1.yml, etc.) to avoid overwriting.
-
-    :return: True if configuration saved successfully, False otherwise
-    :rtype: bool
-    """
-
-    base_path = DEFAULT_CONFIG_PATH
-    editor = os.environ.get("EDITOR", "nano")
-    current_content = CONFIG_TEMPLATE
-
-    print(f"Opening editor: {editor}")
-    print("Edit the configuration and save to validate.")
-    print("The editor will reopen if validation fails.\n")
-
-    temp_path = create_temp_file(current_content)
-    try:
-        while True:
-            new_content = get_content_with_editor(editor, temp_path)
-            if new_content is None:
-                return False
-
-            if _validate_config(temp_path):
-                config_path = _get_unique_path(base_path)
-                return _save_config(temp_path, config_path)
-
-            print("\nValidation failed. Please fix the errors above.")
-            if not prompt_continue():
-                return False
-    finally:
-        if temp_path.exists():
-            os.unlink(temp_path)

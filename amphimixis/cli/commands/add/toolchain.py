@@ -17,95 +17,6 @@ from amphimixis.general.general import Arch, MachineInfo
 from amphimixis.laboratory_assistant import LaboratoryAssistant
 
 
-def _validate_toolchain_yaml(content: str) -> None | dict:
-    """Validate toolchain YAML content.
-
-    :param str content: YAML content to validate
-    :return: Dictionary if valid, None otherwise
-    :rtype: None | dict
-    """
-
-    try:
-        toolchain = yaml.safe_load(content)
-    except yaml.YAMLError as e:
-        print(f"\nYAML parse error: {e}")
-        print("Editor will reopen for corrections...")
-        return None
-
-    if not isinstance(toolchain, dict):
-        print("\nError: Toolchain must be a dictionary.")
-        print("Editor will reopen for corrections...")
-        return None
-
-    if "name" not in toolchain or not toolchain["name"]:
-        print("\nError: Toolchain must have a 'name' field.")
-        print("Editor will reopen for corrections...")
-        return None
-
-    return toolchain
-
-
-def _check_toolchain_exists(toolchain_name: str) -> bool:
-    """Check if toolchain with given name already exists.
-
-    :param str toolchain_name: Name of the toolchain
-    :return: True if exists, False otherwise
-    :rtype: bool
-    """
-
-    if LaboratoryAssistant.find_toolchain_by_name(toolchain_name) is not None:
-        print(f"\nWarning: Toolchain '{toolchain_name}' already exists.")
-        print("Not overwriting. Please choose a different name.")
-        print("Editor will reopen for corrections...")
-        return True
-    return False
-
-
-def _get_name(data: dict) -> str | None:
-    """Extract and validate 'name' field from toolchain data.
-
-    :param dict data: Dictionary containing toolchain configuration
-    :return: Validated name string, or None if invalid
-    :rtype: str | None
-    """
-
-    name = data.get("name")
-    if not name or not isinstance(name, str) or not name.strip():
-        print("Error: 'name' field is required and must be a non-empty string.")
-        return None
-    return name
-
-
-def _get_target_arch_str(data: dict) -> str | None:
-    """Extract and validate 'target_arch' field from toolchain data.
-
-    :param dict data: Dictionary containing toolchain configuration
-    :return: Validated target architecture string, or None if missing
-    :rtype: str | None
-    """
-
-    target_arch = data.get("target_arch")
-    if not target_arch:
-        print("Error: 'target_arch' field is required.")
-        return None
-    return target_arch
-
-
-def _get_platform(data: dict) -> str | None:
-    """Extract and validate 'platform' field from toolchain data.
-
-    :param dict data: Dictionary containing toolchain configuration
-    :return: Validated platform name string, or None if missing
-    :rtype: str | None
-    """
-
-    platform = data.get("platform")
-    if not platform:
-        print("Error: 'platform' field is required.")
-        return None
-    return platform
-
-
 # pylint: disable=too-many-branches, too-many-statements
 def run_add_toolchain() -> bool:
     """Interactively add a toolchain to global config.
@@ -211,3 +122,92 @@ def run_add_toolchain() -> bool:
     finally:
         if temp_path.exists():
             os.unlink(temp_path)
+
+
+def _validate_toolchain_yaml(content: str) -> None | dict:
+    """Validate toolchain YAML content.
+
+    :param str content: YAML content to validate
+    :return: Dictionary if valid, None otherwise
+    :rtype: None | dict
+    """
+
+    try:
+        toolchain = yaml.safe_load(content)
+    except yaml.YAMLError as e:
+        print(f"\nYAML parse error: {e}")
+        print("Editor will reopen for corrections...")
+        return None
+
+    if not isinstance(toolchain, dict):
+        print("\nError: Toolchain must be a dictionary.")
+        print("Editor will reopen for corrections...")
+        return None
+
+    if "name" not in toolchain or not toolchain["name"]:
+        print("\nError: Toolchain must have a 'name' field.")
+        print("Editor will reopen for corrections...")
+        return None
+
+    return toolchain
+
+
+def _check_toolchain_exists(toolchain_name: str) -> bool:
+    """Check if toolchain with given name already exists.
+
+    :param str toolchain_name: Name of the toolchain
+    :return: True if exists, False otherwise
+    :rtype: bool
+    """
+
+    if LaboratoryAssistant.find_toolchain_by_name(toolchain_name) is not None:
+        print(f"\nWarning: Toolchain '{toolchain_name}' already exists.")
+        print("Not overwriting. Please choose a different name.")
+        print("Editor will reopen for corrections...")
+        return True
+    return False
+
+
+def _get_name(data: dict) -> str | None:
+    """Extract and validate 'name' field from toolchain data.
+
+    :param dict data: Dictionary containing toolchain configuration
+    :return: Validated name string, or None if invalid
+    :rtype: str | None
+    """
+
+    name = data.get("name")
+    if not name or not isinstance(name, str) or not name.strip():
+        print("Error: 'name' field is required and must be a non-empty string.")
+        return None
+    return name
+
+
+def _get_target_arch_str(data: dict) -> str | None:
+    """Extract and validate 'target_arch' field from toolchain data.
+
+    :param dict data: Dictionary containing toolchain configuration
+    :return: Validated target architecture string, or None if missing
+    :rtype: str | None
+    """
+
+    target_arch = data.get("target_arch")
+    if not target_arch:
+        print("Error: 'target_arch' field is required.")
+        return None
+    return target_arch
+
+
+def _get_platform(data: dict) -> str | None:
+    """Extract and validate 'platform' field from toolchain data.
+
+    :param dict data: Dictionary containing toolchain configuration
+    :return: Validated platform name string, or None if missing
+    :rtype: str | None
+    """
+
+    platform = data.get("platform")
+    if not platform:
+        print("Error: 'platform' field is required.")
+        return None
+    return platform
