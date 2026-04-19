@@ -9,11 +9,7 @@ from pathlib import Path
 import yaml
 
 from amphimixis.cli.templates import CONFIG_TEMPLATE
-from amphimixis.cli.utils import (
-    create_temp_file,
-    get_content_with_editor,
-    prompt_continue,
-)
+from amphimixis.cli.utils import create_temp_file, launch_editor, prompt_continue
 from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 from amphimixis.validator import validate
 
@@ -39,8 +35,7 @@ def run_add_input() -> bool:
     temp_path = create_temp_file(current_content)
     try:
         while True:
-            new_content = get_content_with_editor(editor, temp_path)
-            if new_content is None:
+            if not launch_editor(editor, temp_path):
                 return False
 
             if _validate_config(temp_path):
