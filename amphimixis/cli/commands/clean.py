@@ -2,8 +2,8 @@
 
 import pickle
 
-from amphimixis import Builder, general
-from amphimixis.general import Build, tools
+from amphimixis import Builder
+from amphimixis.general import Build, Project, tools
 
 HELP_MESSAGE = "Clean build directories"
 
@@ -27,25 +27,27 @@ def add_args(parser):
     )
 
 
-def open_alternate_term():
-    """Uses Xterm control code to switch to an alternate terminal buffer."""
+def open_alternate_term() -> None:
+    """Uses Xterm control code to switch to an alternate terminal buffer"""
 
     print("\033[?1049h", end="")
 
 
-def close_alternate_term():
-    """Uses Xterm control code to return back to first terminal buffer."""
+def close_alternate_term() -> None:
+    """Uses Xterm control code to return back to first terminal buffer"""
 
     print("\033[?1049l", end="")
 
 
-def clean(project: general.Project, *builds: Build) -> bool:
-    """Clean build directories for specified builds.
+def clean(*builds: Build) -> bool:
+    """Clean builds directories"""
 
-    :param project: Project instance
-    :param builds: Build objects to clean (variadic)
-    """
-
+    project: Project
+    try:
+        project = tools.get_cache_project()
+    except FileNotFoundError:
+        print("Project file .project not found")
+        return False
     success = True
     for b in builds:
         if not Builder.clean(project, b):
@@ -53,26 +55,25 @@ def clean(project: general.Project, *builds: Build) -> bool:
     return success
 
 
-def interactive_clean(project: general.Project, builds: dict[str, Build]) -> bool:
-    """Interactive build cleaner.
-    Opens an alternate terminal buffer, displays list of available builds,
-    prompts user to select builds to clean, and removes selected build directories.
+def interactive_clean() -> bool:
+    """Enumerate builds names and suggest choose which will be cleaned"""
 
-    :param project: Project instance
-    :param builds: Dictionary of build name to Build objects
-    """
+    builds: dict[str, Build] = {}
+    project: Project
+    try:
+        project = tools.get_cache_project()
+        with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+            builds = pickle.load(file)
+    except FileNotFoundError:
+        pass
 
     success = True
     try:
-        open_alternate_term()
-
         for i, build_name in enumerate(builds.keys()):
             print(f"{i + 1}.\t{build_name}")
         nums = [
             int(n) - 1 for n in input("Enter the builds numbers to clean: ").split()
         ]
-
-        close_alternate_term()
 
         for i, build in enumerate(builds.values()):
             if i in nums:
@@ -81,14 +82,10 @@ def interactive_clean(project: general.Project, builds: dict[str, Build]) -> boo
                 else:
                     success = False
                     print(f"{build.build_name} failed to clean")
-
-    except KeyboardInterrupt:
-        close_alternate_term()
     except ValueError:
-        close_alternate_term()
         print("Not a number")
-    finally:
-        close_alternate_term()
+    except KeyboardInterrupt:
+        print("Cancelled")
     return success
 
 
@@ -98,29 +95,22 @@ def run_clean(args) -> bool:
     :param args: Parsed command line arguments
     """
 
-    project: general.Project
-    try:
-        project = tools.get_cache_project()
-    except FileNotFoundError:
-        print("Project file .project not found")
-        return False
-
-    builds: dict[str, Build] = {}
+    builds_dict: dict[str, Build] = {}
     try:
         with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as f:
-            builds = pickle.load(f)
+            builds_dict = pickle.load(f)
     except FileNotFoundError:
-        print("No builds remembered")
-        return True
+        if args.all or args.build_names:
+            print("No builds remembered.")
+            return False
+        return interactive_clean()
 
     if args.all:
-        return clean(project, *builds.values())
-
+        return clean(*builds_dict.values())
     if args.build_names:
-        to_clean = [b for b in builds.values() if b.build_name in args.build_names]
+        to_clean = [b for b in builds_dict.values() if b.build_name in args.build_names]
         if not to_clean:
             print("No matching builds found")
             return False
-        return clean(project, *to_clean)
-
-    return interactive_clean(project, builds)
+        return clean(*to_clean)
+    return interactive_clean()
