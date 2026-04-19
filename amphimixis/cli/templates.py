@@ -33,10 +33,8 @@ builds:
 - build_machine: 1              # platform_id to build on
   run_machine: 1                # platform_id to run on
   recipe_id: 1                  # recipe_id to use
-  
 # Option 1: reference the reusable list (uncomment the line below)
 #   executables: *common_exe    # Executables to profile (relative to build dir)
-
 # Option 2: specify executables inline (uncomment and edit)
 #   executables:                # Executables to profile (relative to build dir)
 #     - test/run-tests
@@ -46,57 +44,54 @@ builds:
 TOOLCHAIN_TEMPLATE = """# Toolchain Configuration Template
 # Uncomment and fill in the fields below:
 
-name:  # Required: unique toolchain name
-arch:  # Options: riscv, x86, arm
+name:               # Required: unique toolchain name
+target_arch:        # Required: Target architecture (options: riscv, x86, arm)
+platform:           # Required: platform (machine) name (e.g., 'localhost')
 
-# Sysroot (optional)
-# sysroot:
+# sysroot:          # Optional: sysroot path
 
-# Toolchain attributes (optional)
-attributes:
-#    # Compilers
-#    c_compiler: 
-#    cxx_compiler:
-#    csharp_compiler:
-#    cuda_compiler:
-#    objc_compiler:
-#    objcxx_compiler:
-#    fortran_compiler:
-#    hip_compiler:
-#    ispc_compiler:
-#    swift_compiler:
-#    asm_compiler:
-#    asm_nasm_compiler:
-#    asm_marmasm_compiler:
-#    asm_masm_compiler:
-#    asm_att_compiler:
+# Compilers         # Optional
+# c_compiler:
+# cxx_compiler:
+# csharp_compiler:
+# cuda_compiler:
+# objc_compiler:
+# objcxx_compiler:
+# fortran_compiler:
+# hip_compiler:
+# ispc_compiler:
+# swift_compiler:
+# asm_compiler:
+# asm_nasm_compiler:
+# asm_marmasm_compiler:
+# asm_masm_compiler:
+# asm_att_compiler:
 
-#    # Tools
-#    ar:
-#    as:
-#    ld:
-#    nm:
-#    objcopy:
-#    objdump:
-#    ranlib:
-#    readelf:
-#    strip:
+# Tools             # Optional
+# ar:
+# as:
+# ld:
+# nm:
+# objcopy:
+# objdump:
+# ranlib:
+# readelf:
+# strip:
 
-
-#    # Compiler flags
-#    c_flags:
-#    cxx_flags:
-#    csharp_flags:
-#    cuda_flags:
-#    objc_flags:
-#    objcxx_flags:
-#    fortran_flags:
-#    hip_flags:
-#    ispc_flags:
-#    swift_flags:
-#    asm_flags:
-#    asm_nasm_flags:
-#    asm_marmasm_flags:
-#    asm_masm_flags:
-#    asm_att_flags:
+# Compiler flags    # Optional
+# c_flags:
+# cxx_flags:
+# csharp_flags:
+# cuda_flags:
+# objc_flags:
+# objcxx_flags:
+# fortran_flags:
+# hip_flags:
+# ispc_flags:
+# swift_flags:
+# asm_flags:
+# asm_nasm_flags:
+# asm_marmasm_flags:
+# asm_masm_flags:
+# asm_att_flags:
 """

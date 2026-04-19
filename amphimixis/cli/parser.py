@@ -15,7 +15,7 @@ Examples:
         analysis, configuration, building, and profiling.
 
   amixis run /path/to/project --events cycles cache-misses
-    → Run pipeline and profile only the 'cycles' and 'cache-misses' events.
+      → Run pipeline and profile only the 'cycles' and 'cache-misses' events.
 
   amixis analyze /path/to/project
       → Analyzes the project and detects existing CI, tests, benchmarks, etc.
@@ -26,7 +26,7 @@ Examples:
   amixis profile /path/to/project --events cycles
       → Profiles the project using specified perf events (e.g., cycles).
 
-  amixis validate input.yml
+  amixis validate /path/to/input/config
       → Checks the correctness of the configuration file.
 
   amixis compare file1.scriptout file2.scriptout
@@ -42,7 +42,10 @@ Examples:
       → Interactively adds a toolchain to the global configuration.
 
   amixis clean
-      → Interactively cleans build directories.
+      → Interactive mode: select builds to clean.
+
+  amixis clean build1 build2
+      → Cleans specific builds by name.
 
   amixis clean --all
       → Cleans all build directories.
@@ -70,7 +73,7 @@ EXAMPLES = {
   amixis profile /path/to/project --events cycles cache-misses
       → Profile with specific perf events""",
     "validate": """Examples:
-  amixis validate input.yml
+  amixis validate /path/to/input/config
       → Check config file correctness""",
     "compare": """Examples:
   amixis compare file1.scriptout file2.scriptout
@@ -82,10 +85,10 @@ EXAMPLES = {
     "clean": """Examples:
   amixis clean
       → Interactive mode: select builds to clean
-  amixis clean --all
-      → Clean all builds
   amixis clean build1 build2
-      → Clean specific builds""",
+      → Cleans specific builds by name
+  amixis clean --all
+      → Cleans all build directories""",
     "add": """Examples:
   amixis add input
       → Interactively create input.yml configuration file

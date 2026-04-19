@@ -105,7 +105,7 @@ amixis profile /path/to/project
 Validate a configuration file:
 
 ```bash
-amixis validate ./input.yml
+amixis validate /path/to/input/config
 ```
 
 Specify the path to the configuration file:
@@ -151,10 +151,10 @@ amixis add toolchain
 If you want to clean up on your build directories from previous builds, use:
 
 ```bash
-# To use interactive mode with selecting builds to clean
+# To interactively select builds to clean
 amixis clean
 
-# To specify build names manually
+# To clean specific builds by name
 amixis clean build-name-1 build-name-2 ...
 
 # To clean all builds
