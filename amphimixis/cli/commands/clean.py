@@ -112,10 +112,8 @@ def run_clean(args: Namespace) -> bool:
         with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as f:
             builds_dict = pickle.load(f)
     except FileNotFoundError:
-        if args.all or args.build_names:
-            print("No builds remembered.")
-            return False
-        return interactive_clean()
+        print("No builds remembered.")
+        return False
 
     if args.all:
         return clean(*builds_dict.values())
