@@ -11,7 +11,7 @@ import yaml
 from amphimixis.cli.templates import CONFIG_TEMPLATE
 from amphimixis.cli.utils import (
     create_temp_file,
-    edit_and_read_temp_file,
+    get_content_with_editor,
     prompt_continue,
 )
 from amphimixis.general.constants import DEFAULT_CONFIG_PATH
@@ -21,12 +21,13 @@ from amphimixis.validator import validate
 def _validate_config(temp_path: Path) -> bool:
     """Validate configuration file with error handling.
 
-    :param temp_path: Path to the configuration file
+    :param Path temp_path: Path to the configuration file
+    :return: True if valid, False otherwise
+    :rtype: bool
     """
 
     try:
         return validate(str(temp_path))
-
     except yaml.YAMLError as e:
         print(f"\nError: Invalid YAML syntax: {e}")
         print("Editor will reopen for corrections...")
@@ -36,8 +37,10 @@ def _validate_config(temp_path: Path) -> bool:
 def _save_config(temp_path: Path, config_path: Path) -> bool:
     """Save the configuration file to the target location.
 
-    :param temp_path: Path to the temporary file
-    :param config_path: Path to the target configuration file
+    :param Path temp_path: Path to the temporary file
+    :param Path config_path: Path to the target configuration file
+    :return: True if saved successfully, False otherwise
+    :rtype: bool
     """
 
     try:
@@ -50,7 +53,12 @@ def _save_config(temp_path: Path, config_path: Path) -> bool:
 
 
 def _get_unique_path(base_path: Path) -> Path:
-    """Return a unique file path by adding suffix if base exists."""
+    """Return a unique file path by adding suffix if base exists.
+
+    :param Path base_path: Base path to check
+    :return: Unique path (existing or with -N suffix)
+    :rtype: Path
+    """
 
     if not base_path.exists():
         return base_path
@@ -67,6 +75,9 @@ def run_add_input() -> bool:
 
     Validates after editing; reopens editor on failure. If input.yml exists,
     generates a unique name (input-1.yml, etc.) to avoid overwriting.
+
+    :return: True if configuration saved successfully, False otherwise
+    :rtype: bool
     """
 
     base_path = DEFAULT_CONFIG_PATH
@@ -80,8 +91,8 @@ def run_add_input() -> bool:
     temp_path = create_temp_file(current_content)
     try:
         while True:
-            new_content, ok = edit_and_read_temp_file(editor, temp_path)
-            if not ok:
+            new_content = get_content_with_editor(editor, temp_path)
+            if new_content is None:
                 return False
             current_content = new_content
 
@@ -92,7 +103,6 @@ def run_add_input() -> bool:
             print("\nValidation failed. Please fix the errors above.")
             if not prompt_continue():
                 return False
-
     finally:
         if temp_path.exists():
             os.unlink(temp_path)
