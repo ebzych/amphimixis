@@ -1,15 +1,17 @@
 """Validate command."""
 
+from argparse import ArgumentParser
+
 from amphimixis.general import IUI, NullUI
 from amphimixis.validator import validate
 
 HELP_MESSAGE = "Check correctness of the configuration file"
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for validate command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     parser.add_argument(
@@ -23,8 +25,10 @@ def add_args(parser):
 def validate_cmd(args, ui: IUI = NullUI()) -> bool:
     """Check correctness of the configuration file.
 
-    :param args: Parsed command line arguments
-    :param ui: User interface for progress display
+    :param Namespace args: parsed command line arguments
+    :param IUI ui: User interface for progress display
+    :return: True if validation succeeded, False otherwise
+    :rtype: bool
     """
 
     ui.update_message("Config", f"Validate {args.config_file}...")

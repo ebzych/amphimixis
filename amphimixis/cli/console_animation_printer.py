@@ -24,21 +24,27 @@ class ConsoleAnimationPrinter(IUI):
         """Print message to user with status mark 'I'
 
         :param str sender: Identifier name of sender module
-        :param str message: Message to user"""
+        :param str message: Message to user
+        """
+
         print(f"\r\033[K[{sender}][I] {message}")
 
     def send_warning(self, sender: str, warning: str) -> None:
         """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message
 
         :param str sender: Identifier name of sender module
-        :param str warning: Warning to user"""
+        :param str warning: Warning to user
+        """
+
         print(f"\r\033[K[{sender}][W] WARNING: {warning}")
 
     def send_error(self, sender: str, err_msg: str) -> None:
         """Print error to user with status mark 'E' and 'ERROR: ' in begin of message
 
         :param str sender: Identifier name of sender module
-        :param str error: Error message to user"""
+        :param str err_msg: Error message to user
+        """
+
         print(f"\r\033[K[{sender}][E] ERROR: {err_msg}")
 
     def update_message(self, build_id: str, message: str) -> None:
@@ -65,10 +71,8 @@ class ConsoleAnimationPrinter(IUI):
     def mark_success(self, message: str = "", build_id: str = "") -> None:
         """Mark as successful.
 
-        :param str message: message to display.
-        If empty, leaves the previous message
-        :param str build_id: Build identifier.
-        If empty, leaves the previous identifier
+        :param str message: message to display. If empty, leaves the previous message
+        :param str build_id: Build identifier. If empty, leaves the previous identifier
         """
 
         self.status = "success"
@@ -84,10 +88,8 @@ class ConsoleAnimationPrinter(IUI):
     def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
         """Mark as failed and optionally update message.
 
-        :param str error_message: Message to display for failed build.
-        If empty, leaves the previous message
-        :param str build_id: Build identifier.
-        If empty, leaves the previous identifier
+        :param str error_message: Message for failed build (if empty, keep previous)
+        :param str build_id: Build identifier. If empty, leaves the previous identifier
         """
 
         self.status = "failed"

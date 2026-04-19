@@ -1,19 +1,19 @@
 """Analyze command."""
 
+from argparse import ArgumentParser
 from os import path
 
 from amphimixis.analyzer import analyze
-from amphimixis.general import IUI, NullUI, Project
-
 from amphimixis.cli.utils import add_config_arg, add_path_arg
+from amphimixis.general import IUI, NullUI, Project
 
 HELP_MESSAGE = "Analyze the project and detect existing CI, tests, build systems, etc."
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for analyze command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     add_path_arg(parser)
@@ -23,8 +23,10 @@ def add_args(parser):
 def run_analyze(project: Project, ui: IUI = NullUI()) -> bool:
     """Execute project analysis.
 
-    :param project: Project instance to analyze
-    :param ui: User interface for progress display
+    :param Project project: Project instance to analyze
+    :param IUI ui: User interface for progress display
+    :return: True if analysis succeeded, False otherwise
+    :rtype: bool
     """
 
     project_name = path.basename(path.normpath(project.path))

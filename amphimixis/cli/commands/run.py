@@ -1,5 +1,7 @@
 """Run command - full pipeline."""
 
+from argparse import ArgumentParser
+
 from amphimixis.cli.utils import add_config_arg, add_events_arg, add_path_arg
 from amphimixis.general import IUI, Project, constants, tools
 from amphimixis.general.general import ProjectStats
@@ -11,10 +13,10 @@ from .profile import run_profile
 HELP_MESSAGE = "Run full pipeline: analyze, build and profile a project"
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for run command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     add_path_arg(parser)
@@ -22,10 +24,10 @@ def add_args(parser):
     add_events_arg(parser)
 
 
-def show_profiling_result(project: Project):
+def show_profiling_result(project: Project) -> None:
     """Show hint or warning after profiling, based on .scriptout files in current directory.
 
-    :param project: Project instance with profiling results
+    :param Project project: Project instance with profiling results
     """
 
     obj: ProjectStats = tools.load_project_stats(project)
@@ -91,10 +93,12 @@ def run_full_pipeline(
 ) -> bool:
     """Execute full pipeline: analyze, build, and profile a project.
 
-    :param project: Project instance
-    :param config_file: Path to configuration file
-    :param ui: User interface for progress display
-    :param events: List of perf events to record
+    :param Project project: Project instance
+    :param str | Path config_file: Path to configuration file
+    :param IUI ui: User interface for progress display
+    :param list[str] | None events: List of perf events to record
+    :return: True if pipeline succeeded, False otherwise
+    :rtype: bool
     """
 
     if not run_analyze(project, ui):

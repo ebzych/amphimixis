@@ -1,6 +1,7 @@
 """Clean command."""
 
 import pickle
+from argparse import ArgumentParser, Namespace
 
 from amphimixis import Builder
 from amphimixis.general import Build, Project, tools
@@ -8,10 +9,10 @@ from amphimixis.general import Build, Project, tools
 HELP_MESSAGE = "Clean build directories"
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for clean command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     parser.add_argument(
@@ -40,7 +41,12 @@ def close_alternate_term() -> None:
 
 
 def clean(*builds: Build) -> bool:
-    """Clean builds directories"""
+    """Clean builds directories
+
+    :param Build builds: variable number of Build objects to clean
+    :return: True if all specified builds were cleaned successfully, False otherwise
+    :rtype: bool
+    """
 
     project: Project
     try:
@@ -56,7 +62,11 @@ def clean(*builds: Build) -> bool:
 
 
 def interactive_clean() -> bool:
-    """Enumerate builds names and suggest choose which will be cleaned"""
+    """Enumerate builds names and suggest choose which will be cleaned
+
+    :return: True if all selected builds were cleaned successfully, False otherwise
+    :rtype: bool
+    """
 
     builds: dict[str, Build] = {}
     project: Project
@@ -89,10 +99,12 @@ def interactive_clean() -> bool:
     return success
 
 
-def run_clean(args) -> bool:
+def run_clean(args: Namespace) -> bool:
     """Execute clean command.
 
-    :param args: Parsed command line arguments
+    :param Namespace args: parsed command line arguments
+    :return: True if command succeeded, False otherwise
+    :rtype: bool
     """
 
     builds_dict: dict[str, Build] = {}

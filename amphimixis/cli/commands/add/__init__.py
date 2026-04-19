@@ -1,15 +1,17 @@
 """Add subcommands."""
 
+from argparse import ArgumentParser, Namespace
+
 from amphimixis.cli.commands.add.input import run_add_input
 from amphimixis.cli.commands.add.toolchain import run_add_toolchain
 
 HELP_MESSAGE = "Add configuration files or toolchains interactively"
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for add command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     subparsers = parser.add_subparsers(dest="add_subcommand", title="add options")
@@ -26,11 +28,14 @@ def add_args(parser):
     )
 
 
-def run_add(args):
+def run_add(args: Namespace) -> bool:
     """Execute add subcommand.
 
-    :param args: Parsed command line arguments
+    :param Namespace args: parsed command line arguments
+    :return: True if command succeeded, False otherwise
+    :rtype: bool
     """
+
     add_subcommand = args.add_subcommand
 
     if add_subcommand == "input":

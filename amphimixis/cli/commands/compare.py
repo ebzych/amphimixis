@@ -1,5 +1,6 @@
 """Compare command."""
 
+from argparse import ArgumentParser
 from os import path
 
 from amphimixis.cli.utils import add_events_arg
@@ -9,11 +10,12 @@ from amphimixis.perf_analyzer import main as compare_perf
 HELP_MESSAGE = "Compare two perf output files (.scriptout) and display the results"
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for compare command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
+
     add_events_arg(parser)
     parser.add_argument(
         "file1",
@@ -39,8 +41,10 @@ def run_compare(args, ui: IUI = NullUI()) -> bool:
     """Compare two perf output files and print the top `max_rows` symbols
     with the most significant changes for specified events.
 
-    :param args: Parsed command line arguments
-    :param ui: User interface for progress display
+    :param Namespace args: parsed command line arguments
+    :param IUI ui: User interface for progress display
+    :return: True if command succeeded, False otherwise
+    :rtype: bool
     """
 
     if not path.isfile(args.file1):

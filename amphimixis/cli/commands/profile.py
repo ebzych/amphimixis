@@ -2,20 +2,20 @@
 
 import shutil
 import tempfile
+from argparse import ArgumentParser
 from os import path
 
 from amphimixis import Profiler, Shell, parse_config
-from amphimixis.general import IUI, NullUI, Project
-
 from amphimixis.cli.utils import add_config_arg, add_path_arg
+from amphimixis.general import IUI, NullUI, Project
 
 HELP_MESSAGE = "Profile the performance of builds"
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for profile command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     add_path_arg(parser)
@@ -30,8 +30,10 @@ def add_args(parser):
 def setup_profiling_environment(project: Project, ui: IUI) -> bool:
     """Set up the profiling environment by copying the built binaries to the run machines.
 
-    :param project: Project instance
-    :param ui: User interface for progress display
+    :param Project project: Project instance
+    :param IUI ui: User interface for progress display
+    :return: True if setup succeeded, False otherwise
+    :rtype: bool
     """
 
     success = True
@@ -74,10 +76,12 @@ def run_profile(
 ) -> bool:
     """Execute project profiling.
 
-    :param project: Project instance
-    :param config_file_path: Path to YAML configuration file
-    :param ui: User interface for progress display
-    :param events: List of perf events to record
+    :param Project project: Project instance
+    :param str config_file_path: Path to YAML configuration file
+    :param IUI ui: User interface for progress display
+    :param list[str] | None events: List of perf events to record
+    :return: True if profiling succeeded, False otherwise
+    :rtype: bool
     """
 
     if not project.builds and not parse_config(

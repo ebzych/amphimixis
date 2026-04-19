@@ -1,6 +1,7 @@
 """Parser for Amphimixis CLI with subcommands."""
 
 import argparse
+from argparse import ArgumentParser
 
 from .commands import COMMANDS
 
@@ -57,8 +58,8 @@ EXAMPLES = {
       → Run full pipeline (analyze, build, profile) on project
   amixis run --config=config_file /path/to/project
       → Run with custom config file
-  amixis run /path/to/project --events cycles
-      → Run pipeline and profile only the 'cycles' event""",
+  amixis run /path/to/project --events cycles cache-misses
+      → Run pipeline and profile only the 'cycles' and 'cache-misses' events""",
     "analyze": """Examples:
   amixis analyze /path/to/project
       → Analyze project and detect existing CI, tests, build systems, etc.""",
@@ -104,8 +105,12 @@ class CustomHelpFormatter(argparse.RawTextHelpFormatter):
         super().__init__(prog, max_help_position=35)
 
 
-def create_parser():
-    """Create the main argument parser with subcommands."""
+def create_parser() -> ArgumentParser:
+    """Create the main argument parser with subcommands.
+
+    :return: Configured argument parser for Amphimixis CLI
+    :rtype: ArgumentParser
+    """
 
     parser = argparse.ArgumentParser(
         prog="amixis",

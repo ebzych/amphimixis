@@ -13,11 +13,11 @@ from amphimixis.cli.parser import MAIN_EXAMPLES
 from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 
 
-def print_help(commands, full=False):
+def print_help(commands, full=False) -> None:
     """Print short help without examples.
 
-    :param commands: Dictionary of subcommands (name -> module).
-    :param full: Whether to show full help with examples.
+    :param dict commands: Dictionary of subcommands (name -> module)
+    :param bool full: Whether to show full help with examples
     """
 
     print(
@@ -39,7 +39,11 @@ def print_help(commands, full=False):
 
 # pylint: disable=too-many-branches
 def main() -> bool:
-    """Main function for the Amphimixis CLI tool."""
+    """Main function for the Amphimixis CLI tool.
+
+    :return: True if command succeeded, False otherwise
+    :rtype: bool
+    """
 
     parser = create_parser()
     args = parser.parse_args()

@@ -3,15 +3,16 @@
 import os
 import subprocess
 import tempfile
+from argparse import ArgumentParser
 from pathlib import Path
 
 from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 
 
-def add_config_arg(parser):
+def add_config_arg(parser: ArgumentParser) -> None:
     """Add --config argument to a parser.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     parser.add_argument(
@@ -23,10 +24,10 @@ def add_config_arg(parser):
     )
 
 
-def add_path_arg(parser):
+def add_path_arg(parser: ArgumentParser) -> None:
     """Add positional 'path' argument to a parser.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     parser.add_argument(
@@ -36,10 +37,10 @@ def add_path_arg(parser):
     )
 
 
-def add_events_arg(parser):
+def add_events_arg(parser: ArgumentParser) -> None:
     """Add --events argument to a parser.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     parser.add_argument(
@@ -52,7 +53,9 @@ def add_events_arg(parser):
 def create_temp_file(content: str) -> Path:
     """Create a temporary file with given content.
 
-    :param content: Content to write to the file
+    :param str content: Content to write to the file
+    :return: Path to the created temporary file
+    :rtype: Path
     """
 
     with tempfile.NamedTemporaryFile(
@@ -65,8 +68,10 @@ def create_temp_file(content: str) -> Path:
 def launch_editor(editor: str, temp_path: Path) -> bool:
     """Launch the editor with the given file.
 
-    :param editor: Editor command to use
-    :param temp_path: Path to the file to edit
+    :param str editor: Editor command to use
+    :param Path temp_path: Path to the file to edit
+    :return: True if editor launched successfully, False otherwise
+    :rtype: bool
     """
 
     try:
@@ -86,7 +91,9 @@ def launch_editor(editor: str, temp_path: Path) -> bool:
 def read_file_content(temp_path: Path) -> str | None:
     """Read content from the file after editing.
 
-    :param temp_path: Path to the file to read
+    :param Path temp_path: Path to the file to read
+    :return: File content as string, or None if an error occurred
+    :rtype: str | None
     """
 
     try:
@@ -99,7 +106,11 @@ def read_file_content(temp_path: Path) -> str | None:
 
 
 def prompt_continue() -> bool:
-    """Prompt user to continue after validation failure."""
+    """Prompt user to continue after validation failure.
+
+    :return: True if user wants to continue, False if user cancels
+    :rtype: bool
+    """
 
     try:
         answer = input("Press Enter to continue, or 'q' to cancel: ").strip().lower()
@@ -112,16 +123,16 @@ def prompt_continue() -> bool:
         return False
 
 
-def edit_and_read_temp_file(editor: str, temp_path: Path) -> tuple[str, bool]:
-    """Launch editor, read content, and handle errors.
+def get_content_with_editor(editor: str, temp_path: Path) -> None | str:
+    """Launch editor and read the edited content from a temporary file.
 
-    :param editor: Editor command (e.g., 'nano', 'vim').
-    :param temp_path: Path to the temporary file to be edit.
+    :param str editor: Editor command (e.g., 'nano', 'vim')
+    :param Path temp_path: Path to the temporary file to be edited
+    :return: File content as string, or None if an error occurred.
+    :rtype: str | None
     """
 
     if not launch_editor(editor, temp_path):
-        return "", False
+        return None
     content = read_file_content(temp_path)
-    if content is None:
-        return "", False
-    return content, True
+    return content

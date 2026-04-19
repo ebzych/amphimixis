@@ -1,17 +1,18 @@
 """Build command."""
 
-from amphimixis import Builder, parse_config
-from amphimixis.general import IUI, NullUI, Project
+from argparse import ArgumentParser
 
+from amphimixis import Builder, parse_config
 from amphimixis.cli.utils import add_config_arg, add_path_arg
+from amphimixis.general import IUI, NullUI, Project
 
 HELP_MESSAGE = "Build the project according to the generated configuration files"
 
 
-def add_args(parser):
+def add_args(parser: ArgumentParser) -> None:
     """Add arguments for build command.
 
-    :param parser: subcommand parser to which arguments are added
+    :param ArgumentParser parser: subcommand parser to which arguments are added
     """
 
     add_path_arg(parser)
@@ -21,9 +22,11 @@ def add_args(parser):
 def run_build(project: Project, config_file_path: str, ui: IUI = NullUI()) -> bool:
     """Execute project build.
 
-    :param project: Project instance to build
-    :param config_file_path: Path to YAML configuration file
-    :param ui: User interface for progress display
+    :param Project project: Project instance to build
+    :param str config_file_path: Path to YAML configuration file
+    :param IUI ui: User interface for progress display
+    :return: True if at least one build succeeded, False otherwise
+    :rtype: bool
     """
 
     if not project.builds and not parse_config(
