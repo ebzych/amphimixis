@@ -1,6 +1,5 @@
 """CLI utilities - common functions for CLI commands."""
 
-import os
 import subprocess
 import tempfile
 from argparse import ArgumentParser
@@ -80,11 +79,9 @@ def launch_editor(editor: str, temp_path: Path) -> bool:
     except FileNotFoundError:
         print(f"Error: Editor '{editor}' not found.")
         print("Please set the EDITOR environment variable to a valid editor.")
-        os.unlink(temp_path)
         return False
     except OSError as e:
         print(f"Error launching editor: {e}")
-        os.unlink(temp_path)
         return False
 
 
@@ -101,7 +98,6 @@ def read_file_content(temp_path: Path) -> str | None:
             return f.read()
     except OSError as e:
         print(f"Error reading file: {e}")
-        os.unlink(temp_path)
         return None
 
 
