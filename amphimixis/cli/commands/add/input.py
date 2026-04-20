@@ -39,7 +39,7 @@ def run_add_input() -> bool:
                 return False
 
             if _validate_config(temp_path):
-                config_path = _get_unique_path(base_path)
+                config_path = get_unique_path(base_path)
                 return _save_config(temp_path, config_path)
 
             print("\nValidation failed. Please fix the errors above.")
@@ -84,7 +84,7 @@ def _save_config(temp_path: Path, config_path: Path) -> bool:
     return True
 
 
-def _get_unique_path(base_path: Path) -> Path:
+def get_unique_path(base_path: Path) -> Path:
     """Return a unique file path by adding suffix if base exists.
 
     :param Path base_path: Base path to check

@@ -44,7 +44,26 @@ Run Amphimixis from a working directory that contains your configuration and any
 sudo apt install rsync sshpass linux-tools-common linux-tools
 ```
 
+##
+
 ### Create a configuration file
+
+- Start using provided config file sample
+
+  ```bash
+  amixis init sample-name
+  ```
+
+  Available:
+  - local
+  - distributed
+  - distributed-cross
+
+  Or create config with template:
+
+  ```bash
+  amixis add input
+  ```
 
 - Configuration reference: [config_instruction.md](./config_instruction.md)
 - Example file: [input.yml](./input.yml)

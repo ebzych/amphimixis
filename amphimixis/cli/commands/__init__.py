@@ -1,6 +1,7 @@
 """CLI commands package."""
 
 from amphimixis.cli.commands import (
+    init,
     add,
     analyze,
     build,
@@ -12,6 +13,7 @@ from amphimixis.cli.commands import (
 )
 
 COMMANDS = {
+    "init": init,
     "run": run,
     "analyze": analyze,
     "build": build,

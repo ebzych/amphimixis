@@ -1,16 +1,17 @@
 # Distributed setup for x86 and risc-v with cross-building
 
-build_system: CMake
-runner: Ninja
+# build_system:
+# runner:
+
 platforms:
 - id: 1
   arch: x86
 
 - id: 2
-  arch: riscv
-  address: 10.0.40.2
-  username: root
-  password: password
+  arch:             # Available: x86, riscv, arm
+  address:
+  username:
+  password:
 
 recipes:
 - id: 1
@@ -20,15 +21,15 @@ recipes:
   config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=/opt/toolchains/riscv.cmake"
   # jobs:
 
-list: &executables
-- test/run-tests
+# list: &executables
+# - test/run-tests
 
 builds:
 - build_machine: 1
   run_machine: 1
   recipe_id: 1
-  executables: *executables
+  # executables: *executables
 - build_machine: 1
   run_machine: 2
   recipe_id: 2
-  executables: *executables
+  # executables: *executables

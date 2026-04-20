@@ -1,10 +1,11 @@
 # Simple local setup for x86
 
-build_system: CMake
-runner: Ninja
+# build_system:
+# runner:
+
 platforms:
 - id: 1
-  arch: x86
+  arch: x86          # Available: x86, riscv, arm
 
 recipes:
 - id: 1
@@ -15,5 +16,5 @@ builds:
 - build_machine: 1
   run_machine: 1
   recipe_id: 1
-  executables:
-    - test/run-tests
+  # executables:
+  #   - test/run-tests

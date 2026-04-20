@@ -81,6 +81,8 @@ def main() -> bool:
             config_file = Path(args.config).expanduser().resolve()
 
     match args.command:
+        case "init":
+            return cmd.run_init(args.sample_name)
         case "run":
             target_events = args.events if args.events else None
             return cmd.run_full_pipeline(project, config_file, ui, events=target_events)

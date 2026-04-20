@@ -7,6 +7,9 @@ from .commands import COMMANDS
 
 MAIN_EXAMPLES = """
 Examples:
+  amixis init sample_name
+      → Creates configuration file by sample. Available samples: local, distributed, distributed-cross.
+
   amixis run /path/to/project
       → Performs full project analysis, generates configuration files,
         runs the build process, and performs profiling.
@@ -53,6 +56,10 @@ Examples:
 """
 
 EXAMPLES = {
+    "init": """Examples:
+  amixis init sample_name
+      → Creates configuration file by sample. Available samples: \
+        local, distributed, distributed-cross.""",
     "run": """Examples:
   amixis run /path/to/project
       → Run full pipeline (analyze, build, profile) on project
