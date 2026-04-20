@@ -1,5 +1,9 @@
 """Amphimixis constants"""
 
+from pathlib import Path
+
+DEFAULT_CONFIG_PATH = Path("input.yml").resolve()
+
 AMPHIMIXIS_DIRECTORY_NAME = "amphimixis"
 ANALYZED_FILE_NAME = "amphimixis.analyzed"
 PERF_RECORD_EXT = ".perfdata"

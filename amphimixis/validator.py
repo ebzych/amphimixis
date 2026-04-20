@@ -30,8 +30,10 @@ def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
          True if config is valid
          False if config is invalid or file not exists
     """
-    global _ui
+
+    global _ui, _errors_count
     _ui = ui
+    _errors_count = 0
 
     if not path.exists(config_file_path):
         _logger.error("Config file not found")

@@ -296,7 +296,11 @@ def create_toolchain(
     if isinstance(toolchain_dict, str | int):
         return LaboratoryAssistant.find_toolchain_by_name(str(toolchain_dict))
 
-    toolchain = general.Toolchain()
+    name = toolchain_dict.get("name")
+    if not name:
+        return None
+
+    toolchain = general.Toolchain(str(name))
     for attr in toolchain_dict:
         if attr.lower() in general.ToolchainAttrs:
             toolchain.set(

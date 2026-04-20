@@ -11,6 +11,7 @@ from amphimixis.configurator import (
 )
 from amphimixis.general import general
 from amphimixis.laboratory_assistant import LaboratoryAssistant
+from amphimixis import laboratory_assistant
 from amphimixis.profiler import Profiler
 from amphimixis.shell import Shell
 from amphimixis.validator import validate
@@ -28,4 +29,5 @@ __all__ = [
     "Shell",
     "LaboratoryAssistant",
     "validate",
+    "laboratory_assistant",
 ]

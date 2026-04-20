@@ -2,138 +2,107 @@
 
 """Amphimixis CLI tool for build automation and profiling."""
 
-import pickle
 import sys
 from pathlib import Path
 
-from amphimixis import general, validate, Builder
-from amphimixis.cli import (
-    DEFAULT_CONFIG_PATH,
-    create_parser,
-    run_analyze,
-    run_build,
-    run_compare,
-    run_profile,
-    clean,
-    interactive_clean,
-    show_profiling_result,
-)
+from amphimixis import general
+from amphimixis.cli import create_parser
+from amphimixis.cli.commands import COMMANDS
 from amphimixis.cli.console_animation_printer import ConsoleAnimationPrinter
+from amphimixis.cli.parser import MAIN_EXAMPLES
+from amphimixis.general.constants import DEFAULT_CONFIG_PATH
 
 
-# pylint: disable=too-many-branches,too-many-statements,too-many-return-statements
-def main():
-    """Main function for the Amphimixis CLI tool."""
+def print_help(commands, full=False) -> None:
+    """Print short help without examples.
+
+    :param dict commands: Dictionary of subcommands (name -> module)
+    :param bool full: Whether to show full help with examples
+    """
+
+    print(
+        "amixis [-h] {run, analyze, build, profile, validate, compare, clean, add} ...\n"
+    )
+    print(
+        "Amphimixis — an automated project intelligence and evaluation tool\n"
+        "for performance and migration readiness.\n"
+    )
+    print("options:")
+    print("  -h, --short-help  show short help without examples")
+    print("  --help           show full help with examples\n")
+    print("subcommands:")
+    for name, cmd in commands.items():
+        print(f"  {name:12} - {cmd.HELP_MESSAGE}")
+    if full:
+        print("\n" + MAIN_EXAMPLES)
+
+
+# pylint: disable=too-many-branches
+def main() -> bool:
+    """Main function for the Amphimixis CLI tool.
+
+    :return: True if command succeeded, False otherwise
+    :rtype: bool
+    """
 
     parser = create_parser()
     args = parser.parse_args()
+
+    if args.short_help:
+        print_help(COMMANDS, False)
+        return True
+
+    if args.full_help:
+        print_help(COMMANDS, True)
+        return True
+
+    if args.command is None:
+        print_help(COMMANDS, False)
+        return True
+
     ui = ConsoleAnimationPrinter()
 
-    if args.all and args.clean is None:
-        parser.error("--all can only be used with --clean")
-    if args.clean is not None:
-        builds: dict[str, general.Build] = {}
-        try:
-            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
-                builds: dict[str, general.Build] = pickle.load(file)
-        except FileNotFoundError:
-            print("No builds remember")
-        if args.all:
-            return clean(*builds.values())
-        if len(args.clean) > 0:
-            to_clean: list[general.Build] = []
-            for b in builds.values():
-                if b.build_name in args.clean:
-                    to_clean.append(b)
-            return clean(*to_clean)
-        return interactive_clean()
+    cmd = COMMANDS.get(args.command)
+    if cmd is None:
+        parser.print_help()
+        return False
 
-    if not args.compare and args.max_rows != 20:
-        parser.error("--max-rows can only be used with --compare")
+    project = None
+    if args.command in ("run", "analyze", "build", "profile"):
+        if not args.path:
+            parser.print_help()
+            return False
+        project = general.Project(str(Path(args.path).expanduser().resolve()))
 
-    if args.config is not None:
-        config_file = Path(args.config).expanduser().resolve()
-    else:
+    config_file = None
+    if args.command in ("run", "build", "profile"):
         config_file = DEFAULT_CONFIG_PATH
+        if args.config is not None:
+            config_file = Path(args.config).expanduser().resolve()
 
-    if args.validate:
-        if not validate(args.validate, ui):
-            print(f"{args.validate} is incorrect!!")
-            return 1
-        print(f"{args.validate} is correct!!")
-        return 0
-
-    if args.events == []:
-        target_events = None
-    else:
-        target_events = args.events
-
-    if args.compare:
-        filename1, filename2 = args.compare
-
-        if not run_compare(
-            filename1,
-            filename2,
-            target_events=target_events,
-            max_rows=args.max_rows,
-            ui=ui,
-        ):
-            return 1
-        return 0
-
-    if not args.path:
-        print("Error: please provide path to the project directory.")
-        return 1
-
-    project = general.Project(str(Path(args.path).expanduser().resolve()))
-
-    try:
-        if not any([args.analyze, args.build, args.profile]):
-            if not run_analyze(project, ui):
-                return 1
-
-            if not run_build(project, config_file_path=str(config_file), ui=ui):
-                return 1
-
-            if not run_profile(
-                project, config_file_path=str(config_file), ui=ui, events=target_events
-            ):
-                return 1
-
-            show_profiling_result(project)
-            return 0
-
-        if args.analyze:
-            if not run_analyze(project, ui):
-                return 1
-
-        if args.build:
-            if not run_build(project, config_file_path=str(config_file), ui=ui):
-                return 1
-
-        if args.profile:
-            if not run_profile(
-                project, config_file_path=str(config_file), ui=ui, events=target_events
-            ):
-                return 1
-
-            show_profiling_result(project)
-
-        return 0
-
-    except (
-        FileNotFoundError,
-        ValueError,
-        RuntimeError,
-        LookupError,
-        TypeError,
-        KeyError,
-        OSError,
-        UnicodeDecodeError,
-    ) as e:
-        print(f"Error: {e}")
-        return 1
+    match args.command:
+        case "run":
+            target_events = args.events if args.events else None
+            return cmd.run_full_pipeline(project, config_file, ui, events=target_events)
+        case "analyze":
+            return cmd.run_analyze(project, ui)
+        case "build":
+            return cmd.run_build(project, config_file, ui)
+        case "profile":
+            target_events = args.events if args.events else None
+            return cmd.run_profile(project, config_file, ui, events=target_events)
+        case "validate":
+            return cmd.validate_cmd(args, ui)
+        case "compare":
+            return cmd.run_compare(args, ui)
+        case "clean":
+            return cmd.run_clean(args)
+        case "add":
+            return cmd.run_add(args)
+        case _:
+            parser.print_help()
+            return False
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(0 if main() else 1)
