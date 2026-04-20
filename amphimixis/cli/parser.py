@@ -132,12 +132,6 @@ def create_parser() -> ArgumentParser:
         dest="full_help",
         help="show full help with examples",
     )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version="%(prog)s 0.1.0",
-        help="show version and exit",
-    )
 
     subparsers = parser.add_subparsers(
         dest="command",
