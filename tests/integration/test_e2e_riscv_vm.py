@@ -40,7 +40,7 @@ def test_e2e_riscv_vm(riscv_vm_run_and_install_packages):
 
         os.chdir(wd_path)
         result = subprocess.run(
-            ["python3", orig_dir / "amixis.py", str(repo_path)],
+            ["python3", orig_dir / "amixis.py", "run", str(repo_path)],
             capture_output=True,
             text=True,
         )
