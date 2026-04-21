@@ -78,7 +78,7 @@ def parse_config(
         runner = build_systems_dict[build_system][1][0](project, ui)
     else:  # if build system doesn't have runners (like Make)
         runner = DummyRunner()
-    project.build_system = build_systems_dict[build_system][0](project, runner, ui)
+    project.build_system = build_systems_dict[build_system][0](project, runner)
 
     for build in input_config["builds"]:
         if not _create_build(

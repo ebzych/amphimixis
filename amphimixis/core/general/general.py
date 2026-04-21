@@ -1,6 +1,7 @@
 """The common module that is used in most other modules"""
 
 import os
+import logging
 import queue
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -324,7 +325,6 @@ class IHighLevelBuildSystem(ABC):
         self,
         project: "Project",
         runner: ILowLevelBuildSystem,
-        ui: IUI = NullUI(),
     ):
         pass
 
@@ -361,6 +361,15 @@ class BuildSystem:
 
     _MAX_DEPTH = 3
 
+    class CustomLogger(logging.LoggerAdapter):
+        """Custom logger to add build name to log messages."""
+
+        def process(self, msg, kwargs):
+            prefix = ""
+            if "build" in self.extra:
+                prefix = self.extra["build"] + " | "
+            return f"{prefix}{msg}", kwargs
+
     def __init__(
         self,
         project: "Project",
@@ -368,8 +377,9 @@ class BuildSystem:
         ui: IUI = NullUI(),
     ):
         self._project = project
-        self._ui = ui
         self.runner = runner
+        self._ui = ui
+        self._logger: BuildSystem.CustomLogger
 
     def find_relative_path(self, file_name: str) -> str:
         """Find first directory that contains 'file_name' relative to project root.
