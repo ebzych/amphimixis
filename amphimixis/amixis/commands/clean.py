@@ -72,7 +72,7 @@ def interactive_clean() -> bool:
     project: Project
     try:
         project = tools.get_cache_project()
-        with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+        with open(Builder.BUILD_LIST_FILE_NAME, "rb") as file:
             builds = pickle.load(file)
     except FileNotFoundError:
         pass
@@ -110,7 +110,7 @@ def run_clean(args: Namespace) -> bool:
 
     builds_dict: dict[str, Build] = {}
     try:
-        with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as f:
+        with open(Builder.BUILD_LIST_FILE_NAME, "rb") as f:
             builds_dict = pickle.load(f)
     except FileNotFoundError:
         print("No builds remembered.")
