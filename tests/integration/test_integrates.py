@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 import amphimixis
-from amphimixis import cli, general
+from amphimixis import general
+from amphimixis.cli.commands.build import run_build
 
 NAME_EXECUTABLE_FILE = "a.out"
 NAME_FILE_C_PROGRAM = "main.c"
@@ -60,7 +61,7 @@ def test_between_configurator_and_builder(
     orig_dir = Path.cwd()
     try:
         os.chdir(working_dir)
-        result = cli.commands.run_build(project, config_file)
+        result = run_build(project, config_file)
         assert result == expected_result
     finally:
         os.chdir(orig_dir)
