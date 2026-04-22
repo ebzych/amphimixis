@@ -27,8 +27,8 @@ class _ParamikoHandler(IShellHandler):
                 username=machine.auth.username,
                 password=machine.auth.password,
                 timeout=connect_timeout,
-                look_for_keys=True,
-                allow_agent=True,
+                look_for_keys=(machine.auth.password is None),
+                allow_agent=(machine.auth.password is None),
             )
         except (paramiko.SSHException, socket.error) as e:
             raise paramiko.SSHException(f"Can't connect to ssh {machine}: {e}")

@@ -302,19 +302,27 @@ class Shell:
 
         port = self.machine.auth.port
         # if None or empty string, ssh-agent is supposed
-        password = self.machine.auth.password or "nopasswd"
+        password = self.machine.auth.password
 
         return self._copy_remote(source, destination, password, port)
 
     def _copy_remote(
-        self, source: str, destination: str, password: str, port: int
+        self, source: str, destination: str, password: str | None, port: int
     ) -> bool:
         self._logger.info("Copying %s -> %s", source, destination)
+        sshcmd = ["ssh", "-o", "StrictHostKeyChecking=no"]
+        if password:
+            sshcmd += [
+                "-o",
+                "PubkeyAuthentication=no",
+                "-o",
+                "PasswordAuthentication=yes",
+            ]
+        sshcmd += ["-p", str(port)]
         error_code = subprocess.call(
-            [
-                "sshpass",
-                "-p",
-                password,
+            ["sshpass"]
+            + (["-p", password] if password else [])
+            + [
                 "rsync",
                 "--checksum",
                 "--archive",
@@ -325,7 +333,7 @@ class Shell:
                 "--compress",
                 "--log-file=./amphimixis.log",
                 "-e",
-                f"ssh -o StrictHostKeyChecking=no -p {port}",
+                " ".join(sshcmd),
                 source,
                 destination,
             ]

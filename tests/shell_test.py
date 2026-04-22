@@ -267,13 +267,32 @@ class TestShell:
         assert shell._copy_local("/tmp/src", "/tmp/dst") is expected
 
     @pytest.mark.parametrize(("return_code", "expected"), [(0, True), (1, False)])
-    def test_copy_remote_returns_bool_from_rsync(self, return_code, expected, mocker):
+    def test_copy_remote_returns_bool_from_rsync_pwd(
+        self, return_code, expected, mocker
+    ):
         shell = Shell(project, self.remote_machine)
         call = mocker.patch("subprocess.call", return_value=return_code)
 
         assert shell._copy_remote("/tmp/src", "/tmp/dst", "secret", 2222) is expected
         args = call.call_args.args[0]
         assert args[:4] == ["sshpass", "-p", "secret", "rsync"]
+        assert "--checksum" in args
+        assert "--archive" in args
+        assert (
+            "ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes -p 2222"
+            in args
+        )
+
+    @pytest.mark.parametrize(("return_code", "expected"), [(0, True), (1, False)])
+    def test_copy_remote_returns_bool_from_rsync_key(
+        self, return_code, expected, mocker
+    ):
+        shell = Shell(project, self.remote_machine)
+        call = mocker.patch("subprocess.call", return_value=return_code)
+
+        assert shell._copy_remote("/tmp/src", "/tmp/dst", None, 2222) is expected
+        args = call.call_args.args[0]
+        assert args[:2] == ["sshpass", "rsync"]
         assert "--checksum" in args
         assert "--archive" in args
         assert "ssh -o StrictHostKeyChecking=no -p 2222" in args
