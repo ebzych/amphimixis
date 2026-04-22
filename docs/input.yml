@@ -2,21 +2,23 @@ build_system: CMake
 runner: Ninja
 platforms:
 - id: 1
-  address:
+  address: 192.169.52.67
   arch: x86
   username: root
-  port: 22
   password: password
+  port: 22
 
 recipes:
 - id: 1
-  config_flags: -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYAML_CPP_BUILD_TESTS=ON
+  config_flags:
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    -DYAML_CPP_BUILD_TESTS=ON
   compiler_flags:
     cxx_flags: "-O2"
+  jobs: 4
   toolchain:
     cxx_compiler: /usr/bin/g++
   sysroot: /
-  jobs: 4
 
 builds:
 - build_machine: 1

@@ -10,6 +10,12 @@
 
 Amphimixis is an automated project intelligence and evaluation tool for performance and migration readiness. It helps inspect a project for existing infrastructure such as CI, tests, benchmarks, dependencies, and build scripts, then runs builds and collects performance data for further comparison.
 
+> Amphimixis use `perf` for profiling, make cross-table with two builds per CPU event for comparison.
+
+<p align="center">
+  <img src="docs/tinyxml2-cross-table-example.png" alt="Cross-table example" width="800"><br>
+</p>
+
 ## Quick run
 
 If you want to try Amphimixis right away, create a virtual environment, install the package from GitHub, and run the full pipeline on a target project:
@@ -22,7 +28,15 @@ amixis init local
 amixis run /path/to/project --config local.yml
 ```
 
-Before you run it, make sure your project has an `input.yml` configuration file. The format is described in [Config instruction](docs/config_instruction.md).
+<p align="left">
+
+<img align="right" src="docs/config-example.png" alt="Configuration file example" width="300">
+
+## Note
+
+By default, your working directory must have an `input.yml` or other configuration file that you can specify with the `--config` flag. The format is described in [Config instruction](docs/config_instruction.md).
+
+</p>
 
 If your `input.yml` contains remote machines authenticated with SSH keys, start `ssh-agent` in the current shell and add the required keys manually before running `amixis`:
 
@@ -49,10 +63,10 @@ ssh-add ~/.ssh/id_remote_machine
 
 Amphimixis can:
 
-- analyze a project for CI, tests, benchmarks, build system configuration, and dependencies
-- build the project with configured recipes and platforms
-- profile executable runs and collect timing and `perf`-based statistics
-- compare profiling outputs produced for different builds
+- <i>analyze</i> a project for CI, tests, benchmarks, build system configuration, and dependencies
+- <i>build</i> the project with configured recipes and platforms
+- <i>profile</i> executable runs and collect timing and `perf`-based statistics
+- <i>compare</i> profiling outputs produced for different builds and put them into a <u><i>cross-table for each CPU event</i></u>
 
 ## Typical usage
 
