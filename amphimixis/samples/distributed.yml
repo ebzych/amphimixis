@@ -1,0 +1,32 @@
+# Distributed setup for x86 and risc-v
+
+# build_system:
+# runner:
+
+platforms:
+- id: 1
+  arch: x86
+
+- id: 2
+  arch:             # Available: x86, riscv, arm
+  address:
+  username:
+  password:
+
+recipes:
+- id: 1
+  config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+  # jobs:
+
+# list: &executables
+# - test/run-tests
+
+builds:
+- build_machine: 1
+  run_machine: 1
+  recipe_id: 1
+  # executables: *executables
+- build_machine: 2
+  run_machine: 2
+  recipe_id: 1
+  # executables: *executables

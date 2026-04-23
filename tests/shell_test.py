@@ -6,9 +6,9 @@ from ctypes import ArgumentError
 
 import pytest
 
-import amphimixis
-from amphimixis.general import constants
-from amphimixis.shell.shell import Shell
+import amphimixis.core as amphimixis
+from amphimixis.core.general import constants
+from amphimixis.core.shell.shell import Shell
 
 project = amphimixis.general.Project("/tmp/amphimixis", [])  # type: ignore
 READING_BARRIER_STDOUT = 'echo "\nREADING_BARRIER_FLAG:$?"'
@@ -121,7 +121,7 @@ class TestShell:
     def test_connect_uses_local_handler_for_local_machine(self, mocker):
         handler = FakeHandler()
         local_factory = mocker.patch(
-            "amphimixis.shell.shell._LocalShellHandler", return_value=handler
+            "amphimixis.core.shell.shell._LocalShellHandler", return_value=handler
         )
         paranoid = mocker.patch.object(Shell, "set_paranoid", return_value=(-1, True))
 
@@ -150,7 +150,7 @@ class TestShell:
         handler = FakeHandler()
         mocker.patch("socket.getaddrinfo", return_value=[object()])
         remote_factory = mocker.patch(
-            "amphimixis.shell.shell._ParamikoHandler", return_value=handler
+            "amphimixis.core.shell.shell._ParamikoHandler", return_value=handler
         )
         paranoid = mocker.patch.object(Shell, "set_paranoid", return_value=(-1, True))
 

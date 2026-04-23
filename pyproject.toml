@@ -5,31 +5,25 @@ description = "Build automation and profiling tool for Linux projects across var
 readme = "README.md"
 license-files = ["LICENSE", "third_party_licenses/*.LICENSE"]
 authors = [
-    {name = "Egor Bzychkin", email = "bzychkin.egor@gmail.com"},
-    {name = "Dmitrii Bordukov", email = "dabordukov@mail.ru"},
-    {name = "Valeria Churikova", email = "curikovalera3@gmail.com"},
-    {name = "Michael Mishin", email = "mishamishin17@gmail.com"},
-    {name = "Julia Adodina", email = "juliaadod@gmail.com"},
-    {name = "Maria Novik", email = "novikmaria36@gmail.com"}
+    { name = "Egor Bzychkin", email = "bzychkin.egor@gmail.com" },
+    { name = "Dmitrii Bordukov", email = "dabordukov@mail.ru" },
+    { name = "Valeria Churikova", email = "curikovalera3@gmail.com" },
+    { name = "Michael Mishin", email = "mishamishin17@gmail.com" },
+    { name = "Julia Adodina", email = "juliaadod@gmail.com" },
+    { name = "Maria Novik", email = "novikmaria36@gmail.com" },
 ]
 requires-python = ">=3.12"
 
-dependencies = [
-    "pandas",
-    "pyyaml",
-    "paramiko",
-    "openai",
-]
+dependencies = ["pandas", "pyyaml", "paramiko", "openai"]
 
 [tool.setuptools]
-py-modules = ["amixis"]
 include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["amphimixis*"]
 
 [tool.setuptools.package-data]
-"amphimixis" = ["../samples/*.yml"]
+"amphimixis" = ["samples/*.yml"]
 
 [dependency-groups]
 dev = [
@@ -56,4 +50,4 @@ disable_error_code = ["import-untyped", "annotation-unchecked"]
 profile = "black"
 
 [project.scripts]
-amixis = "amixis:main"
+amixis = "amphimixis.amixis.__main__:main"
