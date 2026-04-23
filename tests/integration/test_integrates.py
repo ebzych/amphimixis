@@ -7,7 +7,7 @@ import pytest
 
 import amphimixis
 from amphimixis import general
-from amphimixis.cli.commands.build import run_build
+from amphimixis.amixis.commands.build import run_build
 
 NAME_EXECUTABLE_FILE = "a.out"
 NAME_FILE_C_PROGRAM = "main.c"
