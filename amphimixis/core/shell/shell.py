@@ -123,7 +123,7 @@ class Shell:
             cmd_stderr: List[str] = []
             while line := self._shell.stdout_readline():
                 self._ui.step()
-                if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
+                if line[:-1] == _READING_BARRIER_FLAG:
                     error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
                     if cmd_stdout[-1] == "\n":
                         del cmd_stdout[-1]
