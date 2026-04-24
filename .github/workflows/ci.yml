@@ -172,4 +172,3 @@ jobs:
           include-hidden-files: true
           path: |
             /tmp/test_workspace_*
->>>>>>> 57cfdbc (fix(ci): add installing qemu-system in ci.yml, replace using yaml-cpp with tinyxml2 in tests end-to-end)
