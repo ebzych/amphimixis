@@ -40,15 +40,18 @@ def test_e2e_riscv_vm(riscv_vm_run_and_install_packages):
 
         os.chdir(wd_path)
         result = subprocess.run(
-            ["python3", orig_dir / "amixis.py", "run", str(repo_path)],
+            [
+                "python3",
+                orig_dir / "amphimixis" / "amixis" / "__main__.py",
+                "run",
+                str(repo_path),
+            ],
             capture_output=True,
             text=True,
         )
 
         assert result.returncode == 0
     finally:
-        with open("./amphimixis.log", "r") as f:
-            print(f.read())
         os.chdir(orig_dir)
 
 
