@@ -147,8 +147,9 @@ class Shell:
         return (error_code, stdout, stderr)
 
     def copy_to_remote(self, source: str, destination: str) -> bool:
-        """Send a file or folder to the target machine
-        Absolute paths are needed
+        """Send a file or folder to the target machine.
+
+        Absolute paths are needed.
 
         :param str source: absolute path to a file or folder on the host machine
         :param str destination: absolute path to copy a file or folder to on the controlled machine
@@ -165,8 +166,9 @@ class Shell:
         return self._copy(source, _destination)
 
     def copy_to_host(self, source: str, destination: str) -> bool:
-        """Gets a file or folder from the target machine
-        Absolute paths are needed
+        """Gets a file or folder from the target machine.
+
+        Absolute paths are needed.
 
         :param str source: absolute path to a file or folder on the controlled machine
         :param str destination: absolute path to copy a file or folder to on the host machine
@@ -182,8 +184,7 @@ class Shell:
         return self._copy(_source, destination)
 
     def get_project_workdir(self) -> str:
-        """Gets a working directory for amphimixis
-
+        """Gets a working directory for amphimixis.
 
         :rtype: str
         :return: In case of remote machine:
@@ -259,7 +260,8 @@ class Shell:
         """Gets a directory for the project source code on the target machine.
 
         :rtype: str
-        :return: In case of remote machine: expanded `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}`.\n
+        :return: In case of remote machine: expanded
+        `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}`.\n
                  In case of local machine: project path."""
 
         if self._is_local:
@@ -272,8 +274,7 @@ class Shell:
         )
 
     def set_paranoid(self, level: int) -> tuple[int, bool]:
-        """
-        Sets perf_event_paranoid to the given level.
+        """Sets perf_event_paranoid to the given level.
 
         :param int level: The level to set perf_event_paranoid to.
                           Should be an integer between -1 and 3.
