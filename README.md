@@ -10,7 +10,7 @@
 
 Amphimixis is an automated project intelligence and evaluation tool for performance and migration readiness. It helps inspect a project for existing infrastructure such as CI, tests, benchmarks, dependencies, and build scripts, then runs builds and collects performance data for further comparison.
 
-> Amphimixis use `perf` for profiling, make cross-table with two builds per CPU event for comparison.
+> Amphimixis uses `perf` for profiling, makes cross-table with two builds per CPU event for comparison.
 
 <p align="center">
   <img src="docs/tinyxml2-cross-table-example.png" alt="Cross-table example" width="800"><br>
