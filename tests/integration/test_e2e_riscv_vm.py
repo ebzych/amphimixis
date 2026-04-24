@@ -166,7 +166,7 @@ def run_command(command: str) -> int:
     Uses sshpass for password authentication to connect to the running VM.
     The VM must be accessible on localhost with root/root credentials."""
 
-    subprocess.run(
+    result = subprocess.run(
         [
             "sshpass",
             "-p",
