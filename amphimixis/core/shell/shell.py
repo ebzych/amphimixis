@@ -3,6 +3,7 @@
 import os
 import socket
 import subprocess
+import threading
 from ctypes import ArgumentError
 from typing import List, Self, Tuple
 
@@ -43,6 +44,7 @@ class Shell:
         self._homedir: str = ""
         self._is_connected: bool = False
         self._is_local: bool = False
+        self._ui_lock = threading.Lock()
 
     def connect(self) -> Self:
         """Connect to the shell of the machine."""
@@ -94,7 +96,6 @@ class Shell:
             OR
             all commands have been executed.
 
-
         :param str *commands: commands to be executed
 
         :rtype: Tuple[int, List[List[str]], List[List[str]]]
@@ -121,30 +122,50 @@ class Shell:
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}">&2')
             cmd_stdout: List[str] = []
             cmd_stderr: List[str] = []
-            while line := self._shell.stdout_readline():
-                self._ui.step()
-                if line[:-1] == _READING_BARRIER_FLAG:
-                    error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
-                    if cmd_stdout[-1] == "\n":
-                        del cmd_stdout[-1]
-                    else:
-                        cmd_stdout[-1] = cmd_stdout[-1][:-1]
-                    break
-                cmd_stdout.append(line)
-            stdout.append(cmd_stdout)
+            command_error_code: List[int] = []
 
-            while line := self._shell.stderr_readline():
-                self._ui.step()
-                if line[:-1] == _READING_BARRIER_FLAG:
-                    if cmd_stderr[-1] == "\n":
-                        del cmd_stderr[-1]
-                    else:
-                        cmd_stderr[-1] = cmd_stderr[-1][:-1]
-                    break
-                cmd_stderr.append(line)
+            stdout_reader = threading.Thread(
+                target=self._read_stdout_until_barrier,
+                args=(cmd_stdout, command_error_code),
+            )
+            stderr_reader = threading.Thread(
+                target=self._read_stderr_until_barrier, args=(cmd_stderr,)
+            )
+
+            stdout_reader.start()
+            stderr_reader.start()
+            stdout_reader.join()
+            stderr_reader.join()
+
+            error_code = command_error_code[0]
+            stdout.append(cmd_stdout)
             stderr.append(cmd_stderr)
 
         return (error_code, stdout, stderr)
+
+    def _read_stdout_until_barrier(
+        self, output: List[str], error_code: List[int]
+    ) -> None:
+        while line := self._shell.stdout_readline():
+            self._ui.step()
+
+            barrier_error = self._parse_stdout_barrier(line)
+            if barrier_error is not None:
+                error_code.append(barrier_error)
+                self._strip_barrier_separator(output)
+                return
+
+            output.append(line)
+
+    def _read_stderr_until_barrier(self, output: List[str]) -> None:
+        while line := self._shell.stderr_readline():
+            self._ui.step()
+
+            if self._is_stderr_barrier(line):
+                self._strip_barrier_separator(output)
+                return
+
+            output.append(line)
 
     def copy_to_remote(self, source: str, destination: str) -> bool:
         """Send a file or folder to the target machine
@@ -355,3 +376,26 @@ class Shell:
 
         self._logger.info("Success %s -> %s", source, destination)
         return True
+
+    @staticmethod
+    def _parse_stdout_barrier(line: str) -> int | None:
+        stripped = line.strip()
+        prefix = f"{_READING_BARRIER_FLAG}:"
+        if not stripped.startswith(prefix):
+            return None
+        return int(stripped[len(prefix) :])
+
+    @staticmethod
+    def _is_stderr_barrier(line: str) -> bool:
+        return line.strip() == _READING_BARRIER_FLAG
+
+    @staticmethod
+    def _strip_barrier_separator(lines: List[str]) -> None:
+        if not lines:
+            return
+
+        if lines[-1] == "\n":
+            lines.pop()
+            return
+
+        lines[-1] = lines[-1][:-1]

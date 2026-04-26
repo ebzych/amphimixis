@@ -30,3 +30,4 @@ class IShellHandler(ABC):
         :rtype: str
         :return: the next line from stderr
         """
+        raise NotImplementedError
