@@ -308,10 +308,6 @@ class ILowLevelBuildSystem(ABC):
     """Interface for classes implementing interaction with runner (low-level build-system)"""
 
     @abstractmethod
-    def __init__(self, project: "Project", ui: IUI = NullUI()):
-        pass
-
-    @abstractmethod
     def run_building(self, build: "Build") -> tuple[int, str, str]:
         """Run building via build system"""
 
@@ -321,14 +317,6 @@ class IHighLevelBuildSystem(ABC):
     """Interface for classes implementing interaction with build system (high-level build-system)"""
 
     @abstractmethod
-    def __init__(
-        self,
-        project: "Project",
-        runner: ILowLevelBuildSystem,
-    ):
-        pass
-
-    @abstractmethod
     def build(self, build: "Build") -> tuple[int, str, str]:
         """Build via build system"""
 
@@ -336,7 +324,7 @@ class IHighLevelBuildSystem(ABC):
 class DummyRunner(ILowLevelBuildSystem):
     """Runner that does nothing"""
 
-    def __init__(self):
+    def __init__(self, project=None, ui: IUI = NullUI()):
         pass
 
     def run_building(self, build: "Build") -> tuple[int, str, str]:
@@ -347,7 +335,12 @@ class DummyRunner(ILowLevelBuildSystem):
 class DummyBuildSystem(IHighLevelBuildSystem):
     """Build system that does nothing"""
 
-    def __init__(self):
+    def __init__(
+        self,
+        project=None,
+        runner: ILowLevelBuildSystem = DummyRunner(),
+        ui: IUI = NullUI(),
+    ):
         pass
 
     def build(self, build: "Build") -> tuple[int, str, str]:
@@ -403,6 +396,16 @@ class BuildSystem:
         raise FileNotFoundError(f"Can't find {file_name}")
 
 
+class BuildSystemIsNotHighLevel(TypeError):
+    """Exception when getting build system (inherited from BuildSystem)
+    that doesn't implement IHighLevelBuildSystem"""
+
+
+class BuildSystemIsNotLowLevel(TypeError):
+    """Exception when getting runner (inherited from BuildSystem)
+    that doesn't implement ILowLevelBuildSystem"""
+
+
 @dataclass
 class Build:
     """Class with information about one build of project
@@ -436,7 +439,7 @@ class Project:
 
     :var str path: Path to project for research.
     :var list[Build] builds: List of project configurations to be build.
-    :var IHighLevelBuildSystem build_system: High-level build system.
+    :var BuildSystem | IHighLevelBuildSystem build_system: High-level build system.
     """
 
     builds: list[Build]
@@ -445,7 +448,7 @@ class Project:
         self,
         path: str,
         builds: list[Build] | None = None,
-        build_system: IHighLevelBuildSystem = DummyBuildSystem(),
+        build_system: BuildSystem | IHighLevelBuildSystem = DummyBuildSystem(),
     ):
         self.path: str = path
         if builds is None:  # what's wrong with python?? (pylint W0102)
@@ -454,4 +457,6 @@ class Project:
             self.builds = builds
         if not isinstance(self.builds, list):
             raise TypeError("class Project: 'builds' must have a list type")
+        if not isinstance(build_system, IHighLevelBuildSystem):
+            raise BuildSystemIsNotHighLevel
         self.build_system = build_system

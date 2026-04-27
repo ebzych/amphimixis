@@ -20,7 +20,10 @@ from amphimixis.core.general.general import (
     ProjectStats,
     Toolchain,
     ToolchainAttrs,
+    BuildSystemIsNotHighLevel,
+    BuildSystemIsNotLowLevel,
 )
+
 
 __all__ = [
     "Project",
@@ -45,4 +48,6 @@ __all__ = [
     "ProjectStats",
     "DummyBuildSystem",
     "DummyRunner",
+    "BuildSystemIsNotHighLevel",
+    "BuildSystemIsNotLowLevel",
 ]

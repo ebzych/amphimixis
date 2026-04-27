@@ -7,9 +7,14 @@ from typing import Any, SupportsInt
 
 import yaml
 
-from amphimixis.core.build_systems import build_systems_dict, runners_dict
+from amphimixis.core.build_systems import (
+    get_build_system,
+    get_runner,
+    get_build_system_runner,
+)
 from amphimixis.core.general import (
     IUI,
+    BuildSystem,
     DummyRunner,
     MachineInfo,
     NullUI,
@@ -61,24 +66,30 @@ def parse_config(
     with open(config_file_path, "r", encoding="UTF-8") as file:
         input_config = yaml.safe_load(file)
 
-    build_system: str | None = str(input_config.get("build_system")).lower()
-    if build_system not in build_systems_dict:
-        if not (build_system := _get_analyzed_build_system()):
+    build_system_name: str = str(input_config.get("build_system")).lower()
+    runner_name: str = str(input_config.get("runner", None)).lower()
+
+    if not get_build_system(str(build_system_name)):
+        if not (build_system_name := str(_get_analyzed_build_system())):
             _logger.error("Did not find any proper build_system")
             ui.mark_failed("Config: no build system found")
             return False
-    runner_name = str(input_config.get("runner", None)).lower()
-    if (
-        runner_name
-        and runner_name in runners_dict
-        and runners_dict[runner_name] in build_systems_dict[build_system][1]
-    ):
-        runner = runners_dict[runner_name](project, ui)
-    elif len(build_systems_dict[build_system][1]) > 0:
-        runner = build_systems_dict[build_system][1][0](project, ui)
-    else:  # if build system doesn't have runners (like Make)
-        runner = DummyRunner()
-    project.build_system = build_systems_dict[build_system][0](project, runner)
+    build_system = get_build_system(build_system_name)
+    if not build_system:
+        ui.mark_failed(f"Unknown build system: {build_system_name}")
+        return False
+
+    runner: type[BuildSystem | DummyRunner] | None
+    if runner_name:
+        runner = get_runner(runner_name)
+    if runner is None:
+        runner = get_build_system_runner(build_system_name)
+    if runner is None:
+        runner = DummyRunner
+
+    project.build_system = build_system(
+        project, runner(project=project, ui=ui), ui  # type: ignore[arg-type]
+    )  # type: ignore[assignment]
 
     for build in input_config["builds"]:
         if not _create_build(
@@ -266,9 +277,7 @@ def _get_analyzed_build_system() -> str | None:
         raise TypeError("Incorrect build systems list")
 
     build_system = build_systems[0].lower()
-    if (
-        build_system in build_systems_dict
-    ):  # take first (in priority) found build system
+    if get_build_system(build_system):  # take first (in priority) found build system
         return build_system
 
     return None
