@@ -211,7 +211,11 @@ class Shell:
         return self._project_workdir
 
     def get_home(self) -> str:
-        """Gets a home directory for current connection (user@machine)"""
+        """Gets a home directory for current connection (user@machine).
+
+        :rtype: str
+        :return: Expanded `~` for the current connection (user@machine).
+        """
 
         if self._homedir != "":
             return self._homedir
@@ -251,8 +255,13 @@ class Shell:
         self._homedir = stdout[0][0].strip()
         return self._homedir
 
-    def get_source_dir(self):
-        """Gets a directory for the project source code on the target machine."""
+    def get_source_dir(self) -> str:
+        """Gets a directory for the project source code on the target machine.
+
+        :rtype: str
+        :return: In case of remote machine: expanded `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}`.\n
+                 In case of local machine: project path."""
+
         if self._is_local:
             return self.project.path
 
