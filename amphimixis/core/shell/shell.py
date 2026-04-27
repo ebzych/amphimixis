@@ -168,8 +168,9 @@ class Shell:
             output.append(line)
 
     def copy_to_remote(self, source: str, destination: str) -> bool:
-        """Send a file or folder to the target machine
-        Absolute paths are needed
+        """Send a file or folder to the target machine.
+
+        Absolute paths are needed.
 
         :param str source: absolute path to a file or folder on the host machine
         :param str destination: absolute path to copy a file or folder to on the controlled machine
@@ -186,8 +187,9 @@ class Shell:
         return self._copy(source, _destination)
 
     def copy_to_host(self, source: str, destination: str) -> bool:
-        """Gets a file or folder from the target machine
-        Absolute paths are needed
+        """Gets a file or folder from the target machine.
+
+        Absolute paths are needed.
 
         :param str source: absolute path to a file or folder on the controlled machine
         :param str destination: absolute path to copy a file or folder to on the host machine
@@ -203,8 +205,7 @@ class Shell:
         return self._copy(_source, destination)
 
     def get_project_workdir(self) -> str:
-        """Gets a working directory for amphimixis
-
+        """Gets a working directory for amphimixis.
 
         :rtype: str
         :return: In case of remote machine:
@@ -232,7 +233,11 @@ class Shell:
         return self._project_workdir
 
     def get_home(self) -> str:
-        """Gets a home directory for current connection (user@machine)"""
+        """Gets a home directory for current connection (user@machine).
+
+        :rtype: str
+        :return: Expanded `~` for the current connection (user@machine).
+        """
 
         if self._homedir != "":
             return self._homedir
@@ -272,8 +277,14 @@ class Shell:
         self._homedir = stdout[0][0].strip()
         return self._homedir
 
-    def get_source_dir(self):
-        """Gets a directory for the project source code on the target machine."""
+    def get_source_dir(self) -> str:
+        """Gets a directory for the project source code on the target machine.
+
+        :rtype: str
+        :return: In case of remote machine: expanded
+        `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}`.\n
+                 In case of local machine: project path."""
+
         if self._is_local:
             return self.project.path
 
@@ -284,8 +295,7 @@ class Shell:
         )
 
     def set_paranoid(self, level: int) -> tuple[int, bool]:
-        """
-        Sets perf_event_paranoid to the given level.
+        """Sets perf_event_paranoid to the given level.
 
         :param int level: The level to set perf_event_paranoid to.
                           Should be an integer between -1 and 3.
