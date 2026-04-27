@@ -32,12 +32,13 @@ class Ninja(BuildSystem, ILowLevelBuildSystem):
         self._logger = BuildSystem.CustomLogger(logger.setup_logger("NINJA"), {})
 
     def run_building(self, build: Build) -> tuple[int, str, str]:
-        """Run ninja in the build directory.
+        """Run configured building via `Ninja`.
+        It run building without configuring (build has been configured).
 
-        :param Build build: Build configuration
+
+        :param Build build: Build to building
         :rtype: tuple[int, str, str]
-        :return: Tuple of error_code, stdout, stderr
-        """
+        :return: error code, stdout and stderr joined with '\\n'"""
         self._logger.extra["build"] = build.build_name  # type: ignore[index]
         shell = Shell(self._project, build.build_machine, self._ui).connect()
         build_path = os.path.join(shell.get_project_workdir(), build.build_name)

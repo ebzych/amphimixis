@@ -309,7 +309,14 @@ class ILowLevelBuildSystem(ABC):
 
     @abstractmethod
     def run_building(self, build: "Build") -> tuple[int, str, str]:
-        """Run building via build system"""
+        """Run configured building via build system.
+        It run building without configuring (build has been configured).
+        For example, `Ninja` cannot configure, it is only meant for building.
+
+
+        :param Build build: Build to building
+        :rtype: tuple[int, str, str]
+        :return: error code, stdout and stderr joined with '\\n'"""
 
 
 # pylint: disable=too-few-public-methods
@@ -318,7 +325,11 @@ class IHighLevelBuildSystem(ABC):
 
     @abstractmethod
     def build(self, build: "Build") -> tuple[int, str, str]:
-        """Build via build system"""
+        """Configure and run building via build system.
+
+        :param Build build: Build to building
+        :rtype: tuple[int, str, str]
+        :return: error code, stdout and stderr joined with '\\n'"""
 
 
 class DummyRunner(ILowLevelBuildSystem):
@@ -328,6 +339,9 @@ class DummyRunner(ILowLevelBuildSystem):
         pass
 
     def run_building(self, build: "Build") -> tuple[int, str, str]:
+        """Build nothing independent of the specified build
+
+        :return: (0, "", "")"""
         return (0, "", "")
 
 
@@ -344,7 +358,9 @@ class DummyBuildSystem(IHighLevelBuildSystem):
         pass
 
     def build(self, build: "Build") -> tuple[int, str, str]:
-        """Build via build system"""
+        """Configure and build nothing independent of the specified build
+
+        :return: (0, "", "")"""
         return (0, "", "")
 
 
@@ -376,6 +392,7 @@ class BuildSystem:
 
     def find_relative_path(self, file_name: str) -> str:
         """Find first directory that contains 'file_name' relative to project root.
+
         :param str file_name: Name of file to search relative to project root.
         :rtype: str
         :return: Path to directory that contains file relative to project root

@@ -42,11 +42,11 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
         self._logger = BuildSystem.CustomLogger(logger.setup_logger("MAKE"), {})
 
     def build(self, build: Build) -> tuple[int, str, str]:
-        """Build via Make
+        """Configure and run building via `Make`.
 
-        :param Build build: Build to build
+        :param Build build: Build to building
         :rtype: tuple[int, str, str]
-        :return: Tuple of error_code, stdout, stderr"""
+        :return: error code, stdout and stderr joined with '\\n'"""
         self._ui.send_warning(
             build.build_name,
             Make._GNU_standard_compatibility_warn_msg,
@@ -56,10 +56,13 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
         return self._build_install_clean(build, configure=True)
 
     def run_building(self, build: Build) -> tuple[int, str, str]:
-        """Run building via Make
+        """Run configured building via `Make`.
+        It run building without configuring (build has been configured).
 
-        :param Build build: Build to run building
-        :return: Tuple of error code, stdout and stderr"""
+
+        :param Build build: Build to building
+        :rtype: tuple[int, str, str]
+        :return: error code, stdout and stderr joined with '\\n'"""
         return self._build_install_clean(build)
 
     # pylint: disable=too-many-locals

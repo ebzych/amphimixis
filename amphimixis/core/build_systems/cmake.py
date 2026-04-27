@@ -42,11 +42,11 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
         self._logger = BuildSystem.CustomLogger(logger.setup_logger("CMAKE"), {})
 
     def build(self, build: Build) -> tuple[int, str, str]:
-        """Configure and build via CMake
+        """Configure and run building via `CMake`.
 
-        :param Build build: Build to build
+        :param Build build: Build to building
         :rtype: tuple[int, str, str]
-        :return: Tuple of error_code, stdout, stderr"""
+        :return: error code, stdout and stderr joined with '\\n'"""
         self._logger.extra["build"] = build.build_name  # type: ignore[index]
         shell = Shell(self._project, build.build_machine, self._ui).connect()
 
