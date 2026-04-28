@@ -53,6 +53,11 @@ Examples:
 
   amixis clean --all
       → Cleans all build directories.
+
+  amixis status /path/to/project
+      → Show status of all builds (configured, built, profiled, failed)
+  amixis status --json /path/to/project
+      → Output status in JSON format for programmatic use
 """
 
 EXAMPLES = {
@@ -102,6 +107,13 @@ EXAMPLES = {
       → Interactively create input.yml configuration file
   amixis add toolchain
       → Interactively add a toolchain to global config""",
+    "status": """Examples:
+  amixis status /path/to/project
+      → Show status of all builds (configured, built, profiled, failed)
+  amixis status --config=custom.yml /path/to/project
+      → Show status using custom config file
+  amixis status --json /path/to/project
+      → Output status in JSON format for programmatic use""",
 }
 
 

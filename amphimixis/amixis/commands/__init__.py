@@ -10,6 +10,7 @@ from amphimixis.amixis.commands import (
     profile,
     run,
     validate,
+    status,
 )
 
 COMMANDS = {
@@ -22,4 +23,5 @@ COMMANDS = {
     "compare": compare,
     "clean": clean,
     "add": add,
+    "status": status,
 }

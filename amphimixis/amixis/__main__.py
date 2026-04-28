@@ -69,7 +69,7 @@ def main() -> bool:
         return False
 
     project = None
-    if args.command in ("run", "analyze", "build", "profile"):
+    if args.command in ("run", "analyze", "build", "profile", "status"):
         if not args.path:
             parser.print_help()
             return False
@@ -77,7 +77,7 @@ def main() -> bool:
 
     config_file = DEFAULT_CONFIG_PATH
     if args.command in ("run", "build", "profile"):
-        if args.config is not None:
+        if args.config is None:
             if not DEFAULT_CONFIG_PATH.exists():
                 script_dir = Path(__file__).parent.resolve()
                 shutil.copy(
@@ -85,12 +85,15 @@ def main() -> bool:
                 )
                 print("Created input.yml from samples/local.yml")
         else:
-            config_file = Path(args.config).expanduser().resolve()  # type: ignore[arg-type]
+            config_file = Path(args.config).expanduser().resolve()
 
     target_events = args.events if hasattr(args, "events") else None
     match args.command:
         case "init":
             return cmd.run_init(args.sample_name)
+        case "status":
+            to_json = args.json if hasattr(args, "json") else False
+            return cmd.run_status(project, config_file, to_json)
         case "run":
             return cmd.run_full_pipeline(project, config_file, ui, events=target_events)
         case "analyze":
