@@ -13,9 +13,6 @@ cp -a $SELF_PATH/amphimixis.md $CONFIG_HOME/opencode/agents
 
 cp -a $SELF_PATH/tools/amphimixis.analyze.ts $SELF_PATH/tools/amphimixis.build.ts $SELF_PATH/tools/amphimixis.profile.ts $SELF_PATH/tools/amphimixis.configure.ts $CONFIG_HOME/opencode/tools
 
-rm -rf $CONFIG_HOME/opencode/tools/amphimixis
-ln -sdf $SELF_PATH/.. $CONFIG_HOME/opencode/tools/amphimixis
-
 bun install --cwd $CONFIG_HOME/opencode yaml
 
 cd $CONFIG_HOME/opencode/tools
