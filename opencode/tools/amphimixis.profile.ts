@@ -1,28 +1,32 @@
-import { tool } from "@opencode-ai/plugin"
-import path from "path"
-import process from "process"
-import fs from "fs"
-import { spawn } from "child_process"
-
-function getVenvCommand(opencode_tools_dir: string): string {
-    return path.join(opencode_tools_dir, ".venv/bin/amixis")
-}
+import { tool } from "@opencode-ai/plugin";
+import path from "path";
+import process from "process";
 
 export default tool({
-    description: "Profile project executables with time, perf-stat and perf-record",
-    args: {
-        project_path: tool.schema.string().describe("Path to repository of building project"),
-        config: tool.schema.string().optional().describe("Path to config file. If not specified, checks for input.yml in current directory or automatically create it"),
-    },
-    async execute(args) {
-        const config_dir = process.env.XDG_CONFIG_HOME != undefined ? process.env.XDG_CONFIG_HOME : path.join(process.env.HOME as string, '.config');
-        const opencode_tools_dir = path.join(config_dir, 'opencode', 'tools');
-        const amixis = path.join(opencode_tools_dir, '.venv', 'bin', 'amixis');
-        let cmd = [amixis, 'profile', args.project_path];
-        if (args.config)
-            cmd.push(`--config=${args.config}`);
+  description:
+    "Profile project executables with time, perf-stat and perf-record",
+  args: {
+    project_path: tool.schema
+      .string()
+      .describe("Path to repository of building project"),
+    config: tool.schema
+      .string()
+      .optional()
+      .describe(
+        "Path to config file. If not specified, checks for input.yml in current directory or automatically create it",
+      ),
+  },
+  async execute(args) {
+    const config_dir =
+      process.env.XDG_CONFIG_HOME != undefined
+        ? process.env.XDG_CONFIG_HOME
+        : path.join(process.env.HOME as string, ".config");
+    const opencode_tools_dir = path.join(config_dir, "opencode", "tools");
+    const amixis = path.join(opencode_tools_dir, ".venv", "bin", "amixis");
+    let cmd = [amixis, "profile", args.project_path];
+    if (args.config) cmd.push(`--config=${args.config}`);
 
-        const result = await Bun.$`${cmd}`.text();
-        return result.trim();
-    },
-})
+    const result = await Bun.$`${cmd}`.text();
+    return result.trim();
+  },
+});
