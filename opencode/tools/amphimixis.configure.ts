@@ -7,34 +7,49 @@ import path from "path";
 function add_id_field(objs: object[]): void {
     let counter: number = 1;
     for (let i = 0; i < objs.length; ++i) {
-        Reflect.defineProperty(objs[i], "id", {value: counter});
+        Reflect.defineProperty(objs[i], "id", {value: counter, enumerable: true});
         counter += 1;
     }
 };
 
-export function configure(args: any): string {
+function sanitizeForYaml(obj: any): any {
+    if (obj === null || obj === undefined) return obj;
+    if (typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(sanitizeForYaml);
+    const result: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (typeof value !== 'function' && typeof value !== 'symbol') {
+            result[key] = sanitizeForYaml(value);
+        }
+    }
+    return result;
+}
+
+export function configure(
+    args: any,
+    configPath: string = path.join(process.cwd(), "input.yml")
+): string {
     const config: Record<string, unknown> = {};
-    if (args.build_system) {
+    if (args.build_system && typeof args.build_system === 'string') {
         config.build_system = args.build_system;
     }
-    if (args.runner) {
+    if (args.runner && typeof args.runner === 'string') {
         config.runner = args.runner;
     }
-    if (args.platforms) {
+    if (args.platforms && Array.isArray(args.platforms)) {
         add_id_field(args.platforms);
         config.platforms = args.platforms;
     }
-    if (args.recipes) {
+    if (args.recipes && Array.isArray(args.recipes)) {
         add_id_field(args.recipes);
         config.recipes = args.recipes;
     }
-    if (args.builds) {
+    if (args.builds && Array.isArray(args.builds)) {
         config.builds = args.builds;
     }
-    const yamlContent = YAML.stringify(config);
-    const configFile = path.join(process.cwd(), "input.yml");
-    fs.writeFileSync(configFile, yamlContent);
-    return `Config file created at ${process.cwd()}`;
+    const yamlContent = YAML.stringify(sanitizeForYaml(config));
+    fs.writeFileSync(configPath, yamlContent, { encoding: "utf-8" });
+    return `Config file created at ${configPath}`;
 }
 
 export default tool({
