@@ -4,6 +4,39 @@ import fs from "fs";
 import YAML from "yaml";
 import path from "path";
 
+function add_id_field(objs: object[]): void {
+    let counter: number = 1;
+    for (let i = 0; i < objs.length; ++i) {
+        Reflect.defineProperty(objs[i], "id", {value: counter});
+        counter += 1;
+    }
+};
+
+export function configure(args: any): string {
+    const config: Record<string, unknown> = {};
+    if (args.build_system) {
+        config.build_system = args.build_system;
+    }
+    if (args.runner) {
+        config.runner = args.runner;
+    }
+    if (args.platforms) {
+        add_id_field(args.platforms);
+        config.platforms = args.platforms;
+    }
+    if (args.recipes) {
+        add_id_field(args.recipes);
+        config.recipes = args.recipes;
+    }
+    if (args.builds) {
+        config.builds = args.builds;
+    }
+    const yamlContent = YAML.stringify(config);
+    const configFile = path.join(process.cwd(), "input.yml");
+    fs.writeFileSync(configFile, yamlContent);
+    return `Config file created at ${process.cwd()}`;
+}
+
 export default tool({
     description: "Create a YAML config file for Amphimixis based on provided parameters",
     args: {
@@ -88,25 +121,6 @@ export default tool({
         })).describe("List of build configurations"),
     },
     async execute(args) {
-        const config: Record<string, unknown> = {};
-        if (args.build_system) {
-            config.build_system = args.build_system;
-        }
-        if (args.runner) {
-            config.runner = args.runner;
-        }
-        if (args.platforms) {
-            config.platforms = args.platforms;
-        }
-        if (args.recipes) {
-            config.recipes = args.recipes;
-        }
-        if (args.builds) {
-            config.builds = args.builds;
-        }
-        const yamlContent = YAML.stringify(config);
-        const configFile = path.join(process.cwd(), "input.yml");
-        fs.writeFileSync(configFile, yamlContent);
-        return `Config file created at ${process.cwd()}`;
+        return configure(args);
     },
 });
