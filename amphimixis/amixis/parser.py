@@ -118,7 +118,6 @@ def create_parser() -> ArgumentParser:
     :return: Configured argument parser for Amphimixis CLI
     :rtype: argparse.ArgumentParser
     """
-
     parser = argparse.ArgumentParser(
         prog="amixis",
         formatter_class=CustomHelpFormatter,
