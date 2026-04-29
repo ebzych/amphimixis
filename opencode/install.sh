@@ -16,6 +16,7 @@ cp -a $SELF_PATH/tools/*.ts $CONFIG_HOME/opencode/tools
 bun install --cwd $CONFIG_HOME/opencode yaml
 
 cd $CONFIG_HOME/opencode/tools
+rm -rf .venv
 python3 -m venv .venv
 source .venv/bin/activate
 pip install $SELF_PATH/..

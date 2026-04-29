@@ -3,16 +3,18 @@ import process from "process";
 import path from "path";
 
 export async function validate(args: any): Promise<string> {
-  const config_dir =
+  const configDir =
     process.env.XDG_CONFIG_HOME != undefined
       ? process.env.XDG_CONFIG_HOME
       : path.join(process.env.HOME as string, ".config");
-  const opencode_tools_dir = path.join(config_dir, "opencode", "tools");
-  const amixis = path.join(opencode_tools_dir, ".venv", "bin", "amixis");
+  const opencodeToolsDir = path.join(configDir, "opencode", "tools");
+  const amixis = path.join(opencodeToolsDir, ".venv", "bin", "amixis");
   const configPath =
     args.configFilePath == undefined ? "input.yml" : args.configFilePath;
-  let cmd = [amixis, "validate", "--config", configPath];
-
+  let cmd = [amixis, "validate"];
+  if (args.configFilePath !== undefined) {
+    cmd.concat(["--config", configPath]);
+  }
   const result = await Bun.$`${cmd}`.text();
   return result.trim();
 }
@@ -28,6 +30,6 @@ export default tool({
       ),
   },
   async execute(args) {
-    return validate(args);
+    return await validate(args);
   },
 });
