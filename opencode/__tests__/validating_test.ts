@@ -50,7 +50,7 @@ describe("Validating config file tool", () => {
         ],
       }),
     );
-    let output = await validate(tmpConfigPath);
-    expect(output.includes("correct")).toBe(true);
+    let output = await validate({ configFilePath: tmpConfigPath });
+    expect(output.includes("is correct")).toBe(true);
   });
 });

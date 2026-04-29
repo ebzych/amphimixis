@@ -9,10 +9,16 @@ export async function validate(args: any): Promise<string> {
       : path.join(process.env.HOME as string, ".config");
   const opencodeToolsDir = path.join(configDir, "opencode", "tools");
   const amixis = path.join(opencodeToolsDir, ".venv", "bin", "amixis");
-  const configPath =
-    args.configFilePath == undefined ? "input.yml" : args.configFilePath;
-  let cmd = [amixis, "validate", configPath];
-  const result = await Bun.$`${cmd}`.text();
+  let result: string = "Internal error";
+  try {
+    const output = await Bun.$`${amixis} validate ${args.configFilePath}`;
+    result = output.text();
+  } catch (error: any) {
+    // amixis may return non-zero exit code even on success
+    if (error.stdout) {
+      result = error.stdout.toString();
+    }
+  }
   return result.trim();
 }
 
@@ -21,9 +27,8 @@ export default tool({
   args: {
     configFilePath: tool.schema
       .string()
-      .optional()
       .describe(
-        "The path to the configuration file for validation, `input.yml` by default",
+        "The path to the configuration file for validation (path to `input.yml`)",
       ),
   },
   async execute(args) {

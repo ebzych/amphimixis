@@ -4,8 +4,10 @@ mode: subagent
 temperature: 0
 color: "#57aeff"
 tools:
+  *: false
   amphimixis.configure: true
-  default: false
+  amphimixis.validate: true
+  read: true
 
 # Tags
 tags:
