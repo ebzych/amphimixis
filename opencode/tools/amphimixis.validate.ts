@@ -11,10 +11,7 @@ export async function validate(args: any): Promise<string> {
   const amixis = path.join(opencodeToolsDir, ".venv", "bin", "amixis");
   const configPath =
     args.configFilePath == undefined ? "input.yml" : args.configFilePath;
-  let cmd = [amixis, "validate"];
-  if (args.configFilePath !== undefined) {
-    cmd.concat(["--config", configPath]);
-  }
+  let cmd = [amixis, "validate", configPath];
   const result = await Bun.$`${cmd}`.text();
   return result.trim();
 }
@@ -30,6 +27,6 @@ export default tool({
       ),
   },
   async execute(args) {
-    return await validate(args);
+    return validate(args);
   },
 });

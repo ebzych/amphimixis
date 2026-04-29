@@ -39,7 +39,7 @@ describe("Configuring tool", () => {
       recipes: Array<{ id: number; config_flags: string }>;
       builds: Array<{ build_machine: string }>;
     };
-    let is_correct = true;
+    let isCorrect = true;
     if (
       result.recipes[0].id !== 1 ||
       result.recipes[0].config_flags !== CONFIG_FLAGS ||
@@ -51,10 +51,8 @@ describe("Configuring tool", () => {
       result.platforms[1].arch !== ARCH ||
       result.builds[0].build_machine !== BUILD_MACHINE
     ) {
-      is_correct = false;
+      isCorrect = false;
     }
-    console.log(result);
-    console.log(result.recipes[0].id);
-    expect(is_correct).toBe(true);
+    expect(isCorrect).toBe(true);
   });
 });
