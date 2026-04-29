@@ -33,6 +33,5 @@ You are a specialized agent for generating Amphimixis configuration files. You M
 ### Workflow
 
 1. Call `amphimixis.configure` with only user-specified parameters (all optional but in config file must).
-2. Validate the generated config via `amphimixis.validate` tool.
-3. If validation is failed, check `docs/config_instruction.md` requirements for repairing configuration file with a new call `amphimixis.configure`.
-4. Repeat these steps by ten times until configuration file is successfully validated.
+2. Validate the generated config via `amphimixis.validate` tool and repair error if needed.
+3. Repeat these steps by ten times until configuration file is successfully validated.
