@@ -1,20 +1,13 @@
 import fs from "fs";
 import { unlink, mkdir } from "fs/promises";
 import yaml from "yaml";
-import { test, expect, describe, mock } from "bun:test";
-import tool from "../tools/amphimixis.configure";
+import { test, expect, describe } from "bun:test";
 import path from "path";
 
 const configureToolModule = "../tools/amphimixis.configure.ts";
 
 const tmpDirPath = "/tmp/amphimixis/tests/opencode/configure";
 const tmpConfigPath = path.join(tmpDirPath, "input.yml");
-mock.module(configureToolModule, () => {
-  return {
-    tool: tool,
-    configPath: tmpConfigPath,
-  };
-});
 
 /**
  * Test that main fields configures and numeric identification of
@@ -22,25 +15,26 @@ mock.module(configureToolModule, () => {
  */
 describe("Configuring tool", () => {
   test("configure function", async () => {
-    unlink(tmpConfigPath).catch(() => {});
-    mkdir(tmpDirPath, { recursive: true });
+    try {
+      await unlink(tmpConfigPath);
+    } catch (e) {}
+    await mkdir(tmpDirPath, { recursive: true });
     const BUILD_SYSTEM = "cmake";
     const ARCH = "riscv";
     const CONFIG_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
     const BUILD_MACHINE = "riscv-platka";
-    const execute = import(configureToolModule).tool.execute;
-    execute(
-      {
-        build_system: BUILD_SYSTEM,
-        platforms: [{ arch: ARCH }, { arch: ARCH }],
-        recipes: [
-          { config_flags: CONFIG_FLAGS },
-          { config_flags: CONFIG_FLAGS },
-        ],
-        builds: [{ build_machine: BUILD_MACHINE }],
-      },
-      "",
-    );
+
+    const toolModule = await import(configureToolModule);
+    const tool = toolModule.default;
+
+    await tool.execute({
+      configFilePath: tmpConfigPath,
+      build_system: BUILD_SYSTEM,
+      platforms: [{ arch: ARCH }, { arch: ARCH }],
+      recipes: [{ config_flags: CONFIG_FLAGS }, { config_flags: CONFIG_FLAGS }],
+      builds: [{ build_machine: BUILD_MACHINE }],
+    });
+
     const result = yaml.parse(
       fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
     ) as {
@@ -49,20 +43,16 @@ describe("Configuring tool", () => {
       recipes: Array<{ id: number; config_flags: string }>;
       builds: Array<{ build_machine: string }>;
     };
-    let isCorrect = true;
-    if (
-      result.recipes[0].id !== 1 ||
-      result.recipes[0].config_flags !== CONFIG_FLAGS ||
-      result.platforms[0].id !== 1 ||
-      result.platforms[0].arch !== ARCH ||
-      result.recipes[1].id !== 2 ||
-      result.recipes[1].config_flags !== CONFIG_FLAGS ||
-      result.platforms[1].id !== 2 ||
-      result.platforms[1].arch !== ARCH ||
-      result.builds[0].build_machine !== BUILD_MACHINE
-    ) {
-      isCorrect = false;
-    }
-    expect(isCorrect).toBe(true);
+
+    expect(result.build_system).toBe(BUILD_SYSTEM);
+    expect(result.platforms[0].id).toBe(1);
+    expect(result.platforms[0].arch).toBe(ARCH);
+    expect(result.platforms[1].id).toBe(2);
+    expect(result.platforms[1].arch).toBe(ARCH);
+    expect(result.recipes[0].id).toBe(1);
+    expect(result.recipes[0].config_flags).toBe(CONFIG_FLAGS);
+    expect(result.recipes[1].id).toBe(2);
+    expect(result.recipes[1].config_flags).toBe(CONFIG_FLAGS);
+    expect(result.builds[0].build_machine).toBe(BUILD_MACHINE);
   });
 });

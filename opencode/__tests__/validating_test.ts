@@ -3,8 +3,7 @@ import path from "path";
 import { unlink, mkdir } from "fs/promises";
 import yaml from "yaml";
 import { test, expect, describe } from "bun:test";
-import { context } from "@opencode-ai/plugin";
-import tool from "../tools/amphimixis.validate.ts";
+import tool from "../tools/amphimixis.validate";
 
 /**
  * Test running amphimixis validator
@@ -13,13 +12,14 @@ describe("Validating config file tool", () => {
   test("validating function", async () => {
     const tmpDirPath = "/tmp/amphimixis/tests/opencode/validate";
     const tmpConfigPath = path.join(tmpDirPath, "input.yml");
-    unlink(tmpConfigPath).catch(() => {});
-    mkdir(tmpDirPath, { recursive: true }).catch(() => {});
+    try {
+      await unlink(tmpConfigPath);
+    } catch (e) {}
+    await mkdir(tmpDirPath, { recursive: true });
     const BUILD_SYSTEM = "cmake";
     const RUNNER = "ninja";
     const ARCH = "riscv";
     const CONFIG_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
-    const MACHINE = "riscv-platka";
     fs.writeFileSync(
       tmpConfigPath,
       yaml.stringify({
@@ -50,7 +50,8 @@ describe("Validating config file tool", () => {
         ],
       }),
     );
-    let output = await tool.execute({ configFilePath: tmpConfigPath }, context);
-    expect(output.includes("is correct")).toBe(true);
+    // @ts-ignore
+    let output = await tool.execute({ configFilePath: tmpConfigPath });
+    expect(output.toString().includes("is correct")).toBe(true);
   });
 });
