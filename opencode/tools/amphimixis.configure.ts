@@ -25,10 +25,9 @@ function sanitizeForYaml(obj: any): any {
   return result;
 }
 
-export function configure(
-  args: any,
-  configPath: string = path.join(process.cwd(), "input.yml"),
-): string {
+const configPath: string = path.join(process.cwd(), "input.yml");
+
+export function configure(args: any): string {
   const config: Record<string, unknown> = {};
   if (args.build_system && typeof args.build_system === "string") {
     config.build_system = args.build_system;

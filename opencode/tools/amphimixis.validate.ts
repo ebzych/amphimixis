@@ -32,6 +32,6 @@ export default tool({
       ),
   },
   async execute(args) {
-    return validate(args);
+    return await validate(args);
   },
 });

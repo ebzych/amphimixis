@@ -1,13 +1,13 @@
 import fs from "fs";
+import path from "path";
 import { unlink, mkdir } from "fs/promises";
 import yaml from "yaml";
 import { test, expect, describe } from "bun:test";
-import path from "path";
-import { validate } from "../tools/amphimixis.validate.ts";
+import { context } from "@opencode-ai/plugin";
+import tool from "../tools/amphimixis.validate.ts";
 
 /**
- * Test that main fields configures and numeric identification of
- * platforms and recipes works
+ * Test running amphimixis validator
  */
 describe("Validating config file tool", () => {
   test("validating function", async () => {
@@ -50,7 +50,7 @@ describe("Validating config file tool", () => {
         ],
       }),
     );
-    let output = await validate({ configFilePath: tmpConfigPath });
+    let output = await tool.execute({ configFilePath: tmpConfigPath }, context);
     expect(output.includes("is correct")).toBe(true);
   });
 });
