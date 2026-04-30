@@ -46,15 +46,20 @@ export function configure(args: any): string {
   if (args.builds && Array.isArray(args.builds)) {
     config.builds = args.builds;
   }
+  const outputPath = args.configFilePath || configPath;
   const yamlContent = YAML.stringify(sanitizeForYaml(config));
-  fs.writeFileSync(configPath, yamlContent, { encoding: "utf-8" });
-  return `Config file created at ${configPath}`;
+  fs.writeFileSync(outputPath, yamlContent, { encoding: "utf-8" });
+  return `Config file created at ${outputPath}`;
 }
 
 export default tool({
   description:
     "Create a YAML config file for Amphimixis based on provided parameters (all parameters are optional)",
   args: {
+    configFilePath: tool.schema
+      .string()
+      .optional()
+      .describe("Path where to save the configuration file (default: input.yml in current directory)"),
     build_system: tool.schema
       .string()
       .optional()
