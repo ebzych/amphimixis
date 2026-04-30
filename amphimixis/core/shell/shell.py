@@ -341,7 +341,13 @@ class Shell:
         self, source: str, destination: str, password: str | None, port: int
     ) -> bool:
         self._logger.info("Copying %s -> %s", source, destination)
-        sshcmd = ["ssh", "-o", "StrictHostKeyChecking=no"]
+        sshcmd = [
+            "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+        ]
         if password:
             sshcmd += [
                 "-o",
