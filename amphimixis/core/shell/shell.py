@@ -24,7 +24,7 @@ class Shell:
 
     :param Project project: Project object.
     :param MachineInfo machine: machine to run profiling at.
-    :param connect_timeout int: connection to machine timeout.
+    :param int connect_timeout: connection timeout in seconds.
     """
 
     def __init__(

@@ -116,7 +116,7 @@ def create_parser() -> ArgumentParser:
     """Create the main argument parser with subcommands.
 
     :return: Configured argument parser for Amphimixis CLI
-    :rtype: ArgumentParser
+    :rtype: argparse.ArgumentParser
     """
 
     parser = argparse.ArgumentParser(
