@@ -1,25 +1,35 @@
 import fs from "fs";
 import { unlink, mkdir } from "fs/promises";
 import yaml from "yaml";
-import { test, expect, describe } from "bun:test";
-import { configure } from "../tools/amphimixis.configure";
+import { test, expect, describe, mock } from "bun:test";
+import tool from "../tools/amphimixis.configure";
 import path from "path";
+
+const configureToolModule = "../tools/amphimixis.configure.ts";
+
+const tmpDirPath = "/tmp/amphimixis/tests/opencode/configure";
+const tmpConfigPath = path.join(tmpDirPath, "input.yml");
+mock.module(configureToolModule, () => {
+  return {
+    tool: tool,
+    configPath: tmpConfigPath,
+  };
+});
 
 /**
  * Test that main fields configures and numeric identification of
  * platforms and recipes works
  */
 describe("Configuring tool", () => {
-  test("configure function", () => {
-    const tmpDirPath = "/tmp/amphimixis/tests/opencode/configure";
-    const tmpConfigPath = path.join(tmpDirPath, "input.yml");
+  test("configure function", async () => {
     unlink(tmpConfigPath).catch(() => {});
-    mkdir(tmpDirPath, { recursive: true }).catch(() => {});
+    mkdir(tmpDirPath, { recursive: true });
     const BUILD_SYSTEM = "cmake";
     const ARCH = "riscv";
     const CONFIG_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
     const BUILD_MACHINE = "riscv-platka";
-    configure(
+    const execute = import(configureToolModule).tool.execute;
+    execute(
       {
         build_system: BUILD_SYSTEM,
         platforms: [{ arch: ARCH }, { arch: ARCH }],
@@ -29,7 +39,7 @@ describe("Configuring tool", () => {
         ],
         builds: [{ build_machine: BUILD_MACHINE }],
       },
-      tmpConfigPath,
+      "",
     );
     const result = yaml.parse(
       fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
