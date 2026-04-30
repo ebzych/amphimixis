@@ -72,4 +72,4 @@ html_theme_options = {
 html_title = "Amphimixis"
 html_short_title = "Amphimixis"
 html_baseurl = "https://amphimixis.org/"
-html_extra_path = ["favicon.ico"]
+html_favicon = "favicon.ico"
