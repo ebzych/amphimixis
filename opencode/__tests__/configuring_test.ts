@@ -1,28 +1,28 @@
-import fs from "fs";
-import { unlink, mkdir } from "fs/promises";
-import yaml from "yaml";
-import { test, expect, describe } from "bun:test";
-import path from "path";
+import fs from 'fs';
+import {unlink, mkdir} from 'fs/promises';
+import yaml from 'yaml';
+import {test, expect, describe} from 'bun:test';
+import path from 'path';
 
-const configureToolModule = "../tools/amphimixis.configure.ts";
+const configureToolModule = '../tools/amphimixis.configure.ts';
 
-const tmpDirPath = "/tmp/amphimixis/tests/opencode/configure";
-const tmpConfigPath = path.join(tmpDirPath, "input.yml");
+const tmpDirPath = '/tmp/amphimixis/tests/opencode/configure';
+const tmpConfigPath = path.join(tmpDirPath, 'input.yml');
 
 /**
  * Test that main fields configures and numeric identification of
  * platforms and recipes works
  */
-describe("Configuring tool", () => {
-  test("configure function", async () => {
+describe('Configuring tool', () => {
+  test('configure function', async () => {
     try {
       await unlink(tmpConfigPath);
-    } catch (e) {}
-    await mkdir(tmpDirPath, { recursive: true });
-    const BUILD_SYSTEM = "cmake";
-    const ARCH = "riscv";
-    const CONFIG_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
-    const BUILD_MACHINE = "riscv-platka";
+    } catch { /* empty */ }
+    await mkdir(tmpDirPath, {recursive: true});
+    const BUILD_SYSTEM = 'cmake';
+    const ARCH = 'riscv';
+    const CONFIG_FLAGS = '-DCMAKE_BUILD_TYPE=RelWithDebInfo';
+    const BUILD_MACHINE = 'riscv-platka';
 
     const toolModule = await import(configureToolModule);
     const tool = toolModule.default;
@@ -30,13 +30,13 @@ describe("Configuring tool", () => {
     await tool.execute({
       configFilePath: tmpConfigPath,
       build_system: BUILD_SYSTEM,
-      platforms: [{ arch: ARCH }, { arch: ARCH }],
-      recipes: [{ config_flags: CONFIG_FLAGS }, { config_flags: CONFIG_FLAGS }],
-      builds: [{ build_machine: BUILD_MACHINE }],
+      platforms: [{arch: ARCH}, {arch: ARCH}],
+      recipes: [{config_flags: CONFIG_FLAGS}, {config_flags: CONFIG_FLAGS}],
+      builds: [{build_machine: BUILD_MACHINE}],
     });
 
     const result = yaml.parse(
-      fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
+        fs.readFileSync(tmpConfigPath, {encoding: 'utf-8', flag: 'r'}),
     ) as {
       build_system: string;
       platforms: Array<{ id: number; arch: string }>;
