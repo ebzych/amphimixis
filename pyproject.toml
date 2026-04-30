@@ -37,6 +37,7 @@ dev = [
     "testcontainers",
     "pytest",
     "sphinx",
+    "sphinx-sitemap",
     "furo",
     "myst-parser",
     "ruff",
