@@ -4,9 +4,9 @@ import sys
 
 from amphimixis.core.general import IUI
 
-INVITATION_TEMPLATE_LEN = 6  # template: "[][_] "
-FG_YELLOW_COLOR = "\033[38;2;255;255;0m"
-FG_RED_COLOR = "\033[38;2;255;0;0m"
+INVITATION_TEMPLATE_LEN = len("[][_] ")
+FG_YELLOW_COLOR = "\033[38;3;255;210;0"
+FG_RED_COLOR = "\033[38;2;255;0;100m"
 FG_DEFAULT_COLOR = "\033[39m"
 
 
@@ -42,7 +42,8 @@ class ConsoleAnimationPrinter(IUI):
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
         print(
-            f"\r\033[K{FG_YELLOW_COLOR}[{sender}][W] WARNING: {warning.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
+            f"\r\033[K{FG_YELLOW_COLOR}[{sender}][W] WARNING: "
+            f"{warning.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
         )
 
     def send_error(self, sender: str, err_msg: str) -> None:
@@ -53,7 +54,8 @@ class ConsoleAnimationPrinter(IUI):
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
         print(
-            f"\r\033[K{FG_RED_COLOR}[{sender}][E] ERROR: {err_msg.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
+            f"\r\033[K{FG_RED_COLOR}[{sender}][E] ERROR: "
+            f"{err_msg.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
         )
 
     def update_message(self, build_id: str, message: str) -> None:
