@@ -251,15 +251,23 @@ def _get_by_id(
     """Function to find item in dict by id"""
 
     for item in items:
+        if "id" not in item:
+            msg = f"item {item} don't have 'id' field"
+            _logger.fatal(msg)
+            _ui.send_error("Config", msg)
+            return {}
         id_ = item["id"]
         if not isinstance(id_, int | str):
-            msg = f"Error: not integer or string id '{id_}' of item: {item}"
+            msg = f"not integer or string id '{id_}' of item: {item}"
             _logger.fatal(msg)
-            raise ValueError(msg)
+            _ui.send_error("Config", msg)
+            return {}
         if id_ == target_id:
             return item
 
-    _logger.error("Item id didn't match any existed id, check input file")
+    msg = "Item id didn't match any existed id, check input file"
+    _logger.error(msg)
+    _ui.mark_failed("Config", msg)
     return {}
 
 
