@@ -1,6 +1,7 @@
 """The common module that is used in most other modules"""
 
 import os
+import logging
 import queue
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -307,12 +308,15 @@ class ILowLevelBuildSystem(ABC):
     """Interface for classes implementing interaction with runner (low-level build-system)"""
 
     @abstractmethod
-    def __init__(self, project: "Project", ui: IUI = NullUI()):
-        pass
-
-    @abstractmethod
     def run_building(self, build: "Build") -> tuple[int, str, str]:
-        """Run building via build system"""
+        """Run configured building via build system.
+        It run building without configuring (build has been configured).
+        For example, `Ninja` cannot configure, it is only meant for building.
+
+
+        :param Build build: Build to building
+        :rtype: tuple[int, str, str]
+        :return: error code, stdout and stderr joined with '\\n'"""
 
 
 # pylint: disable=too-few-public-methods
@@ -320,26 +324,24 @@ class IHighLevelBuildSystem(ABC):
     """Interface for classes implementing interaction with build system (high-level build-system)"""
 
     @abstractmethod
-    def __init__(
-        self,
-        project: "Project",
-        runner: ILowLevelBuildSystem,
-        ui: IUI = NullUI(),
-    ):
-        pass
-
-    @abstractmethod
     def build(self, build: "Build") -> tuple[int, str, str]:
-        """Build via build system"""
+        """Configure and run building via build system.
+
+        :param Build build: Build to building
+        :rtype: tuple[int, str, str]
+        :return: error code, stdout and stderr joined with '\\n'"""
 
 
 class DummyRunner(ILowLevelBuildSystem):
     """Runner that does nothing"""
 
-    def __init__(self):
+    def __init__(self, project=None, ui: IUI = NullUI()):
         pass
 
     def run_building(self, build: "Build") -> tuple[int, str, str]:
+        """Build nothing independent of the specified build
+
+        :return: (0, "", "")"""
         return (0, "", "")
 
 
@@ -347,11 +349,18 @@ class DummyRunner(ILowLevelBuildSystem):
 class DummyBuildSystem(IHighLevelBuildSystem):
     """Build system that does nothing"""
 
-    def __init__(self):
+    def __init__(
+        self,
+        project=None,
+        runner: ILowLevelBuildSystem = DummyRunner(),
+        ui: IUI = NullUI(),
+    ):
         pass
 
     def build(self, build: "Build") -> tuple[int, str, str]:
-        """Build via build system"""
+        """Configure and build nothing independent of the specified build
+
+        :return: (0, "", "")"""
         return (0, "", "")
 
 
@@ -361,6 +370,15 @@ class BuildSystem:
 
     _MAX_DEPTH = 3
 
+    class CustomLogger(logging.LoggerAdapter):
+        """Custom logger to add build name to log messages."""
+
+        def process(self, msg, kwargs):
+            prefix = ""
+            if "build" in self.extra:
+                prefix = self.extra["build"] + " | "
+            return f"{prefix}{msg}", kwargs
+
     def __init__(
         self,
         project: "Project",
@@ -368,11 +386,13 @@ class BuildSystem:
         ui: IUI = NullUI(),
     ):
         self._project = project
-        self._ui = ui
         self.runner = runner
+        self._ui = ui
+        self._logger: BuildSystem.CustomLogger
 
     def find_relative_path(self, file_name: str) -> str:
         """Find first directory that contains 'file_name' relative to project root.
+
         :param str file_name: Name of file to search relative to project root.
         :rtype: str
         :return: Path to directory that contains file relative to project root
@@ -391,6 +411,16 @@ class BuildSystem:
                 if el.is_dir():
                     q_dirs.put((el.path, curr_dir[1] + 1))
         raise FileNotFoundError(f"Can't find {file_name}")
+
+
+class BuildSystemIsNotHighLevel(TypeError):
+    """Exception when getting build system (inherited from BuildSystem)
+    that doesn't implement IHighLevelBuildSystem"""
+
+
+class BuildSystemIsNotLowLevel(TypeError):
+    """Exception when getting runner (inherited from BuildSystem)
+    that doesn't implement ILowLevelBuildSystem"""
 
 
 @dataclass
@@ -426,7 +456,7 @@ class Project:
 
     :var str path: Path to project for research.
     :var list[Build] builds: List of project configurations to be build.
-    :var IHighLevelBuildSystem build_system: High-level build system.
+    :var BuildSystem | IHighLevelBuildSystem build_system: High-level build system.
     """
 
     builds: list[Build]
@@ -435,7 +465,7 @@ class Project:
         self,
         path: str,
         builds: list[Build] | None = None,
-        build_system: IHighLevelBuildSystem = DummyBuildSystem(),
+        build_system: BuildSystem | IHighLevelBuildSystem = DummyBuildSystem(),
     ):
         self.path: str = path
         if builds is None:  # what's wrong with python?? (pylint W0102)
@@ -444,4 +474,6 @@ class Project:
             self.builds = builds
         if not isinstance(self.builds, list):
             raise TypeError("class Project: 'builds' must have a list type")
+        if not isinstance(build_system, IHighLevelBuildSystem):
+            raise BuildSystemIsNotHighLevel
         self.build_system = build_system

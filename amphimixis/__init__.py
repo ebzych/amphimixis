@@ -24,7 +24,11 @@ Other API entities forwards from `core` module for more concise imports:
 """
 
 from amphimixis.core.analyzer import analyze
-from amphimixis.core.build_systems import build_systems_dict
+from amphimixis.core.build_systems import (
+    get_build_system,
+    get_runner,
+    get_build_system_runner,
+)
 from amphimixis.core.builder import Builder
 from amphimixis.core.configurator import (
     create_flags,
@@ -43,7 +47,9 @@ from amphimixis import amixis
 # pylint: disable=duplicate-code
 __all__ = [
     "general",
-    "build_systems_dict",
+    "get_build_system",
+    "get_runner",
+    "get_build_system_runner",
     "analyze",
     "create_flags",
     "create_machine",

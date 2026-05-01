@@ -10,10 +10,12 @@ from amphimixis.core.general import (
     IHighLevelBuildSystem,
     ILowLevelBuildSystem,
     Toolchain,
+    Project,
+    DummyRunner,
+    IUI,
+    NullUI,
 )
 from amphimixis.core.shell import Shell
-
-_logger = logger.setup_logger("MAKE")
 
 
 class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
@@ -25,6 +27,88 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
         " compilation flags may not work, you can fix it manually by specifying "
         "them in the config_flags field in the format used by the current Makefile"
     )
+
+    def __init__(
+        self,
+        project: Project,
+        runner: ILowLevelBuildSystem = DummyRunner(),
+        ui: IUI = NullUI(),
+    ):
+        super().__init__(
+            project,
+            runner,
+            ui,
+        )
+        self._logger = BuildSystem.CustomLogger(logger.setup_logger("MAKE"), {})
+
+    def build(self, build: Build) -> tuple[int, str, str]:
+        """Configure and run building via `Make`.
+
+        :param Build build: Build to building
+        :rtype: tuple[int, str, str]
+        :return: error code, stdout and stderr joined with '\\n'"""
+        self._ui.send_warning(
+            build.build_name,
+            Make._GNU_standard_compatibility_warn_msg,
+        )
+        self._logger.warning(Make._GNU_standard_compatibility_warn_msg)
+
+        return self._build_install_clean(build, configure=True)
+
+    def run_building(self, build: Build) -> tuple[int, str, str]:
+        """Run configured building via `Make`.
+        It run building without configuring (build has been configured).
+
+
+        :param Build build: Build to building
+        :rtype: tuple[int, str, str]
+        :return: error code, stdout and stderr joined with '\\n'"""
+        return self._build_install_clean(build)
+
+    # pylint: disable=too-many-locals
+    def _build_install_clean(
+        self, build: Build, configure: bool = False
+    ) -> tuple[int, str, str]:
+        self._logger.extra["build"] = build.build_name  # type: ignore[index]
+        shell = Shell(self._project, build.build_machine, self._ui).connect()
+        build_path = os.path.join(shell.get_project_workdir(), build.build_name)
+        command = "make "
+        cd_dir = build_path
+        if configure:
+            if build.config_flags is not None:
+                command += f"{build.config_flags} "
+            if build.compiler_flags is not None:
+                command += f"{self._generate_lang_flags(build.compiler_flags)} "
+            if build.toolchain is not None:
+                if build.toolchain.sysroot is not None:
+                    command += f"SYSROOT='{build.toolchain.sysroot}' "
+                command += f"{self._generate_toolchain_flags(build.toolchain)} "
+            cd_dir = os.path.join(
+                shell.get_source_dir(),
+                self.find_relative_path(
+                    self._get_makefile_name(str(build.config_flags))
+                ),
+            )
+        if build.jobs:
+            command += f"--jobs={build.jobs} "
+
+        err, stdout, stderr = shell.run(f"cd {cd_dir}")
+        if err != 0:
+            return (err, "".join(stdout[0]), "".join(stderr[0]))
+
+        self._logger.info("Run building with '%s'", command)
+        err, stdout, stderr = shell.run(command)
+        if err != 0:
+            return (err, "".join(stdout[0]), "".join(stderr[0]))
+        if configure:
+            err_, stdout_, stderr_ = shell.run(
+                f"make install DESTDIR={build_path}", "make clean"
+            )
+            err = err_ if err == 0 else err
+            stdout[0].extend([line for cmd_stdout in stdout_ for line in cmd_stdout])
+            stderr[0].extend([line for cmd_stderr in stderr_ for line in cmd_stderr])
+
+        return (err, "".join(stdout[0]), "".join(stderr[0]))
 
     def _attrs_map(self, tool: str) -> str:
         value = tool.upper().split("_COMPILER", maxsplit=1)[0]
@@ -64,68 +148,3 @@ class Make(BuildSystem, IHighLevelBuildSystem, ILowLevelBuildSystem):
                 path = opt[opt.find("=") + 1 :]
                 break
         return os.path.basename(path)
-
-    # pylint: disable=too-many-locals
-    def _build_install_clean(
-        self, build: Build, configure: bool = False
-    ) -> tuple[int, str, str]:
-        shell = Shell(self._project, build.build_machine, self._ui).connect()
-        build_path = os.path.join(shell.get_project_workdir(), build.build_name)
-        command = "make "
-        cd_dir = build_path
-        if configure:
-            if build.config_flags is not None:
-                command += f"{build.config_flags} "
-            if build.compiler_flags is not None:
-                command += f"{self._generate_lang_flags(build.compiler_flags)} "
-            if build.toolchain is not None:
-                if build.toolchain.sysroot is not None:
-                    command += f"SYSROOT='{build.toolchain.sysroot}' "
-                command += f"{self._generate_toolchain_flags(build.toolchain)} "
-            cd_dir = os.path.join(
-                shell.get_source_dir(),
-                self.find_relative_path(
-                    self._get_makefile_name(str(build.config_flags))
-                ),
-            )
-        if build.jobs:
-            command += f"--jobs={build.jobs} "
-
-        err, stdout, stderr = shell.run(f"cd {cd_dir}")
-        if err != 0:
-            return (err, "".join(stdout[0]), "".join(stderr[0]))
-
-        _logger.info("Run building with '%s'", command)
-        err, stdout, stderr = shell.run(command)
-        if err != 0:
-            return (err, "".join(stdout[0]), "".join(stderr[0]))
-        if configure:
-            err_, stdout_, stderr_ = shell.run(
-                f"make install DESTDIR={build_path}", "make clean"
-            )
-            err = err_ if err == 0 else err
-            stdout[0].extend([line for cmd_stdout in stdout_ for line in cmd_stdout])
-            stderr[0].extend([line for cmd_stderr in stderr_ for line in cmd_stderr])
-
-        return (err, "".join(stdout[0]), "".join(stderr[0]))
-
-    def build(self, build: Build) -> tuple[int, str, str]:
-        """Build via Make
-
-        :param Build build: Build to build
-        :rtype: tuple[int, str, str]
-        :return: Tuple of error_code, stdout, stderr"""
-        self._ui.send_warning(
-            build.build_name,
-            Make._GNU_standard_compatibility_warn_msg,
-        )
-        _logger.warning(Make._GNU_standard_compatibility_warn_msg)
-
-        return self._build_install_clean(build, configure=True)
-
-    def run_building(self, build: Build) -> tuple[int, str, str]:
-        """Run building via Make
-
-        :param Build build: Build to run building
-        :return: Tuple of error code, stdout and stderr"""
-        return self._build_install_clean(build)

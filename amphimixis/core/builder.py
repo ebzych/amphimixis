@@ -2,6 +2,7 @@
 
 import os
 import pickle
+import logging
 
 from amphimixis.core import logger
 from amphimixis.core.general import IUI, NullUI
@@ -11,29 +12,41 @@ from amphimixis.core.general.general import (
 )
 from amphimixis.core.shell.shell import Shell
 
-_logger = logger.setup_logger("BUILDER")
+
+class _CustomLogger(logging.LoggerAdapter):
+    """Custom logger to add build name to log messages."""
+
+    def process(self, msg, kwargs):
+        prefix = ""
+        if "build" in self.extra:
+            prefix = self.extra["build"] + " | "
+        return f"{prefix}{msg}", kwargs
+
+
+_logger = _CustomLogger(logger.setup_logger("BUILDER"), {})
 
 
 class Builder:
     """The class is representing a module which builds a build based on its configuration"""
 
-    BUILDS_LIST_FILE_NAME = ".builds"
+    BUILD_LIST_FILE_NAME = ".builds"
 
     @staticmethod
     def build(project: Project, ui: IUI = NullUI()) -> None:
         """The method build all builds"""
 
         for build in project.builds:
-            _logger.info("Build the %s", build.build_name)
-
+            _logger.extra["build"] = build.build_name  # type: ignore[index]
+            _logger.info("Build process")
             if Builder.build_for_linux(project, build, ui):
-                _logger.info("Build passed %s", build.build_name)
+                _logger.info("Build passed")
             else:
-                _logger.info("Build failed %s", build.build_name)
+                _logger.info("Build failed")
 
     @staticmethod
     def build_for_linux(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
         """The method build program on Linux"""
+        _logger.extra["build"] = build.build_name  # type: ignore[index]
 
         ui.update_message(build.build_name, "Connecting...")
         shell = Shell(project, build.build_machine, ui).connect()
@@ -90,13 +103,13 @@ class Builder:
         :param Build build: Build to saving"""
         builds: dict[str, Build] = {}
         try:
-            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+            with open(Builder.BUILD_LIST_FILE_NAME, "rb") as file:
                 builds = pickle.load(file)
         except FileNotFoundError:
             pass
 
         builds[build.build_name] = build
-        with open(Builder.BUILDS_LIST_FILE_NAME, "wb") as file:
+        with open(Builder.BUILD_LIST_FILE_NAME, "wb") as file:
             pickle.dump(builds, file)
 
     @staticmethod
@@ -107,14 +120,14 @@ class Builder:
         :param Build build: Build to removing from builds list"""
         builds: dict[str, Build] = {}
         try:
-            with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
+            with open(Builder.BUILD_LIST_FILE_NAME, "rb") as file:
                 builds = pickle.load(file)
         except FileNotFoundError:
             pass
 
         if build.build_name in builds:
             builds.pop(build.build_name)
-        with open(Builder.BUILDS_LIST_FILE_NAME, "wb") as file:
+        with open(Builder.BUILD_LIST_FILE_NAME, "wb") as file:
             pickle.dump(builds, file)
 
     @staticmethod

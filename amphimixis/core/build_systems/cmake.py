@@ -12,10 +12,12 @@ from amphimixis.core.general.general import (
     IHighLevelBuildSystem,
     ILowLevelBuildSystem,
     Toolchain,
+    IUI,
+    NullUI,
+    DummyRunner,
+    Project,
 )
 from amphimixis.core.shell import Shell
-
-_logger = logger.setup_logger("CMAKE")
 
 
 class CMake(BuildSystem, IHighLevelBuildSystem):
@@ -26,24 +28,26 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
         Ninja: "Ninja",
     }
 
-    def _generate_lang_flags(self, flags: CompilerFlags):
-        ret_flags = []
-        for flag, value in flags.data.items():
-            ret_flags.append(f"-DCMAKE_{flag.upper()}='{value}'")
-        return " ".join(ret_flags)
-
-    def _generate_toolchain_flags(self, toolchain: Toolchain):
-        ret_flags = []
-        for tool, value in toolchain.data.items():
-            ret_flags.append(f"-DCMAKE_{tool.upper()}='{value}'")
-        return " ".join(ret_flags)
+    def __init__(
+        self,
+        project: Project,
+        runner: ILowLevelBuildSystem = DummyRunner(),
+        ui: IUI = NullUI(),
+    ):
+        super().__init__(
+            project,
+            runner,
+            ui,
+        )
+        self._logger = BuildSystem.CustomLogger(logger.setup_logger("CMAKE"), {})
 
     def build(self, build: Build) -> tuple[int, str, str]:
-        """Configure and build via CMake
+        """Configure and run building via `CMake`.
 
-        :param Build build: Build to build
+        :param Build build: Build to building
         :rtype: tuple[int, str, str]
-        :return: Tuple of error_code, stdout, stderr"""
+        :return: error code, stdout and stderr joined with '\\n'"""
+        self._logger.extra["build"] = build.build_name  # type: ignore[index]
         shell = Shell(self._project, build.build_machine, self._ui).connect()
 
         build_path = os.path.join(shell.get_project_workdir(), build.build_name)
@@ -72,7 +76,7 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
         if build.jobs:
             run_cmd += f"--parallel {build.jobs} "
 
-        _logger.info("Run building with '%s' and '%s'", conf_cmd, run_cmd)
+        self._logger.info("Run building with '%s' and '%s'", conf_cmd, run_cmd)
         err, stdout, stderr = shell.run(conf_cmd, run_cmd)
         if len(stdout) > 1:
             stdout[0].extend(stdout[1])
@@ -82,3 +86,15 @@ class CMake(BuildSystem, IHighLevelBuildSystem):
 
     def _normbase(self, path: str) -> str:
         return os.path.basename(os.path.normpath(path))
+
+    def _generate_lang_flags(self, flags: CompilerFlags):
+        ret_flags = []
+        for flag, value in flags.data.items():
+            ret_flags.append(f"-DCMAKE_{flag.upper()}='{value}'")
+        return " ".join(ret_flags)
+
+    def _generate_toolchain_flags(self, toolchain: Toolchain):
+        ret_flags = []
+        for tool, value in toolchain.data.items():
+            ret_flags.append(f"-DCMAKE_{tool.upper()}='{value}'")
+        return " ".join(ret_flags)

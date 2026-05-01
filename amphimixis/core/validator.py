@@ -9,7 +9,10 @@ from typing import Any
 
 import yaml
 
-from amphimixis.core.build_systems import build_systems_dict, runners_dict
+from amphimixis.core.build_systems import (
+    get_build_system,
+    get_runner,
+)
 from amphimixis.core.general import (
     IUI,
     NullUI,
@@ -49,14 +52,11 @@ def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
         input_config = yaml.safe_load(file)
 
     build_system = input_config.get("build_system")
-    if (
-        isinstance(build_system, str)
-        and str(build_system).lower() not in build_systems_dict
-    ):
+    if isinstance(build_system, str) and not get_build_system(build_system):
         _notify_about_error(f"Invalid build_system: {build_system}")
 
     runner = input_config.get("runner")
-    if isinstance(runner, str) and runner.lower() not in runners_dict:
+    if isinstance(runner, str) and not get_runner(runner):
         _notify_about_error(f"Invalid runner: {runner}")
 
     # validate platforms

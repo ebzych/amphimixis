@@ -39,7 +39,7 @@ def setup_profiling_environment(project: Project, ui: IUI) -> bool:
     success = True
     tmpdir = tempfile.mkdtemp("_amphimixis")
     for build in project.builds:
-        if build.build_machine != build.run_machine:
+        if build.successfully_built and build.build_machine != build.run_machine:
             ui.update_message(build.build_name, "Copying built files to run machine")
             shell_build_machine = Shell(project, build.build_machine, ui=ui)
             shell_run_machine = Shell(project, build.run_machine, ui=ui)
