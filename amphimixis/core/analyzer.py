@@ -2,7 +2,6 @@
 
 import glob
 import re
-import sys
 from logging import Logger
 from os import listdir, path
 
