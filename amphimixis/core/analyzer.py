@@ -51,7 +51,7 @@ def analyze(
     _search_dependencies(proj_path, results, logger)
 
     if generating_files:
-        _file_output(results["build_systems"])
+        _file_output(results)
 
     logger.info("Analyzing done")
 
