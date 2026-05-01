@@ -98,7 +98,7 @@ def parse_config(
     return True
 
 
-def _create_build(  # pylint: disable=R0913,R0914,R0917
+def _create_build(  # pylint: disable=too-many-branches, too-many-arguments, too-many-locals, too-many-statements, too-many-positional-arguments
     project: general.Project,
     input_config: dict[str, Any],
     build_dict: dict[str, Any],
@@ -116,20 +116,28 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     )
 
     build_machine: MachineInfo
-    if dict_from_input := _get_by_id(input_config["platforms"], build_machine_id):
-        build_machine = create_machine(dict_from_input)
-    elif machine_from_la := LaboratoryAssistant.find_platform(build_machine_id):
+    if machine_from_la := LaboratoryAssistant.find_platform(build_machine_id):
         build_machine = machine_from_la
+        if dict_from_input := _get_by_id(
+            input_config["platforms"], f"@{build_machine_id}"
+        ):
+            _apply_platform_overrides(build_machine, dict_from_input)
+    elif dict_from_input := _get_by_id(input_config["platforms"], build_machine_id):
+        build_machine = create_machine(dict_from_input)
     else:
         msg = f"Build '{build_name}': unknown build machine: '{build_machine_id}'"
         _logger.fatal(msg)
         raise ValueError(msg)
 
     run_machine: MachineInfo
-    if dict_from_input := _get_by_id(input_config["platforms"], run_machine_id):
-        run_machine = create_machine(dict_from_input)
-    elif machine_from_la := LaboratoryAssistant.find_platform(run_machine_id):
+    if machine_from_la := LaboratoryAssistant.find_platform(run_machine_id):
         run_machine = machine_from_la
+        if dict_from_input := _get_by_id(
+            input_config["platforms"], f"@{run_machine_id}"
+        ):
+            _apply_platform_overrides(run_machine, dict_from_input)
+    elif dict_from_input := _get_by_id(input_config["platforms"], run_machine_id):
+        run_machine = create_machine(dict_from_input)
     else:
         msg = f"Build '{build_name}': unknown run machine: '{run_machine_id}'"
         _logger.fatal(msg)
@@ -142,7 +150,7 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
 
     toolchain = None
     if toolchain_info := recipe_info.get("toolchain"):
-        toolchain = create_toolchain(toolchain_info)
+        toolchain = create_toolchain(toolchain_info)  # type: ignore[arg-type]
 
     sysroot = recipe_info.get("sysroot")
     if sysroot is None and toolchain is not None:
@@ -173,6 +181,55 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     return True
 
 
+def _apply_platform_overrides(
+    machine: MachineInfo,
+    platform_cfg: dict[str, int | str | list[str]],
+) -> None:
+    """Temporary override some global machine info by local info
+
+    :param str machine: Machine from global config
+    :param dict[str, int | str] platform_cfg: Info from local config
+    :rtype: None"""
+
+    arch = platform_cfg.get("arch")
+    if arch:
+        machine.arch = general.Arch(str(arch).lower())
+
+    events = platform_cfg.get("events")
+    if events:
+        machine.events = events.split() if isinstance(events, str) else events  # type: ignore[assignment] #pylint: disable=line-too-long
+
+    address = platform_cfg.get("address")
+    username = platform_cfg.get("username")
+    password = platform_cfg.get("password")
+    port = platform_cfg.get("port")
+
+    if machine.auth:
+        if username:
+            machine.auth.username = str(username)
+        if password:
+            machine.auth.password = str(password)
+        if port:
+            machine.auth.port = int(port)  # type: ignore[arg-type]
+    elif username and port:
+        machine.auth = general.MachineAuthenticationInfo(
+            str(username),
+            str(password) if password else None,
+            int(port),  # type: ignore[arg-type]
+        )
+    elif password:
+        msg = "Can't assign password without auth info"
+        _logger.fatal(msg)
+        raise ValueError(msg)
+
+    if address and machine.auth:
+        machine.address = str(address)
+    elif address:
+        msg = "Can't assign address without auth info"
+        _logger.fatal(msg)
+        raise ValueError(msg)
+
+
 def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
     """Function to create path to build, depending on build, run and recipes ids"""
 
@@ -180,8 +237,8 @@ def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
 
 
 def _get_by_id(
-    items: list[dict[str, str | int]], target_id: str
-) -> dict[str, str | int]:
+    items: list[dict[str, str | int | list[str]]], target_id: str
+) -> dict[str, str | int | list[str]]:
     """Function to find item in dict by id"""
 
     for item in items:
@@ -200,10 +257,15 @@ def _has_valid_arch(
 
     if machine.address is None:
         if machine.arch.lower() not in local_arch().lower():
+            supported_archs = ", ".join(arch.value for arch in general.Arch)
             _logger.error(
-                "Invalid local machine arch: %s, your machine is %s",
+                "Invalid local machine arch: %s, your machine is %s. Supported: %s",
                 machine.arch.name.lower(),
                 local_arch().lower(),
+                supported_archs,
+            )
+            ui.mark_failed(
+                f"Config: invalid local architecture. Supported: {supported_archs}"
             )
             return False
         return True
@@ -221,12 +283,16 @@ def _has_valid_arch(
 
     remote_arch = stdout[0][0]
     if machine.arch.lower() not in remote_arch.lower():
+        supported_archs = ", ".join(arch.value for arch in general.Arch)
         _logger.error(
-            "Invalid remote machine arch: %s, remote machine is %s",
+            "Invalid remote machine arch: %s, remote machine is %s. Supported: %s",
             machine.arch.name.lower(),
             remote_arch.lower(),
+            supported_archs,
         )
-        ui.mark_failed("Config: invalid remote architecture")
+        ui.mark_failed(
+            f"Config: invalid remote architecture. Supported: {supported_archs}"
+        )
         return False
 
     return True
@@ -274,23 +340,27 @@ def _get_analyzed_build_system() -> str | None:
     return None
 
 
-def create_machine(machine_info: dict[str, int | str]) -> general.MachineInfo:
+def create_machine(
+    machine_info: dict[str, int | str | list[str]],
+) -> general.MachineInfo:
     """Function to create a new machine"""
 
+    auth = None
     arch = str(machine_info.get("arch"))
     address = machine_info.get("address")
     address = str(address) if address is not None else None
-    auth = None
+    events = machine_info.get("events")
+    events = (events.split() if isinstance(events, str) else events) or None
 
     if address is not None:
         username = str(machine_info.get("username"))
         password = machine_info.get("password")
         password = str(password) if password is not None else None
-        port = int(machine_info.get("port", DEFAULT_PORT))
+        port = int(machine_info.get("port", DEFAULT_PORT))  # type: ignore[arg-type]
 
         auth = general.MachineAuthenticationInfo(username, password, port)
 
-    machine = general.MachineInfo(general.Arch(arch.lower()), address, auth)
+    machine = general.MachineInfo(general.Arch(arch.lower()), address, auth, events)  # type: ignore[arg-type] # pylint: disable=line-too-long
 
     return machine
 
