@@ -63,7 +63,7 @@ amixis = "amphimixis.amixis.__main__:main"
 
 [tool.ruff.lint]
 ignore = [
-    "E501",   # Ignore line length warnings,
+    "E501",   # Ignore line length warnings
     "SIM102", # Ignore "Use a single `if` instead of nested"
     "D107",   # Ignore missing docstring in __init__()
     "D203",   # Ignore 1 blank line required before class docstring
