@@ -3,6 +3,8 @@
 from argparse import ArgumentParser
 from os import path
 
+import yaml
+
 from amphimixis.core.analyzer import analyze
 from amphimixis.amixis.utils import add_config_arg, add_path_arg
 from amphimixis.core.general import IUI, NullUI, Project
@@ -32,8 +34,9 @@ def run_analyze(project: Project, ui: IUI = NullUI()) -> bool:
     project_name = path.basename(path.normpath(project.path))
     ui.update_message(project_name, "Analyzing project...")
 
-    if not analyze(project):
+    if not (results := analyze(project)):
         ui.mark_failed("Analysis failed. See amphimixis.log for details.")
         return False
-    ui.mark_success("Analysis completed! See amphimixis.log for details.")
+    sresults = yaml.safe_dump(results).replace("[]", "not found")
+    ui.send_message("Analysis", sresults)
     return True

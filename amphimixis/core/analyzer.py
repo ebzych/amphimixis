@@ -59,7 +59,7 @@ def analyze(project: general.Project, generating_files: bool = True) -> dict | N
     _search_dependencies(proj_path, results)
 
     if generating_files:
-        _file_output(results["build_systems"])
+        _file_output(results)
 
     _logger.info("Analyzing done")
 
