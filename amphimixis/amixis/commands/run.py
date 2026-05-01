@@ -2,12 +2,11 @@
 
 from argparse import ArgumentParser
 
-from amphimixis.amixis.utils import add_config_arg, add_events_arg, add_path_arg
-from amphimixis.core.general import IUI, Project, constants, tools, ProjectStats
-
 from amphimixis.amixis.commands.analyze import run_analyze
 from amphimixis.amixis.commands.build import run_build
 from amphimixis.amixis.commands.profile import run_profile
+from amphimixis.amixis.utils import add_config_arg, add_events_arg, add_path_arg
+from amphimixis.core.general import IUI, Project, ProjectStats, constants, tools
 
 HELP_MESSAGE = "Run full pipeline: analyze, build and profile a project"
 
@@ -17,7 +16,6 @@ def add_args(parser: ArgumentParser) -> None:
 
     :param ArgumentParser parser: subcommand parser to which arguments are added
     """
-
     add_path_arg(parser)
     add_config_arg(parser)
     add_events_arg(parser)
@@ -28,13 +26,10 @@ def show_profiling_result(project: Project) -> None:
 
     :param Project project: Project instance with profiling results
     """
-
     obj: ProjectStats = tools.load_project_stats(project)
 
     if not obj or not any(
-        obj[build][exe].executable_run_success
-        for build in obj.keys()
-        for exe in obj[build]
+        obj[build][exe].executable_run_success for build in obj for exe in obj[build]
     ):
         print("\n[!] No profiling data (.scriptout files) were generated.")
         print("\tPlease check amphimixis.log for details.")
@@ -99,7 +94,6 @@ def run_full_pipeline(
     :return: True if pipeline succeeded, False otherwise
     :rtype: bool
     """
-
     if not run_analyze(project, ui):
         return False
 

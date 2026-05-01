@@ -5,9 +5,9 @@ import tempfile
 from argparse import ArgumentParser
 from os import path
 
-from amphimixis.core import Profiler, Shell, parse_config
 from amphimixis.amixis.utils import add_config_arg, add_path_arg
-from amphimixis.core.general import IUI, NullUI, Project
+from amphimixis.core import Profiler, Shell, parse_config
+from amphimixis.core.general import IUI, NULL_UI, Project
 
 HELP_MESSAGE = "Profile the performance of builds"
 
@@ -17,7 +17,6 @@ def add_args(parser: ArgumentParser) -> None:
 
     :param ArgumentParser parser: subcommand parser to which arguments are added
     """
-
     add_path_arg(parser)
     add_config_arg(parser)
     parser.add_argument(
@@ -35,7 +34,6 @@ def setup_profiling_environment(project: Project, ui: IUI) -> bool:
     :return: True if setup succeeded, False otherwise
     :rtype: bool
     """
-
     success = True
     tmpdir = tempfile.mkdtemp("_amphimixis")
     for build in project.builds:
@@ -71,7 +69,7 @@ def setup_profiling_environment(project: Project, ui: IUI) -> bool:
 def run_profile(
     project: Project,
     config_file_path: str,
-    ui: IUI = NullUI(),
+    ui: IUI = NULL_UI,
     events: list | None = None,
 ) -> bool:
     """Execute project profiling.
@@ -83,7 +81,6 @@ def run_profile(
     :return: True if profiling succeeded, False otherwise
     :rtype: bool
     """
-
     if not project.builds and not parse_config(
         project, config_file_path=config_file_path, ui=ui
     ):
