@@ -324,10 +324,13 @@ class TestShell:
         assert args[:4] == ["sshpass", "-p", "secret", "rsync"]
         assert "--checksum" in args
         assert "--archive" in args
-        assert (
-            "ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes -p 2222"
-            in args
-        )
+
+        assert any("ssh" in arg for arg in args)
+        assert any("-o StrictHostKeyChecking=no" in arg for arg in args)
+        assert any("-o PubkeyAuthentication=no" in arg for arg in args)
+        assert any("-o PasswordAuthentication=yes" in arg for arg in args)
+        assert any("-o UserKnownHostsFile=/dev/null" in arg for arg in args)
+        assert any("-p 2222" in arg for arg in args)
 
     @pytest.mark.parametrize(("return_code", "expected"), [(0, True), (1, False)])
     def test_copy_remote_returns_bool_from_rsync_key(
@@ -341,7 +344,10 @@ class TestShell:
         assert args[:2] == ["sshpass", "rsync"]
         assert "--checksum" in args
         assert "--archive" in args
-        assert "ssh -o StrictHostKeyChecking=no -p 2222" in args
+        assert any("ssh" in arg for arg in args)
+        assert any("-o StrictHostKeyChecking=no" in arg for arg in args)
+        assert any("-o UserKnownHostsFile=/dev/null" in arg for arg in args)
+        assert any("-p 2222" in arg for arg in args)
 
     def test_set_paranoid_returns_current_level_after_success(self, mocker):
         shell = Shell(project, self.local_machine)
