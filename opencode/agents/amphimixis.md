@@ -1,7 +1,7 @@
 ---
 description: Explore project by "amphimixis" scenario
 mode: all
-temperature: 0
+temperature: 0.3
 color: "#9953df"
 permission:
   amphimixis.analyze: allow
