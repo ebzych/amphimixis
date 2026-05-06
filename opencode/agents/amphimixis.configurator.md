@@ -2,12 +2,19 @@
 description: Configure complex Amphimixis YAML config files for building/profiling; invoke only for non-trivial setups
 mode: subagent
 temperature: 0
-color: "#57aeff"
+color: "#4292dd"
 tools:
-  *: false
-  amphimixis.configure: true
-  amphimixis.validate: true
-  read: true
+  "*": deny
+  amphimixis.configure: allow
+  amphimixis.validate: allow
+  read: allow
+  external_directory: allow
+  edit: deny
+  bash:
+    "*": deny
+    "git log*": allow
+    "grep *": allow
+    "git diff": allow
 
 # Tags
 tags:
