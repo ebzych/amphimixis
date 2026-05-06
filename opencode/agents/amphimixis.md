@@ -2,18 +2,21 @@
 description: Explore project by "amphimixis" scenario
 mode: all
 temperature: 0
-color: "#7e1fde"
+color: "#9953df"
 permission:
   amphimixis.analyze: true
   amphimixis.build: true
   amphimixis.profile: true
   amphimixis.configure: false
   amphimixis.validate: false
-  edit: false
   read: allow
+  external_directory: allow
+  edit: deny
   bash:
-    *: deny
-    git log: allow
+    "*": deny
+    "git log*": allow
+    "grep *": allow
+    "git diff": allow
 ---
 
 Project is a programming product with documentation, tests etc.
