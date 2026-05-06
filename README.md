@@ -16,6 +16,32 @@ Amphimixis is an automated project intelligence and evaluation tool for performa
   <img src="docs/tinyxml2-cross-table-example.png" alt="Cross-table example" width="800"><br>
 </p>
 
+## Requirements
+
+- Python 3.12 or later
+- Linux
+- `rsync` on each machine
+- `sshpass` available on the machine where you run Amphimixis, if you connect to remote machines with passwords
+- `perf` and `perf archive`<sup><a href="#note1">1</a></sup> available on each `run_machine`
+- A supported build setup in the target project: CMake as the build system and Make as the low-level runner
+
+Install system dependencies on each machine before running Amphimixis:
+
+```bash
+# on each machine
+apt install rsync
+
+# on the machine where you run Amphimixis
+apt install sshpass
+
+# on each run_machine (provides perf and perf archive)
+apt install linux-tools-common linux-tools
+```
+
+<p id="note1">
+
+1. More about `perf archive` in [Usage guide](docs/usage_guide.md).
+
 ## Quick run
 
 If you want to try Amphimixis right away, create a virtual environment, install the package from GitHub, and run the full pipeline on a target project:
@@ -44,20 +70,6 @@ If your `input.yml` contains remote machines authenticated with SSH keys, start 
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_remote_machine
 ```
-
-## Requirements
-
-- Python 3.12 or later
-- Linux
-- `rsync` on each machine
-- `sshpass` available on the machine where you run Amphimixis, if you connect to remote machines with passwords
-- `perf` available on each `run_machine`
-- `perf archive`<sup><a href="#note1">1</a></sup> available on each `run_machine`
-- A supported build setup in the target project: CMake as the build system and Make as the low-level runner
-
-<p id="note1">
-
-1. More about `perf archive` in [Usage guide](docs/usage_guide.md)
 
 ## What Amphimixis does
 
@@ -101,7 +113,7 @@ The tool is distributed as a Python package with the `amixis` CLI entry point.
 
 For local development and reproducible checks, the repository uses `uv` and GitHub Actions. The CI configuration is available in [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-Useful commands during development:
+Useful commands during development (run from the repository root, where `pyproject.toml` is located):
 
 ```bash
 uv run amixis --help
@@ -114,12 +126,13 @@ If you want a more detailed walkthrough with installation options, workspace pre
 
 The repository is organized around a small CLI and several core modules:
 
-- [amixis.py](amixis.py) is the command-line entry point
-- [amphimixis/analyzer.py](amphimixis/analyzer.py) inspects a target project
-- [amphimixis/builder.py](amphimixis/builder.py) runs configured builds
-- [amphimixis/profiler.py](amphimixis/profiler.py) gathers execution and profiling data
-- [amphimixis/validator.py](amphimixis/validator.py) validates `input.yml`
-- [amphimixis/shell](amphimixis/shell) contains local and remote shell backends
+- [amphimixis/amixis/\_\_main\_\_.py](amphimixis/amixis/__main__.py) is the CLI entry point
+- [amphimixis/core/analyzer.py](amphimixis/core/analyzer.py) inspects a target project
+- [amphimixis/core/builder.py](amphimixis/core/builder.py) runs configured builds
+- [amphimixis/core/profiler.py](amphimixis/core/profiler.py) gathers execution and profiling data
+- [amphimixis/core/validator.py](amphimixis/core/validator.py) validates `input.yml`
+- [amphimixis/core/shell](amphimixis/core/shell) contains local and remote shell backends
+- [amphimixis/core/build_systems](amphimixis/core/build_systems) adapts build systems (CMake, Make, Ninja)
 - [docs](docs) contains user-facing documentation
 
 ## Documentation
