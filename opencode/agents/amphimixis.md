@@ -17,6 +17,8 @@ permission:
     "git log*": allow
     "grep *": allow
     "git diff": allow
+  task:
+    "amphimixis.*": allow
 ---
 
 Project is a programming product with documentation, tests etc.
