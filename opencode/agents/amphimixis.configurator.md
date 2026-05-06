@@ -3,7 +3,7 @@ description: Configure complex Amphimixis YAML config files for building/profili
 mode: subagent
 temperature: 0
 color: "#4292dd"
-tools:
+permission:
   "*": deny
   amphimixis.configure: allow
   amphimixis.validate: allow
