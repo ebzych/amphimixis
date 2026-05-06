@@ -4,11 +4,11 @@ mode: all
 temperature: 0
 color: "#9953df"
 permission:
-  amphimixis.analyze: true
-  amphimixis.build: true
-  amphimixis.profile: true
-  amphimixis.configure: false
-  amphimixis.validate: false
+  amphimixis.analyze: allow
+  amphimixis.build: allow
+  amphimixis.profile: allow
+  amphimixis.validate: allow
+  amphimixis.configure: deny
   read: allow
   external_directory: allow
   edit: deny
