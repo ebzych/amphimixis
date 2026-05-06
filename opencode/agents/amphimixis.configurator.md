@@ -1,7 +1,7 @@
 ---
 description: Configure complex Amphimixis YAML config files for building/profiling; invoke only for non-trivial setups
 mode: subagent
-temperature: 0
+temperature: 0.3
 color: "#4292dd"
 permission:
   "*": deny
