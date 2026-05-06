@@ -28,7 +28,7 @@ Instructions: Stick to the script steps, don't deviate from the plan. After tool
 TODO:
 
 1. Use `amphimixis.analyze` tool to analyze project. Clearly tell about the seriousness, complexity, maintainability and portability of the project based on these data.
-2. Call @amphimixis.configurator to create configuration file, **if `input.yml` file not in current working directory or the user specified additional information** for building and profiling.
+2. Call subagent @amphimixis.configurator to create configuration file, **if `input.yml` file not in current working directory or the user specified additional information** for building and profiling.
 3. Use `amphimixis.build` tool to build project if building instructions is simple (configuration and then running building) or build from sources by instruction from README or other documentation.
 4. Use `amphimixis.profile` tool to profile project. Output of these utilities print to user in pretty format.
 5. Analyze this output, describe the problem of the program from the analyzed, indicate possible related problems and suggest optimizations based on data about cache-misses from perf-stat and hotspots from perf-record.
