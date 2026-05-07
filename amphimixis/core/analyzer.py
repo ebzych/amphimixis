@@ -25,17 +25,22 @@ _logger = setup_logger("analyzer")
 
 def analyze(project: general.Project, generating_files: bool = True) -> dict | None:
     # ruff: noqa: D301, D400, D415
-    """Analyzes project and collects its information
+    r"""Analyzes project and collects its information
 
     :param Project project: Project to analyze
     :param bool generating_files: Option for creating file with analyzing output
     :rtype: dict | None
-    :return: None if path to project not found, otherwise dictionary with:\n
-        \t`tests`: list of paths to tests
-        \t`benchmarks`: list of paths to benchmarks
-        \t`ci`: list of paths to CI directories and files
-        \t`build_systems`: list of build system names that the project has
-        \t`dependencies`: list of paths to dependency directories
+    :return: None if path to project not found, otherwise dictionary with:
+
+        `tests`: list of paths to tests
+
+        `benchmarks`: list of paths to benchmarks
+
+        `ci`: list of paths to CI directories and files
+
+        `build_systems`: list of build system names that the project has
+
+        `dependencies`: list of paths to dependency directories
     """
     results: dict[str, list[str] | str | None] = {
         "tests": [],
