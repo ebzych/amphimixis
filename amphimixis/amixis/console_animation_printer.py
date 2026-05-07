@@ -29,7 +29,8 @@ class ConsoleAnimationPrinter(IUI):
         """Print message to user with status mark 'I'.
 
         :param str sender: Identifier name of sender module
-        :param str message: Message to user"""
+        :param str message: Message to user
+        """
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
         print(f"\r\033[K[{sender}][I] {message.replace("\n", to_insert)}")
@@ -38,7 +39,8 @@ class ConsoleAnimationPrinter(IUI):
         """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message.
 
         :param str sender: Identifier name of sender module
-        :param str warning: Warning to user"""
+        :param str warning: Warning to user
+        """
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
         print(
@@ -50,7 +52,8 @@ class ConsoleAnimationPrinter(IUI):
         """Print error to user with status mark 'E' and 'ERROR: ' in begin of message.
 
         :param str sender: Identifier name of sender module
-        :param str error: Error message to user"""
+        :param str error: Error message to user
+        """
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
         print(
