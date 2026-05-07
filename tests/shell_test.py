@@ -1,7 +1,10 @@
 # pylint: skip-file
 import os
+import shlex
 import socket
 import subprocess
+import sys
+import threading
 from ctypes import ArgumentError
 
 import pytest
@@ -117,6 +120,49 @@ class TestShell:
             READING_BARRIER_STDOUT,
             READING_BARRIER_STDERR,
         ]
+
+    def test_run_drains_real_stderr_pipe_without_deadlock(self):
+        shell = Shell(project, self.local_machine)
+        shell._create_local_shell()
+
+        line_length = 1024
+        line_numbers = 512
+        python_code = (
+            "import sys; "
+            f"sys.stderr.write(('x' * {line_length} + '\\n') * {line_numbers}); "
+            "sys.stderr.flush(); "
+            "print('done')"
+        )
+        command = f"{shlex.quote(sys.executable)} -c {shlex.quote(python_code)}"
+        result = {}
+        exception = []
+
+        def run_command():
+            try:
+                result["value"] = shell.run(command)
+            except Exception as error:  # pragma: no cover - re-raised below
+                exception.append(error)
+
+        thread = threading.Thread(target=run_command, daemon=True)
+        thread.start()
+        thread.join(timeout=10)
+
+        try:
+            if thread.is_alive():
+                pytest.fail("Shell.run() deadlocked while draining stderr")
+
+            if exception:
+                raise exception[0]
+
+            error, stdout, stderr = result["value"]
+
+            assert error == 0
+            assert stdout == [["done\n"]]
+            assert len(stderr) == 1
+            assert len(stderr[0]) == line_numbers
+            assert all(line == ("x" * line_length) + "\n" for line in stderr[0])
+        finally:
+            shell._shell.__del__()
 
     def test_connect_uses_local_handler_for_local_machine(self, mocker):
         handler = FakeHandler()
@@ -278,10 +324,13 @@ class TestShell:
         assert args[:4] == ["sshpass", "-p", "secret", "rsync"]
         assert "--checksum" in args
         assert "--archive" in args
-        assert (
-            "ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes -p 2222"
-            in args
-        )
+
+        assert any("ssh" in arg for arg in args)
+        assert any("-o StrictHostKeyChecking=no" in arg for arg in args)
+        assert any("-o PubkeyAuthentication=no" in arg for arg in args)
+        assert any("-o PasswordAuthentication=yes" in arg for arg in args)
+        assert any("-o UserKnownHostsFile=/dev/null" in arg for arg in args)
+        assert any("-p 2222" in arg for arg in args)
 
     @pytest.mark.parametrize(("return_code", "expected"), [(0, True), (1, False)])
     def test_copy_remote_returns_bool_from_rsync_key(
@@ -295,7 +344,10 @@ class TestShell:
         assert args[:2] == ["sshpass", "rsync"]
         assert "--checksum" in args
         assert "--archive" in args
-        assert "ssh -o StrictHostKeyChecking=no -p 2222" in args
+        assert any("ssh" in arg for arg in args)
+        assert any("-o StrictHostKeyChecking=no" in arg for arg in args)
+        assert any("-o UserKnownHostsFile=/dev/null" in arg for arg in args)
+        assert any("-p 2222" in arg for arg in args)
 
     def test_set_paranoid_returns_current_level_after_success(self, mocker):
         shell = Shell(project, self.local_machine)

@@ -2,9 +2,9 @@
 
 from argparse import ArgumentParser
 
-from amphimixis.core import Builder, parse_config
 from amphimixis.amixis.utils import add_config_arg, add_path_arg
-from amphimixis.core.general import IUI, NullUI, Project
+from amphimixis.core import Builder, parse_config
+from amphimixis.core.general import IUI, NULL_UI, Project
 
 HELP_MESSAGE = "Build the project according to the generated configuration files"
 
@@ -14,12 +14,11 @@ def add_args(parser: ArgumentParser) -> None:
 
     :param ArgumentParser parser: subcommand parser to which arguments are added
     """
-
     add_path_arg(parser)
     add_config_arg(parser)
 
 
-def run_build(project: Project, config_file_path: str, ui: IUI = NullUI()) -> bool:
+def run_build(project: Project, config_file_path: str, ui: IUI = NULL_UI) -> bool:
     """Execute project build.
 
     :param Project project: Project instance to build
@@ -28,7 +27,6 @@ def run_build(project: Project, config_file_path: str, ui: IUI = NullUI()) -> bo
     :return: True if at least one build succeeded, False otherwise
     :rtype: bool
     """
-
     if not project.builds and not parse_config(
         project, config_file_path=config_file_path, ui=ui
     ):

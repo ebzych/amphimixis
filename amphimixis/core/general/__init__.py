@@ -1,20 +1,19 @@
-"""The common module that is used in most other modules"""
+"""The common module that is used in most other modules."""
 
 from amphimixis.core.general import constants, tools
 from amphimixis.core.general.general import (
+    DUMMY_RUNNER,
     IUI,
+    NULL_UI,
     Arch,
     Build,
     BuildSystem,
     CompilerFlags,
     CompilerFlagsAttrs,
-    DummyBuildSystem,
-    DummyRunner,
     IHighLevelBuildSystem,
     ILowLevelBuildSystem,
     MachineAuthenticationInfo,
     MachineInfo,
-    NullUI,
     ProfileStats,
     Project,
     ProjectStats,
@@ -36,13 +35,12 @@ __all__ = [
     "MachineInfo",
     "MachineAuthenticationInfo",
     "IUI",
-    "NullUI",
+    "NULL_UI",
     "Toolchain",
     "ToolchainAttrs",
     "CompilerFlagsAttrs",
     "CompilerFlags",
     "ProfileStats",
     "ProjectStats",
-    "DummyBuildSystem",
-    "DummyRunner",
+    "DUMMY_RUNNER",
 ]

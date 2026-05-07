@@ -1,28 +1,23 @@
-"""Module that builds a build based on configuration"""
+"""Module that builds a build based on configuration."""
 
 import os
 import pickle
 
 from amphimixis.core import logger
-from amphimixis.core.general import IUI, NullUI
-from amphimixis.core.general.general import (
-    Build,
-    Project,
-)
-from amphimixis.core.shell.shell import Shell
+from amphimixis.core.general import IUI, NULL_UI, Build, Project
+from amphimixis.core.shell import Shell
 
 _logger = logger.setup_logger("BUILDER")
 
 
 class Builder:
-    """The class is representing a module which builds a build based on its configuration"""
+    """The class is representing a module which builds a build based on its configuration."""
 
     BUILDS_LIST_FILE_NAME = ".builds"
 
     @staticmethod
-    def build(project: Project, ui: IUI = NullUI()) -> None:
-        """The method build all builds"""
-
+    def build(project: Project, ui: IUI = NULL_UI) -> None:
+        """Build all project builds."""
         for build in project.builds:
             _logger.info("Build the %s", build.build_name)
 
@@ -32,11 +27,10 @@ class Builder:
                 _logger.info("Build failed %s", build.build_name)
 
     @staticmethod
-    def build_for_linux(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
-        """The method build program on Linux"""
-
+    def build_for_linux(project: Project, build: Build, ui: IUI = NULL_UI) -> bool:
+        """Build the program on Linux."""
         ui.update_message(build.build_name, "Connecting...")
-        shell = Shell(project, build.build_machine, ui).connect()
+        shell = Shell(project, build.build_machine, ui=ui).connect()
 
         # path to build on the machine
         path: str = os.path.join(shell.get_project_workdir(), build.build_name)
@@ -84,10 +78,10 @@ class Builder:
 
     @staticmethod
     def remember_build(build: Build) -> None:
-        """Remember build to Builder.BUILDS_LIST_FILE_NAME "
-        "file in working directory
+        """Remember build to Builder.BUILDS_LIST_FILE_NAME file in working directory.
 
-        :param Build build: Build to saving"""
+        :param Build build: Build to saving
+        """
         builds: dict[str, Build] = {}
         try:
             with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
@@ -101,10 +95,10 @@ class Builder:
 
     @staticmethod
     def forget_build(build: Build) -> None:
-        """Forget build from Builder.BUILDS_LIST_FILE_NAME "
-        "file in working directory
+        """Forget build from Builder.BUILDS_LIST_FILE_NAME file in working directory.
 
-        :param Build build: Build to removing from builds list"""
+        :param Build build: Build to removing from builds list
+        """
         builds: dict[str, Build] = {}
         try:
             with open(Builder.BUILDS_LIST_FILE_NAME, "rb") as file:
@@ -118,13 +112,14 @@ class Builder:
             pickle.dump(builds, file)
 
     @staticmethod
-    def clean(project: Project, build: Build, ui: IUI = NullUI()) -> bool:
-        """Clean build artifacts from build machine
+    def clean(project: Project, build: Build, ui: IUI = NULL_UI) -> bool:
+        """Clean build artifacts from build machine.
 
         :param Project project: Project whose build must be cleaned
         :param Build build: Build to clean from build machine
         :rtype: bool
-        :return: True if successful cleaned, otherwise False"""
+        :return: True if successful cleaned, otherwise False
+        """
         shell = Shell(project, build.build_machine, ui).connect()
         path: str = os.path.join(shell.get_project_workdir(), build.build_name)
         err, stdout, stderr = shell.run(f"rm -rf {path}")

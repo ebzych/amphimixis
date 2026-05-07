@@ -3,11 +3,12 @@
 import os
 import socket
 import subprocess
+import threading
 from ctypes import ArgumentError
-from typing import List, Self, Tuple
+from typing import Self
 
 from amphimixis.core import logger
-from amphimixis.core.general import IUI, MachineInfo, NullUI, Project, constants
+from amphimixis.core.general import IUI, NULL_UI, MachineInfo, Project, constants
 from amphimixis.core.shell.local_shell_handler import _LocalShellHandler
 from amphimixis.core.shell.paramiko_shell_handler import _ParamikoHandler
 from amphimixis.core.shell.shell_interface import IShellHandler
@@ -23,14 +24,14 @@ class Shell:
 
     :param Project project: Project object.
     :param MachineInfo machine: machine to run profiling at.
-    :param connect_timeout int: connection to machine timeout.
+    :param int connect_timeout: connection timeout in seconds.
     """
 
     def __init__(
         self,
         project: Project,
         machine: MachineInfo,
-        ui: IUI = NullUI(),
+        ui: IUI = NULL_UI,
         connect_timeout=10,
     ):
         self.project = project
@@ -43,10 +44,10 @@ class Shell:
         self._homedir: str = ""
         self._is_connected: bool = False
         self._is_local: bool = False
+        self._ui_lock = threading.Lock()
 
     def connect(self) -> Self:
         """Connect to the shell of the machine."""
-
         if self.machine.address is None:
             self._create_local_shell()
         else:
@@ -86,7 +87,7 @@ class Shell:
         self._shell = _ParamikoHandler(self.machine, self.connect_timeout)
         self._is_local = False
 
-    def run(self, *commands: str) -> Tuple[int, List[List[str]], List[List[str]]]:
+    def run(self, *commands: str) -> tuple[int, list[list[str]], list[list[str]]]:
         """Run the commands through the shell.
 
         - Execute commands one by one until:
@@ -94,18 +95,17 @@ class Shell:
             OR
             all commands have been executed.
 
-
         :param str *commands: commands to be executed
 
         :rtype: Tuple[int, List[List[str]], List[List[str]]]
-        :return: A tuple of three :\n
+        :return: A tuple of three :
+
             - :int: error code of the last executed command
             - :List[List[str]]: List[str] is lines of the stdout of an executed command.
             - :List[List[str]]: List[str] is lines of the stderr of an executed command.
         """
-
-        stdout: List[List[str]] = []
-        stderr: List[List[str]] = []
+        stdout: list[list[str]] = []
+        stderr: list[list[str]] = []
         error_code = 0
         for cmd in commands:
             if error_code:
@@ -119,36 +119,57 @@ class Shell:
             # newline added in case of it is missing in the previous output line
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}:$?"')
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}">&2')
-            cmd_stdout: List[str] = []
-            cmd_stderr: List[str] = []
-            while line := self._shell.stdout_readline():
-                self._ui.step()
-                if line[: len(_READING_BARRIER_FLAG)] == _READING_BARRIER_FLAG:
-                    error_code = int(line[len(_READING_BARRIER_FLAG) + 1 :])
-                    if cmd_stdout[-1] == "\n":
-                        del cmd_stdout[-1]
-                    else:
-                        cmd_stdout[-1] = cmd_stdout[-1][:-1]
-                    break
-                cmd_stdout.append(line)
-            stdout.append(cmd_stdout)
+            cmd_stdout: list[str] = []
+            cmd_stderr: list[str] = []
+            command_error_code: list[int] = []
 
-            while line := self._shell.stderr_readline():
-                self._ui.step()
-                if line[:-1] == _READING_BARRIER_FLAG:
-                    if cmd_stderr[-1] == "\n":
-                        del cmd_stderr[-1]
-                    else:
-                        cmd_stderr[-1] = cmd_stderr[-1][:-1]
-                    break
-                cmd_stderr.append(line)
+            stdout_reader = threading.Thread(
+                target=self._read_stdout_until_barrier,
+                args=(cmd_stdout, command_error_code),
+            )
+            stderr_reader = threading.Thread(
+                target=self._read_stderr_until_barrier, args=(cmd_stderr,)
+            )
+
+            stdout_reader.start()
+            stderr_reader.start()
+            stdout_reader.join()
+            stderr_reader.join()
+
+            error_code = command_error_code[0]
+            stdout.append(cmd_stdout)
             stderr.append(cmd_stderr)
 
         return (error_code, stdout, stderr)
 
+    def _read_stdout_until_barrier(
+        self, output: list[str], error_code: list[int]
+    ) -> None:
+        while line := self._shell.stdout_readline():
+            self._ui.step()
+
+            barrier_error = self._parse_stdout_barrier(line)
+            if barrier_error is not None:
+                error_code.append(barrier_error)
+                self._strip_barrier_separator(output)
+                return
+
+            output.append(line)
+
+    def _read_stderr_until_barrier(self, output: list[str]) -> None:
+        while line := self._shell.stderr_readline():
+            self._ui.step()
+
+            if self._is_stderr_barrier(line):
+                self._strip_barrier_separator(output)
+                return
+
+            output.append(line)
+
     def copy_to_remote(self, source: str, destination: str) -> bool:
-        """Send a file or folder to the target machine
-        Absolute paths are needed
+        """Send a file or folder to the target machine.
+
+        Absolute paths are needed.
 
         :param str source: absolute path to a file or folder on the host machine
         :param str destination: absolute path to copy a file or folder to on the controlled machine
@@ -165,15 +186,15 @@ class Shell:
         return self._copy(source, _destination)
 
     def copy_to_host(self, source: str, destination: str) -> bool:
-        """Gets a file or folder from the target machine
-        Absolute paths are needed
+        """Get a file or folder from the target machine.
+
+        Absolute paths are needed.
 
         :param str source: absolute path to a file or folder on the controlled machine
         :param str destination: absolute path to copy a file or folder to on the host machine
 
         :return: True if successfully copied else False
         """
-
         if self.machine.auth is None:
             _source = source
         else:
@@ -182,16 +203,14 @@ class Shell:
         return self._copy(_source, destination)
 
     def get_project_workdir(self) -> str:
-        """Gets a working directory for amphimixis
-
+        """Get a working directory for amphimixis.
 
         :rtype: str
         :return: In case of remote machine:
-                 expanded `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}_builds`.\n
+                 expanded `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}_builds`.
 
                  In case of local machine: python process current working directory.
         """
-
         if self._project_workdir != "":
             return self._project_workdir
 
@@ -211,8 +230,11 @@ class Shell:
         return self._project_workdir
 
     def get_home(self) -> str:
-        """Gets a home directory for current connection (user@machine)"""
+        """Get a home directory for current connection (user@machine).
 
+        :rtype: str
+        :return: Expanded `~` for the current connection (user@machine).
+        """
         if self._homedir != "":
             return self._homedir
 
@@ -251,8 +273,15 @@ class Shell:
         self._homedir = stdout[0][0].strip()
         return self._homedir
 
-    def get_source_dir(self):
-        """Gets a directory for the project source code on the target machine."""
+    def get_source_dir(self) -> str:
+        """Get a directory for the project source code on the target machine.
+
+        :rtype: str
+        :return: In case of remote machine: expanded
+        `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}`.
+
+                 In case of local machine: project path.
+        """
         if self._is_local:
             return self.project.path
 
@@ -263,18 +292,17 @@ class Shell:
         )
 
     def set_paranoid(self, level: int) -> tuple[int, bool]:
-        """
-        Sets perf_event_paranoid to the given level.
+        """Set perf_event_paranoid to the given level.
 
         :param int level: The level to set perf_event_paranoid to.
                           Should be an integer between -1 and 3.
 
-        :return: A tuple of two elements: \n
+        :rtype: tuple[int, bool]
+        :return: A tuple of two elements:
+
             - int: The current level of perf_event_paranoid.
             - bool: True if the level was set successfully, False otherwise.
-        :rtype: tuple[int, bool]
         """
-
         if not self._is_connected:
             self.connect()
 
@@ -310,7 +338,13 @@ class Shell:
         self, source: str, destination: str, password: str | None, port: int
     ) -> bool:
         self._logger.info("Copying %s -> %s", source, destination)
-        sshcmd = ["ssh", "-o", "StrictHostKeyChecking=no"]
+        sshcmd = [
+            "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+        ]
         if password:
             sshcmd += [
                 "-o",
@@ -355,3 +389,26 @@ class Shell:
 
         self._logger.info("Success %s -> %s", source, destination)
         return True
+
+    @staticmethod
+    def _parse_stdout_barrier(line: str) -> int | None:
+        stripped = line.strip()
+        prefix = f"{_READING_BARRIER_FLAG}:"
+        if not stripped.startswith(prefix):
+            return None
+        return int(stripped[len(prefix) :])
+
+    @staticmethod
+    def _is_stderr_barrier(line: str) -> bool:
+        return line.strip() == _READING_BARRIER_FLAG
+
+    @staticmethod
+    def _strip_barrier_separator(lines: list[str]) -> None:
+        if not lines:
+            return
+
+        if lines[-1] == "\n":
+            lines.pop()
+            return
+
+        lines[-1] = lines[-1][:-1]

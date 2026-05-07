@@ -1,4 +1,4 @@
-"""Module that analyzes project's repository and creates file with its information"""
+"""Module that analyzes project's repository and creates file with its information."""
 
 import glob
 import re
@@ -36,7 +36,6 @@ def analyze(project: general.Project, generating_files: bool = True) -> dict | N
         \t`build_systems`: list of build system names that the project has
         \t`dependencies`: list of paths to dependency directories
     """
-
     results: dict[str, list[str] | str | None] = {
         "tests": [],
         "benchmarks": [],
@@ -162,7 +161,7 @@ def _cmake_dependencies(proj_path, results):
         _logger.info("  no CMakeLists.txt in project root")
         return
 
-    with open(file_path, "r", encoding="utf8") as file:
+    with open(file_path, encoding="utf8") as file:
         text = file.read()
 
     text = re.sub(r"#.*", "", text)

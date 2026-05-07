@@ -1,4 +1,4 @@
-"""Module for configuring a new build"""
+"""Module for configuring a new build."""
 
 import pickle
 from os import path
@@ -9,10 +9,10 @@ import yaml
 
 from amphimixis.core.build_systems import build_systems_dict, runners_dict
 from amphimixis.core.general import (
+    DUMMY_RUNNER,
     IUI,
-    DummyRunner,
+    NULL_UI,
     MachineInfo,
-    NullUI,
     general,
     tools,
 )
@@ -29,16 +29,16 @@ _logger = setup_logger("configurator")
 
 # pylint: disable=too-many-return-statements
 def parse_config(
-    project: general.Project, config_file_path: str, ui: IUI = NullUI()
+    project: general.Project, config_file_path: str, ui: IUI = NULL_UI
 ) -> bool:
-    """Main function to configure builds
+    """Configure builds.
 
     :rtype: bool
-    :return: Outcome value :\n
+    :return: Outcome value :
+
          True if configuration succeeded
          False if configuration failed
     """
-
     ui.update_message("Config", "Parsing configuration file...")
 
     if not path.exists(project.path):
@@ -58,7 +58,7 @@ def parse_config(
         ui.mark_failed("Incorrect input file")
         return False
 
-    with open(config_file_path, "r", encoding="UTF-8") as file:
+    with open(config_file_path, encoding="UTF-8") as file:
         input_config = yaml.safe_load(file)
 
     build_system: str | None = str(input_config.get("build_system")).lower()
@@ -77,7 +77,7 @@ def parse_config(
     elif len(build_systems_dict[build_system][1]) > 0:
         runner = build_systems_dict[build_system][1][0](project, ui)
     else:  # if build system doesn't have runners (like Make)
-        runner = DummyRunner()
+        runner = DUMMY_RUNNER
     project.build_system = build_systems_dict[build_system][0](project, runner, ui)
 
     for build in input_config["builds"]:
@@ -102,10 +102,9 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     project: general.Project,
     input_config: dict[str, Any],
     build_dict: dict[str, Any],
-    ui: IUI = NullUI(),
+    ui: IUI = NULL_UI,
 ) -> bool:
-    """Function to create a new build and save its configuration to a Pickle file"""
-
+    """Create a new build and save its configuration to a Pickle file."""
     build_machine_id = str(build_dict["build_machine"])
     run_machine_id = str(build_dict["run_machine"])
     recipe_id = str(build_dict["recipe_id"])
@@ -174,16 +173,14 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
 
 
 def _generate_build_name(build_id: str, run_id: str, recipe_id: str) -> str:
-    """Function to create path to build, depending on build, run and recipes ids"""
-
+    """Generate a build path based on build, run, and recipe IDs."""
     return f"{build_id}_{run_id}_{recipe_id}"
 
 
 def _get_by_id(
     items: list[dict[str, str | int]], target_id: str
 ) -> dict[str, str | int]:
-    """Function to find item in dict by id"""
-
+    """Find an item in a dictionary by ID."""
     for item in items:
         id_ = str(item["id"])
         if id_ == target_id:
@@ -194,10 +191,9 @@ def _get_by_id(
 
 
 def _has_valid_arch(
-    project: general.Project, machine: general.MachineInfo, ui: IUI = NullUI()
+    project: general.Project, machine: general.MachineInfo, ui: IUI = NULL_UI
 ) -> bool:
-    """Function to check whether run machine arch is valid"""
-
+    """Check whether the run machine architecture is valid."""
     if machine.address is None:
         if machine.arch.lower() not in local_arch().lower():
             _logger.error(
@@ -233,20 +229,20 @@ def _has_valid_arch(
 
 
 def _get_analyzed_build_system() -> str | None:
-    """Function to get build system from analyzed project
+    """Get the build system from the analyzed project.
 
     :rtype: str | None
-    :return: Outcome value :\n
+    :return: Outcome value :
+
          Build system name if it was found
          None if build system was not found or
          analysis was not completed
     """
-
     if not path.exists(ANALYZED_FILE_NAME):
         _logger.warning("Analyzer output file not found")
         return None
 
-    with open(ANALYZED_FILE_NAME, "r", encoding="UTF-8") as file:
+    with open(ANALYZED_FILE_NAME, encoding="UTF-8") as file:
         analyzed = yaml.safe_load(file)
 
     if not analyzed:
@@ -275,8 +271,7 @@ def _get_analyzed_build_system() -> str | None:
 
 
 def create_machine(machine_info: dict[str, int | str]) -> general.MachineInfo:
-    """Function to create a new machine"""
-
+    """Create a new machine."""
     arch = str(machine_info.get("arch"))
     address = machine_info.get("address")
     address = str(address) if address is not None else None
@@ -298,8 +293,7 @@ def create_machine(machine_info: dict[str, int | str]) -> general.MachineInfo:
 def create_toolchain(
     toolchain_dict: dict[str, str | int] | str | int,
 ) -> general.Toolchain | None:
-    """Function to create a new toolchain"""
-
+    """Create a new toolchain."""
     if isinstance(toolchain_dict, str | int):
         return LaboratoryAssistant.find_toolchain_by_name(str(toolchain_dict))
 
@@ -331,8 +325,7 @@ def create_toolchain(
 def create_flags(
     compiler_flags_dict: dict[str, str] | None,
 ) -> general.CompilerFlags | None:
-    """Function to create new flags"""
-
+    """Create new compiler flags."""
     if compiler_flags_dict is None:
         return None
 
