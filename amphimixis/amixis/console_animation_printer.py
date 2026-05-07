@@ -48,7 +48,7 @@ class ConsoleAnimationPrinter(IUI):
             f"{warning.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
         )
 
-    def send_error(self, sender: str, err_msg: str) -> None:
+    def send_error(self, sender: str, error: str) -> None:
         """Print error to user with status mark 'E' and 'ERROR: ' in begin of message.
 
         :param str sender: Identifier name of sender module
@@ -58,7 +58,7 @@ class ConsoleAnimationPrinter(IUI):
         to_insert = f"\n{" " * word_len}"
         print(
             f"\r\033[K{FG_RED_COLOR}[{sender}][E] ERROR: "
-            f"{err_msg.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
+            f"{error.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
         )
 
     def update_message(self, build_id: str, message: str) -> None:
