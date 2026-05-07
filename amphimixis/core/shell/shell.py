@@ -5,10 +5,10 @@ import socket
 import subprocess
 import threading
 from ctypes import ArgumentError
-from typing import List, Self, Tuple
+from typing import Self
 
 from amphimixis.core import logger
-from amphimixis.core.general import IUI, MachineInfo, NullUI, Project, constants
+from amphimixis.core.general import IUI, NULL_UI, MachineInfo, Project, constants
 from amphimixis.core.shell.local_shell_handler import _LocalShellHandler
 from amphimixis.core.shell.paramiko_shell_handler import _ParamikoHandler
 from amphimixis.core.shell.shell_interface import IShellHandler
@@ -31,7 +31,7 @@ class Shell:
         self,
         project: Project,
         machine: MachineInfo,
-        ui: IUI = NullUI(),
+        ui: IUI = NULL_UI,
         connect_timeout=10,
     ):
         self.project = project
@@ -48,7 +48,6 @@ class Shell:
 
     def connect(self) -> Self:
         """Connect to the shell of the machine."""
-
         if self.machine.address is None:
             self._create_local_shell()
         else:
@@ -88,7 +87,7 @@ class Shell:
         self._shell = _ParamikoHandler(self.machine, self.connect_timeout)
         self._is_local = False
 
-    def run(self, *commands: str) -> Tuple[int, List[List[str]], List[List[str]]]:
+    def run(self, *commands: str) -> tuple[int, list[list[str]], list[list[str]]]:
         """Run the commands through the shell.
 
         - Execute commands one by one until:
@@ -99,14 +98,14 @@ class Shell:
         :param str *commands: commands to be executed
 
         :rtype: Tuple[int, List[List[str]], List[List[str]]]
-        :return: A tuple of three :\n
+        :return: A tuple of three :
+
             - :int: error code of the last executed command
             - :List[List[str]]: List[str] is lines of the stdout of an executed command.
             - :List[List[str]]: List[str] is lines of the stderr of an executed command.
         """
-
-        stdout: List[List[str]] = []
-        stderr: List[List[str]] = []
+        stdout: list[list[str]] = []
+        stderr: list[list[str]] = []
         error_code = 0
         for cmd in commands:
             if error_code:
@@ -120,9 +119,9 @@ class Shell:
             # newline added in case of it is missing in the previous output line
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}:$?"')
             self._shell.run(f'echo "\n{_READING_BARRIER_FLAG}">&2')
-            cmd_stdout: List[str] = []
-            cmd_stderr: List[str] = []
-            command_error_code: List[int] = []
+            cmd_stdout: list[str] = []
+            cmd_stderr: list[str] = []
+            command_error_code: list[int] = []
 
             stdout_reader = threading.Thread(
                 target=self._read_stdout_until_barrier,
@@ -144,7 +143,7 @@ class Shell:
         return (error_code, stdout, stderr)
 
     def _read_stdout_until_barrier(
-        self, output: List[str], error_code: List[int]
+        self, output: list[str], error_code: list[int]
     ) -> None:
         while line := self._shell.stdout_readline():
             self._ui.step()
@@ -157,7 +156,7 @@ class Shell:
 
             output.append(line)
 
-    def _read_stderr_until_barrier(self, output: List[str]) -> None:
+    def _read_stderr_until_barrier(self, output: list[str]) -> None:
         while line := self._shell.stderr_readline():
             self._ui.step()
 
@@ -187,7 +186,7 @@ class Shell:
         return self._copy(source, _destination)
 
     def copy_to_host(self, source: str, destination: str) -> bool:
-        """Gets a file or folder from the target machine.
+        """Get a file or folder from the target machine.
 
         Absolute paths are needed.
 
@@ -196,7 +195,6 @@ class Shell:
 
         :return: True if successfully copied else False
         """
-
         if self.machine.auth is None:
             _source = source
         else:
@@ -205,15 +203,14 @@ class Shell:
         return self._copy(_source, destination)
 
     def get_project_workdir(self) -> str:
-        """Gets a working directory for amphimixis.
+        """Get a working directory for amphimixis.
 
         :rtype: str
         :return: In case of remote machine:
-                 expanded `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}_builds`.\n
+                 expanded `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}_builds`.
 
                  In case of local machine: python process current working directory.
         """
-
         if self._project_workdir != "":
             return self._project_workdir
 
@@ -233,12 +230,11 @@ class Shell:
         return self._project_workdir
 
     def get_home(self) -> str:
-        """Gets a home directory for current connection (user@machine).
+        """Get a home directory for current connection (user@machine).
 
         :rtype: str
         :return: Expanded `~` for the current connection (user@machine).
         """
-
         if self._homedir != "":
             return self._homedir
 
@@ -278,13 +274,14 @@ class Shell:
         return self._homedir
 
     def get_source_dir(self) -> str:
-        """Gets a directory for the project source code on the target machine.
+        """Get a directory for the project source code on the target machine.
 
         :rtype: str
         :return: In case of remote machine: expanded
-        `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}`.\n
-                 In case of local machine: project path."""
+        `~/${AMPHIMIXIS_DIRECTORY_NAME}/${PROJECT_NAME}`.
 
+                 In case of local machine: project path.
+        """
         if self._is_local:
             return self.project.path
 
@@ -295,17 +292,17 @@ class Shell:
         )
 
     def set_paranoid(self, level: int) -> tuple[int, bool]:
-        """Sets perf_event_paranoid to the given level.
+        """Set perf_event_paranoid to the given level.
 
         :param int level: The level to set perf_event_paranoid to.
                           Should be an integer between -1 and 3.
 
-        :return: A tuple of two elements: \n
+        :rtype: tuple[int, bool]
+        :return: A tuple of two elements:
+
             - int: The current level of perf_event_paranoid.
             - bool: True if the level was set successfully, False otherwise.
-        :rtype: tuple[int, bool]
         """
-
         if not self._is_connected:
             self.connect()
 
@@ -406,7 +403,7 @@ class Shell:
         return line.strip() == _READING_BARRIER_FLAG
 
     @staticmethod
-    def _strip_barrier_separator(lines: List[str]) -> None:
+    def _strip_barrier_separator(lines: list[str]) -> None:
         if not lines:
             return
 

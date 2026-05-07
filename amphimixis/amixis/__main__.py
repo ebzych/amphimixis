@@ -5,11 +5,10 @@
 import sys
 from pathlib import Path
 
-from amphimixis.core import general
-from amphimixis.amixis.parser import create_parser
 from amphimixis.amixis.commands import COMMANDS
 from amphimixis.amixis.console_animation_printer import ConsoleAnimationPrinter
-from amphimixis.amixis.parser import MAIN_EXAMPLES
+from amphimixis.amixis.parser import MAIN_EXAMPLES, create_parser
+from amphimixis.core import general
 from amphimixis.core.general.constants import DEFAULT_CONFIG_PATH
 
 
@@ -19,7 +18,6 @@ def print_help(commands, full=False) -> None:
     :param dict commands: Dictionary of subcommands (name -> module)
     :param bool full: Whether to show full help with examples
     """
-
     print(
         "amixis [-h] {run, analyze, build, profile, validate, compare, clean, add} ...\n"
     )
@@ -39,12 +37,11 @@ def print_help(commands, full=False) -> None:
 
 # pylint: disable=too-many-branches
 def main() -> bool:
-    """Main function for the Amphimixis CLI tool.
+    """Run the Amphimixis CLI tool.
 
     :return: True if command succeeded, False otherwise
     :rtype: bool
     """
-
     parser = create_parser()
     args = parser.parse_args()
 

@@ -1,4 +1,4 @@
-"""Module for validating an existing input file"""
+"""Module for validating an existing input file."""
 
 # pylint: disable=W0603, C0103
 
@@ -12,7 +12,7 @@ import yaml
 from amphimixis.core.build_systems import build_systems_dict, runners_dict
 from amphimixis.core.general import (
     IUI,
-    NullUI,
+    NULL_UI,
     Arch,
     CompilerFlagsAttrs,
     ToolchainAttrs,
@@ -25,18 +25,18 @@ DEFAULT_PORT = 22
 _errors_count = 0
 
 _logger = setup_logger("validator")
-_ui: IUI = NullUI()
+_ui: IUI = NULL_UI
 
 
-def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
-    """Main function to validate config file
+def validate(config_file_path: str, ui: IUI = NULL_UI) -> bool:
+    """Validate config file.
 
     :rtype: bool
-    :return: Outcome value :\n
+    :return: Outcome value :
+
          True if config is valid
          False if config is invalid or file not exists
     """
-
     global _ui, _errors_count
     _ui = ui
     _errors_count = 0
@@ -45,7 +45,7 @@ def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
         _logger.error("Config file not found")
         return False
 
-    with open(config_file_path, "r", encoding="UTF-8") as file:
+    with open(config_file_path, encoding="UTF-8") as file:
         input_config = yaml.safe_load(file)
 
     build_system = input_config.get("build_system")
@@ -89,8 +89,7 @@ def validate(config_file_path: str, ui: IUI = NullUI()) -> bool:
 
 
 def _is_valid_platform(platform: dict[str, int | str]):
-    """Function to check whether plafrom is valid"""
-
+    """Check whether plafrom is valid."""
     pl_id = platform.get("id")
     if not isinstance(pl_id, int | str):
         _notify_about_error(f"Invalid id in platform: {pl_id}")
@@ -118,8 +117,7 @@ def _is_valid_platform(platform: dict[str, int | str]):
 
 
 def _is_valid_recipe(recipe: dict[str, int | str]):
-    """Function to check whether recipe is valid"""
-
+    """Check whether recipe is valid."""
     re_id = recipe.get("id")
     if not isinstance(re_id, int | str):
         _notify_about_error(f"Invalid id in recipe: {re_id}")
@@ -162,8 +160,7 @@ def _is_valid_recipe(recipe: dict[str, int | str]):
 
 
 def _is_valid_build(input_config: dict[str, Any], build: dict[str, int | str]):
-    """Function to check whether build is valid"""
-
+    """Check whether build is valid."""
     build_machine_id = build.get("build_machine")
     if (
         not isinstance(build_machine_id, int | str)
@@ -217,14 +214,14 @@ def _is_valid_toolchain(toolchain: Any) -> None:
 
 
 def _is_valid_address(address: str) -> bool:
-    """Function to check whether address is valid
+    """Check whether address is valid.
 
     :rtype: bool
-    :return: Outcome value :\n
+    :return: Outcome value :
+
          True if address is valid
          False if address is invalid
     """
-
     try:
         ip_address(address)
         return True
@@ -248,8 +245,7 @@ def _is_valid_address(address: str) -> bool:
 def _get_by_id(
     items: list[dict[str, str | int]], target_id: int | str
 ) -> dict[str, str | int]:
-    """Function to find item in dict by id"""
-
+    """Find item in dict by id."""
     for item in items:
         id_ = item["id"]
         if not isinstance(id_, int | str):
@@ -265,8 +261,7 @@ def _get_by_id(
 
 # pylint: disable=global-variable-not-assigned
 def _notify_about_error(msg: str) -> None:
-    """Function that handles messages due to invalid fields in config"""
-
+    """Handle messages due to invalid fields in config."""
     global _errors_count
     global _ui
     _errors_count += 1
