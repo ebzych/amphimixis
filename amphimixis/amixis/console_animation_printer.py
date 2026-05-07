@@ -4,6 +4,11 @@ import sys
 
 from amphimixis.core.general import IUI
 
+INVITATION_TEMPLATE_LEN = len("[][_] ")
+FG_YELLOW_COLOR = "\033[38;3;255;210;0"
+FG_RED_COLOR = "\033[38;2;255;0;100m"
+FG_DEFAULT_COLOR = "\033[39m"
+
 
 class ConsoleAnimationPrinter(IUI):
     """Single-line console spinner implementation of IUI."""
@@ -26,7 +31,9 @@ class ConsoleAnimationPrinter(IUI):
         :param str sender: Identifier name of sender module
         :param str message: Message to user
         """
-        print(f"\r\033[K[{sender}][I] {message}")
+        word_len = len(sender) + INVITATION_TEMPLATE_LEN
+        to_insert = f"\n{" " * word_len}"
+        print(f"\r\033[K[{sender}][I] {message.replace("\n", to_insert)}")
 
     def send_warning(self, sender: str, warning: str) -> None:
         """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message.
@@ -34,15 +41,25 @@ class ConsoleAnimationPrinter(IUI):
         :param str sender: Identifier name of sender module
         :param str warning: Warning to user
         """
-        print(f"\r\033[K[{sender}][W] WARNING: {warning}")
+        word_len = len(sender) + INVITATION_TEMPLATE_LEN
+        to_insert = f"\n{" " * word_len}"
+        print(
+            f"\r\033[K{FG_YELLOW_COLOR}[{sender}][W] WARNING: "
+            f"{warning.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
+        )
 
-    def send_error(self, sender: str, err_msg: str) -> None:
+    def send_error(self, sender: str, error: str) -> None:
         """Print error to user with status mark 'E' and 'ERROR: ' in begin of message.
 
         :param str sender: Identifier name of sender module
-        :param str err_msg: Error message to user
+        :param str error: Error message to user
         """
-        print(f"\r\033[K[{sender}][E] ERROR: {err_msg}")
+        word_len = len(sender) + INVITATION_TEMPLATE_LEN
+        to_insert = f"\n{" " * word_len}"
+        print(
+            f"\r\033[K{FG_RED_COLOR}[{sender}][E] ERROR: "
+            f"{error.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
+        )
 
     def update_message(self, build_id: str, message: str) -> None:
         """Update build_id and message.

@@ -250,7 +250,7 @@ class IUI(ABC):
         """
 
     @abstractmethod
-    def send_error(self, sender: str, err_msg: str) -> None:
+    def send_error(self, sender: str, error: str) -> None:
         """Send error message to user.
 
         :param str sender: Identifier name of sender module
@@ -294,7 +294,7 @@ class _nullUI(IUI):
     def send_warning(self, sender: str, warning: str) -> None:
         pass
 
-    def send_error(self, sender: str, err_msg: str) -> None:
+    def send_error(self, sender: str, error: str) -> None:
         pass
 
     def update_message(self, build_id: str, message: str) -> None:
