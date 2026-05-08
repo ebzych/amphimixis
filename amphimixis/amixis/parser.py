@@ -26,9 +26,13 @@ Examples:
 
   amixis build /path/to/project
       → Builds the project according to the generated configuration.
+  amixis build /path/to/project --build-name 1_2_1
+      → Builds only the named build from input.yml.
 
   amixis profile /path/to/project --events cycles
       → Profiles the project using specified perf events (e.g., cycles).
+  amixis profile /path/to/project --build-name 1_2_1
+      → Profiles only the named build from input.yml.
 
   amixis validate /path/to/input/config
       → Checks the correctness of the configuration file.
@@ -74,12 +78,16 @@ EXAMPLES = {
   amixis build /path/to/project
       → Build project according to generated configuration files
   amixis build /path/to/project --config custom.yml
-      → Build with custom config file""",
+      → Build with custom config file
+  amixis build /path/to/project --build-name 1_2_1
+      → Build only the named build from input.yml""",
     "profile": """Examples:
   amixis profile /path/to/project
       → Profile performance of builds
   amixis profile /path/to/project --events cycles cache-misses
-      → Profile with specific perf events""",
+      → Profile with specific perf events
+  amixis profile /path/to/project --build-name 1_2_1
+      → Profile only the named build from input.yml""",
     "validate": """Examples:
   amixis validate /path/to/input/config
       → Check config file correctness""",

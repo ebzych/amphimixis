@@ -5,17 +5,11 @@ import { test, expect, describe } from "bun:test";
 import path from "path";
 import { chdir } from "process";
 
-const configureToolModule = "../tools/amphimixis.configure.ts";
-
 const tmpDirPath = "/tmp/amphimixis/tests/opencode/configure";
 const tmpConfigPath = path.join(tmpDirPath, "input.yml");
 
-/**
- * Test that main fields configures and numeric identification of
- * platforms and recipes works
- */
 describe("Configuring tool", () => {
-  test("configure function", async () => {
+  test("old configure function (backward compat)", async () => {
     try {
       await unlink(tmpConfigPath);
     } catch {
@@ -26,9 +20,8 @@ describe("Configuring tool", () => {
     const BUILD_SYSTEM = "cmake";
     const ARCH = "riscv";
     const CONFIG_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
-    const BUILD_MACHINE = "riscv-platka";
 
-    const toolModule = await import(configureToolModule);
+    const toolModule = await import("../tools/amphimixis.configure.ts");
     const tool = toolModule.default;
 
     await tool.execute({
@@ -36,7 +29,7 @@ describe("Configuring tool", () => {
       build_system: BUILD_SYSTEM,
       platforms: [{ arch: ARCH }, { arch: ARCH }],
       recipes: [{ config_flags: CONFIG_FLAGS }, { config_flags: CONFIG_FLAGS }],
-      builds: [{ build_machine: BUILD_MACHINE }],
+      builds: [{ build_machine: 1, run_machine: 1, recipe_id: 1 }],
     });
 
     const result = yaml.parse(
@@ -45,7 +38,7 @@ describe("Configuring tool", () => {
       build_system: string;
       platforms: Array<{ id: number; arch: string }>;
       recipes: Array<{ id: number; config_flags: string }>;
-      builds: Array<{ build_machine: string }>;
+      builds: Array<{ build_machine: number }>;
     };
 
     expect(result.build_system).toBe(BUILD_SYSTEM);
@@ -57,6 +50,151 @@ describe("Configuring tool", () => {
     expect(result.recipes[0].config_flags).toBe(CONFIG_FLAGS);
     expect(result.recipes[1].id).toBe(2);
     expect(result.recipes[1].config_flags).toBe(CONFIG_FLAGS);
-    expect(result.builds[0].build_machine).toBe(BUILD_MACHINE);
+    expect(result.builds[0].build_machine).toBe(1);
+  });
+
+  test("configure-platforms creates file with auto-assigned IDs", async () => {
+    try {
+      await unlink(tmpConfigPath);
+    } catch {
+      /* empty */
+    }
+    await mkdir(tmpDirPath, { recursive: true });
+    chdir(tmpDirPath);
+
+    const toolModule = await import("../tools/amphimixis-configure-platforms.ts");
+    const tool = toolModule.default;
+
+    const output = await tool.execute({
+      configFilePath: tmpConfigPath,
+      platforms: [{ arch: "x86" }, { arch: "riscv" }],
+    });
+
+    const result = yaml.parse(
+      fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
+    ) as {
+      platforms: Array<{ id: number; arch: string }>;
+    };
+
+    expect(result.platforms).toHaveLength(2);
+    expect(result.platforms[0].id).toBe(1);
+    expect(result.platforms[0].arch).toBe("x86");
+    expect(result.platforms[1].id).toBe(2);
+    expect(result.platforms[1].arch).toBe("riscv");
+    expect(output).toContain("Assigned IDs");
+  });
+
+  test("configure-platforms appends to existing platforms", async () => {
+    await mkdir(tmpDirPath, { recursive: true });
+    chdir(tmpDirPath);
+
+    const toolModule = await import("../tools/amphimixis-configure-platforms.ts");
+    const tool = toolModule.default;
+
+    await tool.execute({
+      configFilePath: tmpConfigPath,
+      platforms: [{ arch: "arm" }],
+    });
+
+    const result = yaml.parse(
+      fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
+    ) as {
+      platforms: Array<{ id: number; arch: string }>;
+    };
+
+    expect(result.platforms).toHaveLength(3);
+    expect(result.platforms[2].id).toBe(3);
+    expect(result.platforms[2].arch).toBe("arm");
+  });
+
+  test("configure-recipes adds recipes and build_system", async () => {
+    chdir(tmpDirPath);
+
+    const toolModule = await import("../tools/amphimixis-configure-recipes.ts");
+    const tool = toolModule.default;
+
+    const output = await tool.execute({
+      configFilePath: tmpConfigPath,
+      build_system: "cmake",
+      runner: "ninja",
+      recipes: [
+        { config_flags: "-DCMAKE_BUILD_TYPE=RelWithDebInfo" },
+        { config_flags: "-DCMAKE_BUILD_TYPE=Debug" },
+      ],
+    });
+
+    const result = yaml.parse(
+      fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
+    ) as {
+      build_system: string;
+      runner: string;
+      recipes: Array<{ id: number; config_flags: string }>;
+      platforms: Array<{ id: number; arch: string }>;
+    };
+
+    expect(result.build_system).toBe("cmake");
+    expect(result.runner).toBe("ninja");
+    expect(result.recipes).toHaveLength(2);
+    expect(result.recipes[0].id).toBe(1);
+    expect(result.recipes[0].config_flags).toBe("-DCMAKE_BUILD_TYPE=RelWithDebInfo");
+    expect(result.recipes[1].id).toBe(2);
+    expect(result.platforms).toHaveLength(3); // preserved from previous tests
+    expect(output).toContain("Recipes added");
+  });
+
+  test("configure-builds validates and adds builds", async () => {
+    chdir(tmpDirPath);
+
+    const toolModule = await import("../tools/amphimixis-configure-builds.ts");
+    const tool = toolModule.default;
+
+    const output = await tool.execute({
+      configFilePath: tmpConfigPath,
+      builds: [
+        { build_machine: 1, run_machine: 1, recipe_id: 1 },
+        { build_machine: 2, run_machine: 2, recipe_id: 2, executables: ["bin/app"] },
+      ],
+    });
+
+    const result = yaml.parse(
+      fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
+    ) as {
+      builds: Array<{
+        build_machine: number;
+        run_machine: number;
+        recipe_id: number;
+        executables?: string[];
+      }>;
+    };
+
+    expect(result.builds).toHaveLength(2);
+    expect(result.builds[0].build_machine).toBe(1);
+    expect(result.builds[0].run_machine).toBe(1);
+    expect(result.builds[0].recipe_id).toBe(1);
+    expect(result.builds[1].build_machine).toBe(2);
+    expect(result.builds[1].executables).toEqual(["bin/app"]);
+    expect(output).toContain("Builds added");
+  });
+
+  test("configure-builds rejects invalid platform IDs", async () => {
+    chdir(tmpDirPath);
+
+    const toolModule = await import("../tools/amphimixis-configure-builds.ts");
+    const tool = toolModule.default;
+
+    const output = await tool.execute({
+      configFilePath: tmpConfigPath,
+      builds: [{ build_machine: 99, run_machine: 1, recipe_id: 1 }],
+    });
+
+    expect(output).toContain("build_machine=99");
+    expect(output).toContain("Valid platform IDs");
+    expect(output).toContain("No changes written");
+
+    // Verify file was NOT modified
+    const result = yaml.parse(
+      fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
+    ) as { builds: Array<unknown> };
+    expect(result.builds).toHaveLength(2); // still 2 from previous test
   });
 });
