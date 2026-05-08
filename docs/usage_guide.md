@@ -1,5 +1,20 @@
 # Usage guide
 
+## Table of Contents
+
+- [Choose an installation method](#choose-an-installation-method)
+- [Prepare a workspace](#prepare-a-workspace)
+- [Run the main workflow](#run-the-main-workflow)
+- [Run individual commands](#run-individual-commands)
+- [Work with perf events](#work-with-perf-events)
+- [Compare profiling outputs](#compare-profiling-outputs)
+- [Add a toolchain](#add-a-toolchain)
+- [Clean build directories](#clean-build-directories)
+
+---
+
+> If you encounter issues while using Amphimixis, see [Troubleshooting](troubleshooting.md) for common problems and solutions.
+
 ## Choose an installation method
 
 For most users, the recommended path is to create a virtual environment and install directly from GitHub:
@@ -35,37 +50,9 @@ Run Amphimixis from a working directory that contains your configuration and any
 
 ### Make sure the required system tools are available
 
-- `rsync` per machine
-- `perf` and `perf archive` on each `run_machine`
-- `sshpass` if your remote connections use passwords
+Required tools: `rsync` on each machine, `perf` and `perf archive` on each `run_machine`, and optionally `sshpass` for password-based SSH connections.
 
-```bash
-# on the machine where you run Amphimixis
-apt install sshpass
-```
-
-```bash
-# on each `run_machine`
-apt install linux-tools-common linux-tools
-```
-
-```bash
-# on each machine
-apt install rsync
-```
-
-### perf archive
-
-Check<sup><a href="#note1">1</a></sup> your system for the presence of a `perf archive` by executing this command. If you have problems with this tool, you can use this command that will put the script `perf archive` from the official Linux repository in the right place on your system:
-
-```bash
-mkdir -p /usr/libexec/perf-core
-curl -s https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/perf-archive.sh | sudo tee /usr/libexec/perf-core/perf-archive
-```
-
-<p id="note1">
-
-1. Ubuntu users are experiencing issues with `perf archive`: <a href="https://linux-perf-users.vger.kernel.narkive.com/gjAAds7D/perf-archive-is-not-a-perf-command">linux-perf-users.vger.kernel.narkive.com/perf-archive-is-not-a-perf-command</a>
+See [Troubleshooting → System Dependencies](troubleshooting.md) for installation commands and the `perf archive` setup.
 
 ### Create a configuration file
 
@@ -100,27 +87,17 @@ At minimum, `input.yml` should describe:
 
 In `builds`, you can optionally specify an `executables` list for each build. Each path must be relative to that build's output directory, for example `bin/my_app`. If `executables` is omitted, Amphimixis profiles the first executable file it finds in the build directory.
 
-If your configuration uses remote machines authenticated with SSH keys, start `ssh-agent` in the current shell and add the required keys before running the tool:
-
-```bash
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_remote_machine
-```
-
 ## Run the main workflow
-
-To analyze, build, and profile a project in one command:
 
 ```bash
 amixis run /path/to/project
 ```
 
-The full pipeline:
+Use `--config` to specify a custom configuration file path:
 
-1. analyzes the project
-1. builds it using the selected configuration
-1. profiles the resulting executables
-1. prints profiling results in the console
+```bash
+amixis run --config ./my_input.yml /path/to/project
+```
 
 ## Run individual commands
 
@@ -146,12 +123,6 @@ Validate a configuration file:
 
 ```bash
 amixis validate /path/to/input/config
-```
-
-Specify the path to the configuration file:
-
-```bash
-amixis run --config ./my_input.yml /path/to/project
 ```
 
 ## Work with perf events
