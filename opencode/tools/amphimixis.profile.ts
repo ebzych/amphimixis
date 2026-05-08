@@ -15,6 +15,12 @@ export default tool({
         .describe(
             'Path to config file. If not specified, checks for input.yml in current directory or automatically create it',
         ),
+    build_name: tool.schema
+        .string()
+        .optional()
+        .describe(
+            'Name of specific build from input.yml to profile (e.g. "1_2_1")',
+        ),
   },
   async execute(args) {
     const config_dir =
@@ -25,6 +31,7 @@ export default tool({
     const amixis = path.join(opencode_tools_dir, '.venv', 'bin', 'amixis');
     const cmd = [amixis, 'profile', args.project_path];
     if (args.config) cmd.push(`--config=${args.config}`);
+    if (args.build_name) cmd.push(`--build-name=${args.build_name}`);
 
     const result = await Bun.$`${cmd}`.text();
     return result.trim();

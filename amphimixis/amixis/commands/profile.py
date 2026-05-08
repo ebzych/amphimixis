@@ -20,6 +20,11 @@ def add_args(parser: ArgumentParser) -> None:
     add_path_arg(parser)
     add_config_arg(parser)
     parser.add_argument(
+        "--build-name",
+        type=str,
+        help="name of the specific build to profile (from input.yml)",
+    )
+    parser.add_argument(
         "--events",
         nargs="*",
         help="space-separated perf events (e.g., cycles cache-misses)",
@@ -71,6 +76,7 @@ def run_profile(
     config_file_path: str,
     ui: IUI = NULL_UI,
     events: list | None = None,
+    build_name: str | None = None,
 ) -> bool:
     """Execute project profiling.
 
@@ -78,6 +84,7 @@ def run_profile(
     :param str config_file_path: Path to YAML configuration file
     :param IUI ui: User interface for progress display
     :param list[str] | None events: List of perf events to record
+    :param str | None build_name: Optional name of a specific build to profile
     :return: True if profiling succeeded, False otherwise
     :rtype: bool
     """
@@ -91,6 +98,8 @@ def run_profile(
     success = True
 
     for build in project.builds:
+        if build_name and build.build_name != build_name:
+            continue
         if not build.successfully_built:
             continue
         profiler_ = Profiler(project, build, ui)

@@ -93,9 +93,13 @@ def main() -> bool:
         case "analyze":
             return cmd.run_analyze(project, ui)
         case "build":
-            return cmd.run_build(project, config_file, ui)
+            return cmd.run_build(
+                project, config_file, ui, build_name=args.build_name
+            )
         case "profile":
-            return cmd.run_profile(project, config_file, ui, events=target_events)
+            return cmd.run_profile(
+                project, config_file, ui, events=target_events, build_name=args.build_name
+            )
         case "compare":
             return cmd.run_compare(
                 args.file1, args.file2, target_events, args.max_rows, ui
