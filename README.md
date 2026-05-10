@@ -128,6 +128,7 @@ Additional documentation:
 
 - [Usage guide](docs/usage_guide.md)
 - [Config instruction](docs/config_instruction.md)
+- [Migration readiness exploring methodology](docs/migration-readiness-exploring-methodology.md)
 
 ## How To Help
 
