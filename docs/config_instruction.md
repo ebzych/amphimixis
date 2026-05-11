@@ -171,7 +171,7 @@ The **builds** section links platforms and recipes, defining which configuration
 | :--------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
 | build_machine                                  | integer | `platform_id` of the machine where the project will be built               |
 | run_machine                                    | integer | `platform_id` of the machine where the built project will be executed      |
-| recipe_id                                      | integer | ID of the `recipe`                                                         |
+| recipe                                         | integer | ID of the `recipe`                                                         |
 | executables<sup><a href="#note7">7</a></sup>   |  list   | (**Optional**) List of executables to profile for this build               |
 
 ---
@@ -188,7 +188,7 @@ Example:
 builds:
   - build_machine: 1
     run_machine: 1
-    recipe_id: 1
+    recipe: 1
     executables:
       - bin/my_app
       - tests/my_benchmark
@@ -205,7 +205,7 @@ executables: &my_executables
 builds:
   - build_machine: 1
     run_machine: 1
-    recipe_id: 1
+    recipe: 1
     executables: *my_executables   # reference the list above
 ```
 

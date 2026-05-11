@@ -177,11 +177,11 @@ def _is_valid_build(input_config: dict[str, Any], build: dict[str, int | str]):
     ):
         _notify_about_error(f"Invalid run_machine in build: {run_machine_id}")
 
-    recipe_id = build.get("recipe_id")
+    recipe_id = build.get("recipe")
     if not isinstance(recipe_id, int | str) or not _get_by_id(
         input_config["recipes"], recipe_id
     ):
-        _notify_about_error(f"Invalid recipe_id in build: {recipe_id}")
+        _notify_about_error(f"Invalid recipe in build: {recipe_id}")
 
     executables = build.get("executables")
     if not isinstance(executables, list | None):

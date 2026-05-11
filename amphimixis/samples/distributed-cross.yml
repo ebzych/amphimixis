@@ -27,9 +27,9 @@ recipes:
 builds:
 - build_machine: 1
   run_machine: 1
-  recipe_id: 1
+  recipe: 1
   # executables: *executables
 - build_machine: 1
   run_machine: 2
-  recipe_id: 2
+  recipe: 2
   # executables: *executables

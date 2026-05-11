@@ -107,11 +107,11 @@ def _create_build(  # pylint: disable=R0913,R0914,R0917
     """Create a new build and save its configuration to a Pickle file."""
     build_machine_id = str(build_dict["build_machine"])
     run_machine_id = str(build_dict["run_machine"])
-    recipe_id = str(build_dict["recipe_id"])
+    recipe_id = str(build_dict["recipe"])
     executables = build_dict.get("executables", [])
 
     build_name = _generate_build_name(
-        build_dict["build_machine"], build_dict["run_machine"], build_dict["recipe_id"]
+        build_dict["build_machine"], build_dict["run_machine"], build_dict["recipe"]
     )
 
     build_machine: MachineInfo

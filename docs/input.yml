@@ -23,6 +23,6 @@ recipes:
 builds:
 - build_machine: 1
   run_machine: 1
-  recipe_id: 1
+  recipe: 1
   executables:
     - test/run-tests
