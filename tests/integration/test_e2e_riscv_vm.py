@@ -220,7 +220,7 @@ def _create_input_yaml() -> dict:
                 "toolchain": {"cxx_compiler": "/usr/bin/g++"},
                 "sysroot": "/",
                 "run_machine": 1,
-                "recipe_id": 1,
+                "recipe": 1,
             }
         ],
     }

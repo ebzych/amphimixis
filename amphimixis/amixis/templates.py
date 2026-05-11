@@ -32,7 +32,7 @@ recipes:
 builds:
 - build_machine: 1              # platform_id to build on
   run_machine: 1                # platform_id to run on
-  recipe_id: 1                  # recipe_id to use
+  recipe: 1                     # recipe_id to use
 # Option 1: reference the reusable list (uncomment the line below)
 #   executables: *common_exe    # Executables to profile (relative to build dir)
 # Option 2: specify executables inline (uncomment and edit)

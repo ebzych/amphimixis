@@ -20,7 +20,7 @@ SIMPLE_CMAKELIST = (
 CONFIG_FILE = (
     "build_system:  CMake\nrunner: Make\nplatforms:\n- id: 1\n  arch: x86\n  username: testuser\n  port: 22\n  password: testpass"
     '\n\nrecipes:\n- id: 1\n  config_flags:\n  compiler_flags:\n  cxx_flags: "-O2"\n\nbuilds:\n- build_machine: 1\n'
-    '  toolchain:\n    cxx_compiler: "/usr/bin/g++"\n  sysroot: "/"\n  run_machine: 1\n  recipe_id: 1'
+    '  toolchain:\n    cxx_compiler: "/usr/bin/g++"\n  sysroot: "/"\n  run_machine: 1\n  recipe: 1'
 )
 
 
