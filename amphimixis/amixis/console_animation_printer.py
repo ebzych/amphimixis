@@ -5,7 +5,7 @@ import sys
 from amphimixis.core.general import IUI
 
 INVITATION_TEMPLATE_LEN = len("[][_] ")
-FG_YELLOW_COLOR = "\033[38;3;255;210;0"
+FG_YELLOW_COLOR = "\033[38;2;255;210;0m"
 FG_RED_COLOR = "\033[38;2;255;0;100m"
 FG_DEFAULT_COLOR = "\033[39m"
 
