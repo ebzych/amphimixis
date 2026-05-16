@@ -5,9 +5,11 @@ import sys
 from amphimixis.core.general import IUI
 
 INVITATION_TEMPLATE_LEN = len("[][_] ")
+FG_GREEN_COLOR = "\033[38;2;120;255;0m"
 FG_YELLOW_COLOR = "\033[38;2;255;210;0m"
 FG_RED_COLOR = "\033[38;2;255;0;100m"
-FG_DEFAULT_COLOR = "\033[39m"
+FG_DEFAULT_COLOR = "\033[0m"
+BOLD_FONT = "\033[1m"
 
 
 class ConsoleAnimationPrinter(IUI):
@@ -33,7 +35,7 @@ class ConsoleAnimationPrinter(IUI):
         """
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
-        print(f"\r\033[K[{sender}][I] {message.replace("\n", to_insert)}")
+        print(f"\r\033[K[{sender}][{BOLD_FONT}I{FG_DEFAULT_COLOR}] {message.replace("\n", to_insert)}")
 
     def send_warning(self, sender: str, warning: str) -> None:
         """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message.
@@ -44,8 +46,9 @@ class ConsoleAnimationPrinter(IUI):
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
         print(
-            f"\r\033[K{FG_YELLOW_COLOR}[{sender}][W] WARNING: "
-            f"{warning.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
+            f"\r\033[K{FG_YELLOW_COLOR}[{sender}][{BOLD_FONT}W{FG_DEFAULT_COLOR}{FG_YELLOW_COLOR}]"
+            f" {BOLD_FONT}WARNING{FG_DEFAULT_COLOR}{FG_YELLOW_COLOR}:"
+            f" {warning.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
         )
 
     def send_error(self, sender: str, error: str) -> None:
@@ -57,8 +60,9 @@ class ConsoleAnimationPrinter(IUI):
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
         print(
-            f"\r\033[K{FG_RED_COLOR}[{sender}][E] ERROR: "
-            f"{error.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
+            f"\r\033[K{FG_RED_COLOR}[{sender}][{BOLD_FONT}E{FG_DEFAULT_COLOR}{FG_RED_COLOR}]"
+            f" {BOLD_FONT}ERROR{FG_DEFAULT_COLOR}{FG_RED_COLOR}:"
+            f" {error.replace("\n", to_insert)}{FG_DEFAULT_COLOR}"
         )
 
     def update_message(self, build_id: str, message: str) -> None:
@@ -116,13 +120,13 @@ class ConsoleAnimationPrinter(IUI):
     def draw(self) -> None:
         """Draw current state to stdout."""
         if self.status == "success":
-            symbol = "✓"
+            symbol = f"{FG_GREEN_COLOR}✓{FG_DEFAULT_COLOR}"
         elif self.status == "failed":
-            symbol = "✗"
+            symbol = f"{FG_RED_COLOR}✗{FG_DEFAULT_COLOR}"
         else:
             symbol = self.braille[self.index]
 
-        sys.stdout.write(f"\r\033[K[{self.build_id}][{symbol}] {self.message}")
+        sys.stdout.write(f"\r\033[K[{self.build_id}][{BOLD_FONT}{symbol}{FG_DEFAULT_COLOR}] {self.message}")
         sys.stdout.flush()
 
     def finalize(self) -> None:
