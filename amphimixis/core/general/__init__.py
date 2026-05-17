@@ -24,7 +24,6 @@ from amphimixis.core.general.general import (
 __all__ = [
     "Project",
     "Build",
-    "MachineInfo",
     "Arch",
     "BuildSystem",
     "IHighLevelBuildSystem",
@@ -33,7 +32,6 @@ __all__ = [
     "constants",
     "tools",
     "MachineInfo",
-    "MachineAuthenticationInfo",
     "IUI",
     "NULL_UI",
     "Toolchain",

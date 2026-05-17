@@ -30,7 +30,7 @@ class ProfileStats:
     :var str | None perf_stat: Output of `perf stat` command.
     :var str | None perf_record_name: Filename of the recorded `perf record` data.
     :var str | None perf_script_name: Filename of the processed `perf script` output.
-    :var str | None perf_script_name: Filename of the archive gathered using `perf archive`.
+    :var str | None perf_archive_name: Filename of the archive gathered using `perf archive`.
     """
 
     build_name: str | None = None
