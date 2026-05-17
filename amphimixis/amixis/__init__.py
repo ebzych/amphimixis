@@ -1,4 +1,3 @@
-# ruff: noqa: D400, D415
 """### CLI module.
 
 #### Entry point:
