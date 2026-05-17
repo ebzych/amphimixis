@@ -36,8 +36,8 @@ def run_build(project: Project, config_file_path: str, ui: IUI = NULL_UI) -> boo
     for build in project.builds:
         if Builder.build_for_linux(project, build, ui):
             there_are_built = True
-            ui.mark_success("Build passed!")
+            ui.mark_success(build.build_name, "Build passed!")
         else:
-            ui.mark_failed(build_id=build.build_name, error_message="Building failed")
+            ui.mark_failed(build.build_name, "Building failed")
 
     return there_are_built

@@ -56,14 +56,14 @@ def run_compare(
     :rtype: bool
     """
     if not path.isfile(file1):
-        ui.mark_failed(f"File not found: {file1}")
+        ui.send_error("Compare", f"File not found: {file1}")
         return False
     if not path.isfile(file2):
-        ui.mark_failed(f"File not found: {file2}")
+        ui.send_error("Compare", f"File not found: {file2}")
         return False
 
     if compare_perf(file1, file2, target_events, max_rows) != 0:
-        ui.mark_failed("Comparison failed.")
+        ui.send_error("Compare", "Comparison failed.")
         return False
-    ui.mark_success("Comparison completed!")
+    ui.send_message("Compare", "Comparison completed!")
     return True

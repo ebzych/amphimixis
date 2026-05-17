@@ -32,7 +32,7 @@ def validate_cmd(args, ui: IUI = NULL_UI) -> bool:
     ui.update_message("Config", f"Validate {args.config_file}...")
 
     if not validate(args.config_file, ui):
-        ui.mark_failed(f"{args.config_file} is incorrect! See amphimixis.log")
+        ui.mark_failed("Config", f"{args.config_file} is incorrect! See amphimixis.log")
         return False
-    ui.mark_success(f"{args.config_file} is correct!")
+    ui.mark_success("Config", f"{args.config_file} is correct!")
     return True
