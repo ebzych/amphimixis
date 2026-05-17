@@ -5,7 +5,7 @@ import sys
 from amphimixis.core.general import IUI
 
 INVITATION_TEMPLATE_LEN = len("[][_] ")
-FG_YELLOW_COLOR = "\033[38;3;255;210;0"
+FG_YELLOW_COLOR = "\033[38;2;255;210;0m"
 FG_RED_COLOR = "\033[38;2;255;0;100m"
 FG_DEFAULT_COLOR = "\033[39m"
 
@@ -80,15 +80,14 @@ class ConsoleAnimationPrinter(IUI):
         self.index = (self.index + 1) % len(self.braille)
         self.draw()
 
-    def mark_success(self, message: str = "", build_id: str = "") -> None:
+    def mark_success(self, build_id: str, message: str = "") -> None:
         """Mark as successful.
 
+        :param str build_id: Build identifier
         :param str message: message to display. If empty, leaves the previous message
-        :param str build_id: Build identifier. If empty, leaves the previous identifier
         """
         self.status = "success"
-        if build_id:
-            self.build_id = build_id
+        self.build_id = build_id
 
         if message:
             self.message = message
@@ -96,16 +95,14 @@ class ConsoleAnimationPrinter(IUI):
         self.draw()
         self.finalize()
 
-    def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
+    def mark_failed(self, build_id: str, error_message: str = "") -> None:
         """Mark as failed and optionally update message.
 
+        :param str build_id: Build identifier
         :param str error_message: Message for failed build (if empty, keep previous)
-        :param str build_id: Build identifier. If empty, leaves the previous identifier
         """
         self.status = "failed"
-
-        if build_id:
-            self.build_id = build_id
+        self.build_id = build_id
 
         if error_message:
             self.message = error_message

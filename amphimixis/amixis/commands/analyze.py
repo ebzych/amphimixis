@@ -33,7 +33,7 @@ def run_analyze(project: Project, ui: IUI = NULL_UI) -> bool:
     ui.update_message(project_name, "Analyzing project...")
 
     if not (results := analyze(project)):
-        ui.mark_failed("Analysis failed. See amphimixis.log for details.")
+        ui.send_error("Analysis", "Analysis failed. See amphimixis.log for details.")
         return False
     sresults = yaml.safe_dump(results).replace("[]", "not found")
     ui.send_message("Analysis", sresults)

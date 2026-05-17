@@ -24,8 +24,7 @@ _logger = setup_logger("analyzer")
 
 
 def analyze(project: general.Project, generating_files: bool = True) -> dict | None:
-    # ruff: noqa: D301, D400, D415
-    r"""Analyzes project and collects its information
+    r"""Analyzes project and collects its information.
 
     :param Project project: Project to analyze
     :param bool generating_files: Option for creating file with analyzing output

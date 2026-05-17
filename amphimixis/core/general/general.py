@@ -30,7 +30,7 @@ class ProfileStats:
     :var str | None perf_stat: Output of `perf stat` command.
     :var str | None perf_record_name: Filename of the recorded `perf record` data.
     :var str | None perf_script_name: Filename of the processed `perf script` output.
-    :var str | None perf_script_name: Filename of the archive gathered using `perf archive`.
+    :var str | None perf_archive_name: Filename of the archive gathered using `perf archive`.
     """
 
     build_name: str | None = None
@@ -266,19 +266,19 @@ class IUI(ABC):
         """
 
     @abstractmethod
-    def mark_success(self, message: str = "", build_id: str = "") -> None:
+    def mark_success(self, build_id: str, message: str = "") -> None:
         """Mark build as successful.
 
-        :param str message: Optional message
         :param str build_id: Build identifier
+        :param str message: Optional message
         """
 
     @abstractmethod
-    def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
+    def mark_failed(self, build_id: str, error_message: str = "") -> None:
         """Mark build as failed.
 
-        :param str error_message: Optional error message
         :param str build_id: Build identifier
+        :param str error_message: Optional error message
         """
 
 
@@ -300,10 +300,10 @@ class _nullUI(IUI):
     def update_message(self, build_id: str, message: str) -> None:
         pass
 
-    def mark_success(self, message: str = "", build_id: str = "") -> None:
+    def mark_success(self, build_id: str, message: str = "") -> None:
         pass
 
-    def mark_failed(self, error_message: str = "", build_id: str = "") -> None:
+    def mark_failed(self, build_id: str, error_message: str = "") -> None:
         pass
 
 

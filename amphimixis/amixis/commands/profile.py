@@ -46,20 +46,26 @@ def setup_profiling_environment(project: Project, ui: IUI) -> bool:
                 shell_build_machine.get_project_workdir(), build.build_name
             )
             if not shell_build_machine.copy_to_host(build_path, tmpdir):
-                ui.mark_failed("Can't download built files from build machine")
+                ui.mark_failed(
+                    build.build_name, "Can't download built files from build machine"
+                )
                 success = False
 
             if not shell_run_machine.copy_to_remote(
                 path.join(tmpdir, build.build_name),
                 shell_run_machine.get_project_workdir(),
             ):
-                ui.mark_failed("Can't transfer built files to run machine")
+                ui.mark_failed(
+                    build.build_name, "Can't transfer built files to run machine"
+                )
                 success = False
 
             if not shell_run_machine.copy_to_remote(
                 project.path, path.dirname(shell_run_machine.get_source_dir())
             ):
-                ui.mark_failed("Can't transfer source code to run machine")
+                ui.mark_failed(
+                    build.build_name, "Can't transfer source code to run machine"
+                )
                 success = False
 
     shutil.rmtree(tmpdir)
@@ -100,9 +106,9 @@ def run_profile(
         if not successful_execs or (
             build.executables and successful_execs != build.executables
         ):
-            ui.mark_failed("Some executables failed to be profiled")
+            ui.mark_failed(build.build_name, "Some executables failed to be profiled")
             success = False
         else:
-            ui.mark_success("Profiling completed!")
+            ui.mark_success(build.build_name, "Profiling completed!")
 
     return success

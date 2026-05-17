@@ -42,10 +42,10 @@ class Builder:
             if not shell.copy_to_remote(
                 os.path.normpath(project.path), "~/amphimixis/"
             ):
-                _logger.error("Error in copying source files")
+                _logger.error("Error during copying source files to remote machine")
                 ui.mark_failed(
-                    build_id=build.build_name,
-                    error_message="Error in copying source files",
+                    build.build_name,
+                    "Error during copying source files to remote machine",
                 )
                 build.successfully_built = False
                 return False
@@ -71,9 +71,7 @@ class Builder:
             return True
 
         except FileNotFoundError:
-            ui.mark_failed(
-                build_id=build.build_name, error_message="Build system not found"
-            )
+            ui.mark_failed(build.build_name, "Build system not found")
             return False
 
     @staticmethod

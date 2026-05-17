@@ -43,19 +43,19 @@ def parse_config(
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
-        ui.mark_failed("Project path not found")
+        ui.mark_failed("Config", "Project path not found")
         return False
 
     project.builds = []
 
     if not path.exists(config_file_path):
         _logger.error("Input file path not exists")
-        ui.mark_failed("Input file path not exists")
+        ui.mark_failed("Config", "Input file path not exists")
         return False
 
     if not validate(config_file_path, ui):
         _logger.error("Incorrect input file")
-        ui.mark_failed("Incorrect input file")
+        ui.mark_failed("Config", "Incorrect input file")
         return False
 
     with open(config_file_path, encoding="UTF-8") as file:
@@ -65,7 +65,7 @@ def parse_config(
     if build_system not in build_systems_dict:
         if not (build_system := _get_analyzed_build_system()):
             _logger.error("Did not find any proper build_system")
-            ui.mark_failed("Config: no build system found")
+            ui.mark_failed("Config", "No build system found")
             return False
     runner_name = str(input_config.get("runner", None)).lower()
     if (
@@ -87,7 +87,7 @@ def parse_config(
             build,
             ui,
         ):
-            ui.mark_failed("Failed to create build")
+            ui.mark_failed("Config", "Failed to create build")
             return False
 
     config_path = tools.project_name(project) + ".project"
@@ -212,7 +212,7 @@ def _has_valid_arch(
         _logger.error(
             "An error occured during reading remote machine arch, check remote machine"
         )
-        ui.mark_failed("Config: failed to check remote architecture")
+        ui.mark_failed("Config", "Failed to check remote architecture")
         return False
 
     remote_arch = stdout[0][0]
@@ -222,7 +222,7 @@ def _has_valid_arch(
             machine.arch.name.lower(),
             remote_arch.lower(),
         )
-        ui.mark_failed("Config: invalid remote architecture")
+        ui.mark_failed("Config", "Invalid remote architecture")
         return False
 
     return True
