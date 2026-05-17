@@ -29,6 +29,8 @@ The YAML configuration file consists of the following **top-level fields**:
 
 </p>
 
+Example:
+
 ```yaml
 build_system: CMake
 runner: Make
@@ -43,7 +45,7 @@ The **platforms** section describes the machines on which the project will be bu
 
 |                   Field                   |  Type   | Description                                    |
 | :---------------------------------------: | :-----: | ---------------------------------------------- |
-|                    id                     | integer | Unique id of the platform                      |
+|                    id                     | string  | Unique ID of the platform                      |
 |                   arch                    | string  | Architecture (e.g. x86, riscv)                 |
 |                  address                  | string  | (**Optional**) IP address or domain name       |
 |                 username                  | string  | (**Optional**) Username of the remote machine  |
@@ -63,11 +65,24 @@ The **platforms** section describes the machines on which the project will be bu
 
 </p>
 
+Example:
+
+```yaml
+platforms:
+  - id: local
+    arch: x86
+  - id: vds1
+    arch: x86
+    address: 99.99.99.99
+    username: root
+    port: 2222
+```
+
 > **<u>Note:</u>**
 >
 > - If the `address` field is not specified, the local machine is assumed.
 > - For a local machine, `username`, `password`, and `port` do not need to be specified.
-> - If an `address` is specified, the machine is treated as remote, and the fields `username`, `password`, and `port` must be provided.
+> - If an `address` is specified, the machine is treated as remote. Provide `username`; use either `password` or SSH keys; `port` is optional.
 > - If you connect with SSH keys instead of a password, run `eval "$(ssh-agent -s)"` and then add the keys for the target machines manually, for example `ssh-add ~/.ssh/id_remote_machine`, before starting Amphimixis.
 
 ### Recipes
@@ -76,7 +91,7 @@ The **recipes** section describes the build configuration and compiler flags.
 
 |                  Field                          |  Type   | Description                                                                               |
 | :---------------------------------------------: | :-----: | ----------------------------------------------------------------------------------------- |
-| id                                              | integer | Unique ID of the recipe                                                                   |
+| id                                              | string  | Unique ID of the recipe                                                                   |
 | config_flags                                    | string  | (**Optional**) Build configuration options                                                |
 | compiler_flags<sup><a href="#note5">5</a></sup> | dict    | (**Optional**) Compiler flags used during the build process                               |
 | toolchain<sup><a href="#note6">6</a></sup>      |  dict   | (**Optional**) Path to the toolchain used for building the project                        |
@@ -169,9 +184,9 @@ The **builds** section links platforms and recipes, defining which configuration
 
 |     Field                                      |  Type   | Description                                                                |
 | :--------------------------------------------: | :-----: | -------------------------------------------------------------------------- |
-| build_machine                                  | integer | `platform_id` of the machine where the project will be built               |
-| run_machine                                    | integer | `platform_id` of the machine where the built project will be executed      |
-| recipe_id                                      | integer | ID of the `recipe`                                                         |
+| build_machine                                  | string  | ID of the `platform` where the project will be built                       |
+| run_machine                                    | string  | ID of the `platform` where the built project will be executed              |
+| recipe_id                                      | string  | ID of the `recipe`                                                         |
 | executables<sup><a href="#note7">7</a></sup>   |  list   | (**Optional**) List of executables to profile for this build               |
 
 ---
@@ -186,8 +201,8 @@ Example:
 
 ```yaml
 builds:
-  - build_machine: 1
-    run_machine: 1
+  - build_machine: vds1
+    run_machine: vds1
     recipe_id: 1
     executables:
       - bin/my_app
@@ -203,8 +218,8 @@ executables: &my_executables
   - tests/my_benchmark
 
 builds:
-  - build_machine: 1
-    run_machine: 1
+  - build_machine: vds1
+    run_machine: vds1
     recipe_id: 1
     executables: *my_executables   # reference the list above
 ```
