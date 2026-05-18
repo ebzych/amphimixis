@@ -35,7 +35,10 @@ class ConsoleAnimationPrinter(IUI):
         """
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
-        print(f"\r\033[K[{sender}][{BOLD_FONT}I{FG_DEFAULT_COLOR}] {message.replace("\n", to_insert)}")
+        print(
+            f"\r\033[K[{sender}][{BOLD_FONT}I{FG_DEFAULT_COLOR}]"
+            f" {message.replace("\n", to_insert)}"
+        )
 
     def send_warning(self, sender: str, warning: str) -> None:
         """Print warning to user with status mark 'W' and 'WARNING: ' in begin of message.
@@ -126,7 +129,10 @@ class ConsoleAnimationPrinter(IUI):
         else:
             symbol = self.braille[self.index]
 
-        sys.stdout.write(f"\r\033[K[{self.build_id}][{BOLD_FONT}{symbol}{FG_DEFAULT_COLOR}] {self.message}")
+        sys.stdout.write(
+            f"\r\033[K[{self.build_id}][{BOLD_FONT}{symbol}{FG_DEFAULT_COLOR}]"
+            f" {self.message}"
+        )
         sys.stdout.flush()
 
     def finalize(self) -> None:
