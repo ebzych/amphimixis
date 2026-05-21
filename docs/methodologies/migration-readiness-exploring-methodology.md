@@ -7,7 +7,7 @@
    - review the description and README in case the project was moved to another repository as part of a larger project (e.g., `RapidXML` moved to `Boost`); in that case, check if the project can be built standalone, without the parent project
    - check for other repositories maintained and developed by other developers; if two forks evolve in parallel, one version may be more advanced
    - look for stable releases, GitHub version tags, etc.
-   - also see Debian, Arch, Yocto patches, etc. 
+   - also see Debian, Arch, Yocto patches, etc.
 
 2. After selecting an active repository, examine its structure and assess maintainability and complexity:
    - presence of tests, CI, build systems, documentation, benchmarks
