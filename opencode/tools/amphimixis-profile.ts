@@ -27,8 +27,7 @@ export default tool({
       process.env.XDG_CONFIG_HOME != undefined ?
         process.env.XDG_CONFIG_HOME :
         path.join(process.env.HOME as string, '.config');
-    const opencode_tools_dir = path.join(config_dir, 'opencode', 'tools');
-    const amixis = path.join(opencode_tools_dir, '.venv', 'bin', 'amixis');
+    const amixis = path.join(__filename, '../../../../../', 'bin', 'amixis');
     const cmd = [amixis, 'profile', args.project_path];
     if (args.config) cmd.push(`--config=${args.config}`);
     if (args.build_name) cmd.push(`--build-name=${args.build_name}`);
