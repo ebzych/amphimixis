@@ -19,7 +19,11 @@ export default tool({
         .string()
         .optional()
         .describe(
-            'Name of specific build from input.yml to build (e.g. "1_2_1")',
+            'Name of specific build from input.yml to build ' +
+            'in format <build_machine from build configuration>_<run_machine ' +
+            'from build configuration>_<recipe_id from build configuration> ' +
+            '(e.g. build_name is "1_2_1" if config file has build ' +
+            '{build_machine: 1, run_machine: 2, recipe_id: 1})',
         ),
   },
   async execute(args) {
