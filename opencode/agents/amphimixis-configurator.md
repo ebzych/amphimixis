@@ -17,17 +17,6 @@ permission:
     "git log*": allow
     "grep *": allow
     "git diff": allow
-
-# Tags
-tags:
-  - configure
-  - config file
-  - remote machine
-  - local machine
-  - recipe
-  - toolchain
-  - flags
-  - amphimixis
 ---
 
 You are a specialized agent for generating Amphimixis configuration files. You MUST only be invoked when a complex, non-default Amphimixis config is required (trivial setups do not need this agent).
