@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import tool from "../tools/amphimixis.build";
+import tool from "../tools/amphimixis-build";
 
 /**
  * Test that the building tool accepts build_name parameter

@@ -4,11 +4,11 @@ mode: all
 temperature: 0.3
 color: "#9953df"
 permission:
-  amphimixis.analyze: allow
-  amphimixis.build: allow
-  amphimixis.profile: allow
-  amphimixis.validate: allow
-  amphimixis.configure: deny
+  amphimixis-analyze: allow
+  amphimixis-build: allow
+  amphimixis-profile: allow
+  amphimixis-validate: allow
+  amphimixis-configure: deny
   read: allow
   external_directory: allow
   edit: deny
@@ -18,10 +18,10 @@ permission:
     "grep *": allow
     "git diff": allow
   task:
-    "amphimixis.*": allow
-    "amphimixis.analyzer": allow
-    "amphimixis.builder": allow
-    "amphimixis.profiler": allow
+    "amphimixis-*": allow
+    "amphimixis-analyzer": allow
+    "amphimixis-builder": allow
+    "amphimixis-profiler": allow
 ---
 
 Project is a programming product with documentation, tests etc.
@@ -30,8 +30,8 @@ Instructions: Stick to the script steps, don't deviate from the plan. After tool
 
 TODO:
 
-1. Call subagent @amphimixis.analyzer to analyze project. It will **call `amphimixis.analyze` tool** and evaluate complexity, maintainability, cross-architecture compatibility and portability.
-2. Call subagent @amphimixis.configurator to create configuration file, **if `input.yml` file not in current working directory or the user specified additional information** for building and profiling.
-3. Call subagent @amphimixis.builder to build project. It must read `input.yml` and **call `amphimixis.build`** tool with optional `build_name` to start building.
-4. Call subagent @amphimixis.profiler to profile project. It must read `input.yml` and **call `amphimixis.profile` tool** with optional `build_name` to start profiling.
+1. Call subagent @amphimixis-analyzer to analyze project. It will **call `amphimixis.analyze` tool** and evaluate complexity, maintainability, cross-architecture compatibility and portability.
+2. Call subagent @amphimixis-configurator to create configuration file, **if `input.yml` file not in current working directory or the user specified additional information** for building and profiling.
+3. Call subagent @amphimixis-builder to build project. It must read `input.yml` and **call `amphimixis.build`** tool with optional `build_name` to start building.
+4. Call subagent @amphimixis-profiler to profile project. It must read `input.yml` and **call `amphimixis.profile` tool** with optional `build_name` to start profiling.
 5. Analyze profiling output (time, perf-stat, perf-record). Describe the problem of the program, indicate possible related problems and suggest optimizations based on data about cache-misses from perf-stat and hotspots from perf-record.

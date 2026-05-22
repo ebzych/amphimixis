@@ -2,7 +2,7 @@ import {mkdir, writeFile} from 'fs/promises';
 import {chdir} from 'process';
 import {test, expect, describe} from 'bun:test';
 import path from 'path';
-import tool from '../tools/amphimixis.analyze';
+import tool from '../tools/amphimixis-analyze';
 
 /**
  * Test running amphimixis analyzer

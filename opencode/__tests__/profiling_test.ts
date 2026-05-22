@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import tool from "../tools/amphimixis.profile";
+import tool from "../tools/amphimixis-profile";
 
 /**
  * Test that the profiling tool accepts build_name parameter

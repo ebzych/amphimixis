@@ -4,7 +4,7 @@ import { chdir } from "process";
 import { unlink, mkdir } from "fs/promises";
 import yaml from "yaml";
 import { test, expect, describe } from "bun:test";
-import tool from "../tools/amphimixis.validate";
+import tool from "../tools/amphimixis-validate";
 
 /**
  * Test running amphimixis validator
