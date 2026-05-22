@@ -21,7 +21,7 @@ describe("Configuring tool", () => {
     const ARCH = "riscv";
     const CONFIG_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
 
-    const toolModule = await import("../tools/amphimixis.configure.ts");
+    const toolModule = await import("../tools/amphimixis-configure.ts");
     const tool = toolModule.default;
 
     await tool.execute({

@@ -8,7 +8,7 @@ permission:
   amphimixis-configure-platforms: allow
   amphimixis-configure-recipes: allow
   amphimixis-configure-builds: allow
-  amphimixis.validate: allow
+  amphimixis-validate: allow
   read: allow
   external_directory: allow
   edit: deny
@@ -65,7 +65,7 @@ You are a specialized agent for generating Amphimixis configuration files. You M
    - If validation fails, the tool returns which IDs are invalid and what valid IDs are available — fix and retry
 
 5. **Validate the final config**
-   - Call `amphimixis.validate` on the config file
+   - Call `amphimixis-validate` on the config file
    - If validation fails, identify which step produced the error and re-run ONLY that step
    - Repeat the validate-and-fix cycle up to 10 times as needed
 

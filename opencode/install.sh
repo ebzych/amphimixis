@@ -19,6 +19,9 @@ cp -a $SELF_PATH/tools/*.ts $CONFIG_HOME/opencode/tools
 
 bun install --cwd $CONFIG_HOME/opencode yaml
 
+rm -rf $CONFIG_HOME/opencode/agents/amphimixis.*.md
+rm -rf $CONFIG_HOME/opencode/tools/amphimixis.*.ts
+
 cd $CONFIG_HOME/opencode/tools
 rm -rf .venv
 if [ "$USE_UV" != "" ]; then
