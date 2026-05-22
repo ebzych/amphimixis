@@ -8,8 +8,7 @@ export async function validate(args: any): Promise<string> {
     process.env.XDG_CONFIG_HOME != undefined ?
       process.env.XDG_CONFIG_HOME :
       path.join(process.env.HOME as string, '.config');
-  const opencodeToolsDir = path.join(configDir, 'opencode', 'tools');
-  const amixis = path.join(opencodeToolsDir, '.venv', 'bin', 'amixis');
+  const amixis = path.join(__filename, '../../../../../', 'bin', 'amixis');
   let result: string = 'Internal error.';
   try {
     const output = await Bun.$`${amixis} validate ${args.configFilePath}`;
