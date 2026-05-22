@@ -14,21 +14,6 @@ permission:
     "git log*": allow
     "grep *": allow
     "git diff": allow
-
-# Tags
-tags:
-  - profile
-  - performance
-  - perf
-  - profiling
-  - benchmarks
-  - time
-  - perf-stat
-  - perf-record
-  - cache-misses
-  - hotspots
-  - input.yml
-  - amphimixis
 ---
 
 You are a specialized agent for profiling built project executables. You must first read the `input.yml` configuration file before invoking the profiler.

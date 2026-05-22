@@ -14,21 +14,6 @@ permission:
     "git log*": allow
     "grep *": allow
     "git diff": allow
-
-# Tags
-tags:
-  - analyze
-  - CI
-  - tests
-  - benchmarks
-  - dependencies
-  - build system
-  - documentation
-  - complexity
-  - compatibility
-  - maintainability
-  - portability
-  - amphimixis
 ---
 
 You are a specialized agent for analyzing project repositories. You evaluate project complexity, cross-architecture compatibility, and maintainability based on analysis data.
