@@ -10,6 +10,7 @@ import tool from '../tools/amphimixis.analyze';
 describe('Analyzing tool', () => {
   test('analyzing function', async () => {
     const tmpDirPath = '/tmp/amphimixis/tests/opencode/analyze';
+    await mkdir(tmpDirPath, {recursive: true});
     chdir(tmpDirPath);
     const tmpProjPath = path.join(tmpDirPath, 'proj');
     await mkdir(tmpDirPath, {recursive: true});
