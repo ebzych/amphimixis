@@ -19,6 +19,7 @@ class TermAttrs(StrEnum):
     FG_RED_COLOR = "\033[38;2;255;0;100m"
     FG_DEFAULT_COLOR = "\033[0m"
     BOLD_FONT = "\033[1m"
+    BOLD_FONT_OFF = "\033[22m"
 
 
 class BuildStatus(Enum):
@@ -129,7 +130,7 @@ class ConsoleAnimationPrinter(IUI):
         else:
             symbol = self.braille[self.index]
 
-        symbol = f"{TermAttrs.BOLD_FONT}{symbol}{TermAttrs.FG_DEFAULT_COLOR}"
+        symbol = f"{TermAttrs.BOLD_FONT}{symbol}{TermAttrs.BOLD_FONT_OFF}"
 
         self._print_with_decorators(self.build_id, symbol, self.message, end="")
 
@@ -173,11 +174,10 @@ class ConsoleAnimationPrinter(IUI):
         """
         word_len = len(sender) + INVITATION_TEMPLATE_LEN
         to_insert = f"\n{" " * word_len}"
-        bold_off = TermAttrs.FG_DEFAULT_COLOR + highlight_attr
         message = message.replace("\n", to_insert)
         self._print_with_decorators(
             sender=sender,
-            status_symbol=TermAttrs.BOLD_FONT + status_symbol + bold_off,
+            status_symbol=TermAttrs.BOLD_FONT + status_symbol + TermAttrs.BOLD_FONT_OFF,
             message=highlight_attr + message,
             highlight_attr=highlight_attr,
         )
