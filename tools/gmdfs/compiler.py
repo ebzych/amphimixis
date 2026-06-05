@@ -170,6 +170,7 @@ def tokenize(text: str) -> list[Token]:
         _emit_text()
         b = "".join(body)
         if brace:
+            b = b.strip(" \t")
             if b.startswith("\n"):
                 b = b[1:]
             if b.endswith("\n"):
@@ -255,6 +256,7 @@ def tokenize(text: str) -> list[Token]:
             elif ch == "[":
                 _emit_injection()
                 state = _State.IN_TARGET
+                i += 1
                 continue
             elif ch == "\\" and i + 1 < n:
                 nxt = text[i + 1]
@@ -334,11 +336,11 @@ def _compile(tokens: list[Token], targets: frozenset[str]) -> str:
         if t.brace:
             if i > 0 and isinstance(tokens[i - 1], Text):
                 if matches:
-                    eat_left_nl[i - 1] = True
+                    eat_left_nl[i - 1] = t.body.startswith("\n")
                 else:
                     eat_left_all_nl[i - 1] = True
             if matches and i + 1 < n and isinstance(tokens[i + 1], Text):
-                eat_right_nl[i + 1] = True
+                eat_right_nl[i + 1] = t.body.endswith("\n")
 
     parts: list[str] = []
     for i, t in enumerate(tokens):
@@ -392,15 +394,15 @@ def compile_spec(text: str, targets: frozenset[str]) -> str:
     """
     views, body = parse_front_matter(text)
 
-    unknown = targets - views
-    if unknown:
-        msg = (
-            f"Unknown target(s): {', '.join(sorted(unknown))}. "
-            f"Available: {', '.join(sorted(views))}"
-        )
-        raise ValueError(msg)
-
-    body = validate_and_strip_views_blank(text, body)
+    if views:
+        unknown = targets - views
+        if unknown:
+            msg = (
+                f"Unknown target(s): {', '.join(sorted(unknown))}. "
+                f"Available: {', '.join(sorted(views))}"
+            )
+            raise ValueError(msg)
+        body = validate_and_strip_views_blank(text, body)
     tokens = tokenize(body)
     return _compile(tokens, targets)
 
