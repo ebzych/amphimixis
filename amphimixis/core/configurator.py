@@ -25,6 +25,7 @@ from amphimixis.core.validator import validate
 DEFAULT_PORT = 22
 
 _logger = setup_logger("configurator")
+INVITING_NAME = "Config"
 
 
 # pylint: disable=too-many-return-statements
@@ -39,7 +40,7 @@ def parse_config(
          True if configuration succeeded
          False if configuration failed
     """
-    ui.update_message("Config", "Parsing configuration file...")
+    ui.update_message(INVITING_NAME, "Parsing configuration file...")
 
     if not path.exists(project.path):
         _logger.error("Incorrect project path @_@, check input arguments")
@@ -55,7 +56,7 @@ def parse_config(
 
     if not validate(config_file_path, ui):
         _logger.error("Incorrect input file")
-        ui.mark_failed("Incorrect input file")
+        ui.mark_failed("Incorrect input file", build_id=INVITING_NAME)
         return False
 
     with open(config_file_path, encoding="UTF-8") as file:
@@ -65,7 +66,7 @@ def parse_config(
     if build_system not in build_systems_dict:
         if not (build_system := _get_analyzed_build_system()):
             _logger.error("Did not find any proper build_system")
-            ui.mark_failed("Config: no build system found")
+            ui.mark_failed("No build system found", build_id=INVITING_NAME)
             return False
     runner_name = str(input_config.get("runner", None)).lower()
     if (
@@ -87,7 +88,7 @@ def parse_config(
             build,
             ui,
         ):
-            ui.mark_failed("Failed to create build")
+            ui.mark_failed("Failed to create build", build_id=INVITING_NAME)
             return False
 
     config_path = tools.project_name(project) + ".project"
@@ -205,14 +206,14 @@ def _has_valid_arch(
         return True
 
     # remote case
-    ui.update_message("Config", "Checking remote architecture for validity...")
+    ui.update_message(INVITING_NAME, "Checking remote architecture for validity...")
     shell = Shell(project, machine, ui).connect()
     error_code, stdout, _ = shell.run("uname -m")
     if error_code != 0:
         _logger.error(
             "An error occured during reading remote machine arch, check remote machine"
         )
-        ui.mark_failed("Config: failed to check remote architecture")
+        ui.mark_failed("Failed to check remote architecture", build_id=INVITING_NAME)
         return False
 
     remote_arch = stdout[0][0]
@@ -222,7 +223,7 @@ def _has_valid_arch(
             machine.arch.name.lower(),
             remote_arch.lower(),
         )
-        ui.mark_failed("Config: invalid remote architecture")
+        ui.mark_failed("Invalid remote architecture", build_id=INVITING_NAME)
         return False
 
     return True
