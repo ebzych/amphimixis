@@ -53,6 +53,7 @@ User Guides
 
 - :doc:`usage_guide`
 - :doc:`config_instruction`
+- :doc:`troubleshooting`
 
 Main Workflows
 --------------
@@ -95,6 +96,7 @@ Supporting Modules
    usage_guide
    config_instruction
    input
+   troubleshooting
 
 .. toctree::
    :maxdepth: 2
