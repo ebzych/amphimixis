@@ -93,12 +93,14 @@ def main() -> bool:
         case "analyze":
             return cmd.run_analyze(project, ui)
         case "build":
-            return cmd.run_build(
-                project, config_file, ui, build_name=args.build_name
-            )
+            return cmd.run_build(project, config_file, ui, build_name=args.build_name)
         case "profile":
             return cmd.run_profile(
-                project, config_file, ui, events=target_events, build_name=args.build_name
+                project,
+                config_file,
+                ui,
+                events=target_events,
+                build_name=args.build_name,
             )
         case "compare":
             return cmd.run_compare(
@@ -110,6 +112,8 @@ def main() -> bool:
             return cmd.run_clean(args)
         case "add":
             return cmd.run_add(args)
+        case "opencode":
+            return cmd.run_opencode(args)
         case _:
             parser.print_help()
             return False
