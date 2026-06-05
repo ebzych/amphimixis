@@ -35,6 +35,7 @@ class Injection(NamedTuple):
 
     targets: frozenset[str]
     body: str
+    brace: bool = False
 
 
 Token = Text | Injection
@@ -165,9 +166,15 @@ def tokenize(text: str) -> list[Token]:
             tokens.append(Text("".join(acc)))
             acc.clear()
 
-    def _emit_injection() -> None:
+    def _emit_injection(*, brace: bool = False) -> None:
         _emit_text()
-        tokens.append(Injection(frozenset(targets), "".join(body)))
+        b = "".join(body)
+        if brace:
+            if b.startswith("\n"):
+                b = b[1:]
+            if b.endswith("\n"):
+                b = b[:-1]
+        tokens.append(Injection(frozenset(targets), b, brace=brace))
         targets.clear()
         body.clear()
 
@@ -232,7 +239,7 @@ def tokenize(text: str) -> list[Token]:
             elif ch == "}":
                 depth -= 1
                 if depth == 0:
-                    _emit_injection()
+                    _emit_injection(brace=True)
                     state = _State.SCANNING
                 else:
                     body.append(ch)
@@ -242,6 +249,7 @@ def tokenize(text: str) -> list[Token]:
         # -- IN_LINE --------------------------------------------------------
         elif state is _State.IN_LINE:
             if ch == "\n":
+                body.append("\n")
                 _emit_injection()
                 state = _State.SCANNING
             elif ch == "[":
@@ -306,6 +314,9 @@ def _compile(tokens: list[Token], targets: frozenset[str]) -> str:
     eat_left: list[bool] = [False] * n
     eat_left_all: list[bool] = [False] * n
     eat_right: list[bool] = [False] * n
+    eat_left_nl: list[bool] = [False] * n
+    eat_left_all_nl: list[bool] = [False] * n
+    eat_right_nl: list[bool] = [False] * n
 
     for i, t in enumerate(tokens):
         if not isinstance(t, Injection):
@@ -316,8 +327,18 @@ def _compile(tokens: list[Token], targets: frozenset[str]) -> str:
                 eat_left[i - 1] = True
             else:
                 eat_left_all[i - 1] = True
-        if matches and i + 1 < n and isinstance(tokens[i + 1], Text):
+        if matches and i + 1 < n and isinstance(tokens[i + 1], Text) and t.brace:
             eat_right[i + 1] = True
+
+        # Blank-line eating for brace-delimited injections
+        if t.brace:
+            if i > 0 and isinstance(tokens[i - 1], Text):
+                if matches:
+                    eat_left_nl[i - 1] = True
+                else:
+                    eat_left_all_nl[i - 1] = True
+            if matches and i + 1 < n and isinstance(tokens[i + 1], Text):
+                eat_right_nl[i + 1] = True
 
     parts: list[str] = []
     for i, t in enumerate(tokens):
@@ -326,9 +347,16 @@ def _compile(tokens: list[Token], targets: frozenset[str]) -> str:
             if eat_right[i] and content.startswith(" "):
                 content = content[1:]
             if eat_left[i] and content.endswith(" "):
-                content = content[:-1]
+                if not content.rstrip(" \t").endswith("\n"):
+                    content = content[:-1]
             if eat_left_all[i]:
                 content = content.rstrip(" ")
+            if eat_left_nl[i] and content.endswith("\n\n"):
+                content = content[:-1]
+            if eat_left_all_nl[i]:
+                content = content.rstrip("\n")
+            if eat_right_nl[i] and content.startswith("\n\n"):
+                content = content[1:]
             if content:
                 parts.append(content)
         elif isinstance(t, Injection) and (targets & t.targets):
