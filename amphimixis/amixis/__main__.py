@@ -37,8 +37,8 @@ def print_help(commands, full=False) -> None:
 
 
 # pylint: disable=too-many-branches
-def main() -> bool:
-    """Run the Amphimixis CLI tool.
+def _main() -> bool:
+    """Main function for the Amphimixis CLI tool.
 
     :return: True if command succeeded, False otherwise
     :rtype: bool
@@ -118,6 +118,8 @@ def main() -> bool:
             parser.print_help()
             return False
 
-
 if __name__ == "__main__":
-    sys.exit(0 if main() else 1)
+    sys.exit(0 if _main() else 1)
+
+def main() -> bool:
+    return not _main()
