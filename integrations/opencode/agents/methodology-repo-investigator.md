@@ -8,11 +8,14 @@ permission:
   read: allow
   external_directory: allow
   edit: deny
+  websearch: allow
+  webfetch: allow
   bash:
     "*": deny
     "git log*": allow
     "grep *": allow
     "git diff": allow
+    "git clone": allow
   task:
     "repo-check-*": allow
     "project-scan-*": allow
@@ -26,11 +29,13 @@ You are a specialized agent for investigating repository activity, structure, an
 
 ### Step 1: Finding the Active Repository
 
-1. **Check latest activity**: Call `repo-check-git-activity` with the project path to get commit dates, tags, branches, and remotes.
-2. **Review README**: Call `repo-check-readme` with the project path to check if the project moved or is part of a larger project.
-3. **Check forks**: Use `git remote -v` output from step 1; also check if there are parallel forks by examining branch names.
-4. **Check releases and tags**: Already covered in step 1 output (tags).
-5. **Check distro patches**: Call `repo-check-distro-packages` with the project name to check Debian, Arch, Yocto availability.
+1. **Search the web for finding project repositories**: Call `websearch` to find repositories in network and call `webfetch` to get information about activity status of repository.
+2. **Clone the active repository**: Use `git clone` to download repository. (**IMPORTANT**: DO NOT USE WEB SEARCHING TOOL AND GIT CLONE COMMAND TO DOWNLOAD ANYTHING OTHER THAN EXPLORED PROJECT REPOSITORY, YOU MUST DOWNLOAD ONLY THE PROJECT REPOSITORY, NOTHING ELSE)
+3. **Check latest activity**: Call `repo-check-git-activity` with the project path to get commit dates, tags, branches, and remotes.
+4. **Review README**: Call `repo-check-readme` with the project path to check if the project moved or is part of a larger project.
+5. **Check forks**: Use `git remote -v` output from step 1; also check if there are parallel forks by examining branch names.
+6. **Check releases and tags**: Already covered in step 1 output (tags).
+7. **Check distro patches**: Call `repo-check-distro-packages` with the project name to check Debian, Arch, Yocto availability.
 
 ### Step 2: Examining Project Structure
 
