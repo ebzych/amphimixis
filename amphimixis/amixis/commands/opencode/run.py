@@ -1,5 +1,6 @@
 """Opencode run subcommand."""
 
+from pathlib import Path
 import subprocess
 
 
@@ -12,7 +13,14 @@ def run_opencode_run(prompt: str) -> bool:
     """
     try:
         subprocess.run(
-            ["opencode", "run", "--agent", "methodology-orchestrator", prompt],
+            [
+                "opencode",
+                "--agent",
+                "methodology-orchestrator",
+                "--prompt",
+                prompt,
+                Path(".").resolve(),
+            ],
             check=True,
         )
         return True
