@@ -23,6 +23,5 @@ COMMANDS = {
     "opencode": opencode,
     "profile": profile,
     "run": run,
-    "status": status,
     "validate": validate,
 }
