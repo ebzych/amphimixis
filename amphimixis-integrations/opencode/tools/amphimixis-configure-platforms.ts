@@ -41,7 +41,7 @@ RULES:
 - arch: REQUIRED. One of: 'x86', 'riscv', 'arm'
 - address: OMIT for LOCAL machine. REQUIRED for REMOTE (IP address or domain name).
 - username: REQUIRED if address is set (remote machine). OMIT for local.
-- password: Optional for remote. If omitted, SSH keys are used (run ssh-agent first).
+- password: Optional for remote. If omitted, SSH keys are used.
 - port: Optional. Default: 22. Range: 1-65535.
 
 BEHAVIOR:
@@ -50,8 +50,8 @@ BEHAVIOR:
 
 EXAMPLES:
   Single local machine: [{arch: 'x86'}]
-  Single remote machine: [{arch: 'riscv', address: '192.168.1.100', username: 'dev'}]
-  Two machines: [{arch: 'x86'}, {arch: 'riscv', address: '10.0.0.5', username: 'builder'}]
+  Single remote machine: [{arch: 'riscv', address: '192.168.1.100', username: 'root'}]
+  Two machines: [{arch: 'x86'}, {arch: 'riscv', address: '10.0.0.5', username: 'bianbu'}]
 
 CALL THIS FIRST, before recipes and builds.`,
   args: {
