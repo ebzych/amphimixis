@@ -43,7 +43,7 @@ RULES:
 - build_system: Optional. Values: 'cmake', 'make'. Auto-detected if omitted.
 - runner: Optional. Values: 'make', 'ninja'. Auto-detected based on build_system.
 - jobs: Optional. Positive integer for parallel build jobs.
-- sysroot: Optional. Absolute path for cross-compilation sysroot.
+- sysroot: Optional. Absolute path for sysroot of toolchain.
 - toolchain: Optional. Object with absolute paths to compilers and tools.
   Example: {c_compiler: '/usr/bin/gcc', cxx_compiler: '/usr/bin/g++'}
   Available toolchain keys: ar, as, ld, nm, objcopy, objdump, ranlib, readelf, strip,
