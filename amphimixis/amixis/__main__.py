@@ -66,7 +66,7 @@ def _main() -> bool:
         return False
 
     project = None
-    if args.command in ("run", "analyze", "build", "profile"):
+    if args.command in ("run", "analyze", "build", "profile") and not args.vector:
         if not args.path:
             parser.print_help()
             return False
@@ -91,6 +91,8 @@ def _main() -> bool:
         case "run":
             return cmd.run_full_pipeline(project, config_file, ui, events=target_events)
         case "analyze":
+            if args.vector:
+                return cmd.run_vector_analyse(args.path, args.vector)
             return cmd.run_analyze(project, ui)
         case "build":
             return cmd.run_build(project, config_file, ui, build_name=args.build_name)

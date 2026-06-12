@@ -23,6 +23,8 @@ Examples:
 
   amixis analyze /path/to/project
       → Analyzes the project and detects existing CI, tests, benchmarks, etc.
+  amixis analyze -v riscv ./build/bin/app
+      → Analyzes binary for RISC-V vector instructions (path is the binary)
 
   amixis build /path/to/project
       → Builds the project according to the generated configuration.
@@ -73,7 +75,11 @@ EXAMPLES = {
       → Run pipeline and profile only the 'cycles' and 'cache-misses' events""",
     "analyze": """Examples:
   amixis analyze /path/to/project
-      → Analyze project and detect existing CI, tests, build systems, etc.""",
+      → Analyze project and detect existing CI, tests, build systems, etc.
+  amixis analyze -v riscv ./build/bin/app
+      → Analyze binary for RISC-V vector instructions
+  amixis analyze --vector x86 ./build/bin/app
+      → Analyze binary for x86/AVX vector instructions""",
     "build": """Examples:
   amixis build /path/to/project
       → Build project according to generated configuration files
