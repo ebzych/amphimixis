@@ -74,11 +74,11 @@ def main() -> bool:
 
     config_file = DEFAULT_CONFIG_PATH
     if args.command in ("run", "build", "profile"):
-        if args.config is not None:
+        if args.config is None:
             if not DEFAULT_CONFIG_PATH.exists():
                 script_dir = Path(__file__).parent.resolve()
                 shutil.copy(
-                    script_dir / "samples" / "local.yml", Path("input.yml").resolve()
+                    script_dir / ".." / "samples" / "local.yml", Path("input.yml").resolve()
                 )
                 print("Created input.yml from samples/local.yml")
         else:
