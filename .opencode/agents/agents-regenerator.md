@@ -90,7 +90,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - `amphimixis-optimizer` -- try to achieve optimization.
 3. The following agents **must calls** the following tools:
    - `amphimixis-analyzer` -- `amphimixis-analyze` and `amphimixis-analyze-vectorization` tools.
-   - `amphimixis-configurator` -- first call the `amphimixis-configure-platforms` tool, second call the `amphimixis-configure-recipes` tool, `amphimixis-configure-builds` tool.
+   - `amphimixis-configurator` -- first call the `amphimixis-configure-platforms` tool, second call the `amphimixis-configure-recipes` tool, third `amphimixis-configure-builds` tool and `amphimixis-validate` tool.
    - `amphimixis-builder` -- `amphimixis-build` tool.
    - `amphimixis-profiler` -- `amphimixis-profile` tool.
 4. Think about and grant permissions for agents.
@@ -117,6 +117,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
      1. `amphimixis-configure-platforms`
      2. `amphimixis-configure-recipes`
      3. `amphimixis-configure-builds`
+     4. `amphimixis-validate`
+   - repeat configuration if validation is failed
    - control himself after configuring
 - `Amphimixis-builder`:
    - call the `amphimixis-build` tool
