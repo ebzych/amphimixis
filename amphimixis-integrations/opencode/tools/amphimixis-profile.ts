@@ -1,6 +1,6 @@
 import {tool} from '@opencode-ai/plugin';
-import path from 'path';
-import process from 'process';
+
+const amixis = '__TEMPLATE_STRING_FOR_PATH_TO_AMIXIS_TO_BE_INSERTED_AT_INSTALLATION__'
 
 export default tool({
   description:
@@ -23,11 +23,6 @@ export default tool({
         ),
   },
   async execute(args) {
-    const config_dir =
-      process.env.XDG_CONFIG_HOME != undefined ?
-        process.env.XDG_CONFIG_HOME :
-        path.join(process.env.HOME as string, '.config');
-    const amixis = path.join(__filename, '../../../../../', 'bin', 'amixis');
     const cmd = [amixis, 'profile', args.project_path];
     if (args.config) cmd.push(`--config=${args.config}`);
     if (args.build_name) cmd.push(`--build-name=${args.build_name}`);
