@@ -108,6 +108,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - clone project (download a sources)
    - call the `amphimixis-analyze` tool
    - analyze project by methodology (read methodology again)
+   - have lists of possible platform-dependent macros
 - `Amphimixis-configurator`:
    - Amphimixis can build and profile on remote machines
    - get information about user's machines (computers), toolchains, sysroots and configurations of builds (build options (flags), toolchains to use, cross-build or native build (build and run machines))
