@@ -2,7 +2,6 @@
   "name": "amphimixis",
   "version": "0.2.0",
   "description": "[![CI](https://github.com/ebzych/amphimixis/actions/workflows/ci.yml/badge.svg)](https://github.com/ebzych/amphimixis/actions/workflows/ci.yml) [![Docs](https://img.shields.io/badge/docs-available-blue)](https://github.com/ebzych/amphimixis/tree/main/docs) [![License](https://img.shields.io/github/license/ebzych/amphimixis?color=8A2BE2)](https://github.com/ebzych/amphimixis/blob/main/LICENSE)",
-  "main": "index.js",
   "directories": {
     "doc": "docs",
     "test": "opencode/__tests__"
@@ -11,19 +10,19 @@
     "eslint": "eslint opencode/**/*.ts --format compact"
   },
   "dependencies": {
-    "bun-types": "^1.3.13",
-    "yaml": "^2.8.3",
-    "zod": "^4.4.1"
+    "bun-types": "^1.3.14",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "^1.14.30",
-    "@types/bun": "^1.3.13",
+    "@opencode-ai/plugin": "^1.17.4",
+    "@types/bun": "^1.3.14",
     "@types/node": "20.3.1",
-    "@typescript-eslint/eslint-plugin": "^8.59.1",
-    "@typescript-eslint/parser": "^8.59.1",
-    "eslint": "^10.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "eslint": "^10.4.1",
     "eslint-config-google": "^0.14.0",
-    "globals": "^17.5.0",
+    "globals": "^17.6.0",
     "@eslint/js": "^10.0.1",
     "@eslint/eslintrc": "^3.3.5",
     "eslint-formatter-compact": "^9.0.1"
