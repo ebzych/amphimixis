@@ -89,7 +89,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - `amphimixis-profiler` -- profile the project via Amphimixis.
    - `amphimixis-optimizer` -- try to achieve optimization.
 3. The following agents **must calls** the following tools:
-   - `amphimixis-analyzer` -- `amphimixis-analyze` tool.
+   - `amphimixis-analyzer` -- `amphimixis-analyze` and `amphimixis-analyze-vectorization` tools.
    - `amphimixis-configurator` -- first call the `amphimixis-configure-platforms` tool, second call the `amphimixis-configure-recipes` tool, `amphimixis-configure-builds` tool.
    - `amphimixis-builder` -- `amphimixis-build` tool.
    - `amphimixis-profiler` -- `amphimixis-profile` tool.
@@ -106,7 +106,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
 - `Amphimixis-analyzer`:
    - find project in the Internet
    - clone project (download a sources)
-   - call the `amphimixis-analyze` tool
+   - call the `amphimixis-analyze` and `amphimixis-analyze-vectorization` tools
    - analyze project by methodology (read methodology again)
    - have lists of possible platform-dependent macros
 - `Amphimixis-configurator`:
