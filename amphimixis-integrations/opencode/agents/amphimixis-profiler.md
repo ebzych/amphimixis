@@ -1,7 +1,7 @@
 ---
 description: Profile executables on both platforms, create cross-table comparison, analyze vectorization
 mode: subagent
-temperature: 0
+temperature: 0.3
 color: "#4292dd"
 permission:
   read: allow
