@@ -34,7 +34,7 @@ You receive from the orchestrator:
 - **built executables paths**: paths to built binaries for both platforms
 
 **CRITICAL RULES**:
-1. Your temperature is 0 — be precise and deterministic. Stick to the data from profiling tools.
+1. Your temperature is 0.3 — be precise and deterministic. Stick to the data from profiling tools.
 2. **NEVER fabricate profiling data.** If `amphimixis-profile` fails AND manual profiling is impossible, clearly mark the data as "NOT AVAILABLE — profiling tool failed". Do NOT invent percentages, do NOT estimate hotspot timing without measured data.
 3. Use a reconstruction or estimation ONLY if there is no other option, and then CLEARLY label it as "RECONSTRUCTED (not measured)" in every affected cell.
 4. **Experimental rigor is mandatory**: warmup runs, measurement repeats, taskset pinning, nice priority, and frequency check.
