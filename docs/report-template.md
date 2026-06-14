@@ -32,11 +32,6 @@
 |-------|------|------|-----------------------|
 | <`_MSC_VER`> | <file> | <line> | <just an #include / critical algorithm> |
 
-### Vectorization Intrinsics
-- **Hand-written**: <count> — <list of intrinsics by ISA>
-- **Compiler auto-generated**: <found in binary / none>
-- **Portability concern**: <yes/no — explanation>
-
 ### Platform Preprocessor Guards
 | #ifdef | Platform | What It Guards |
 |--------|----------|----------------|
@@ -100,6 +95,11 @@
 - <#1: function X accounts for N% of samples because ...>
 - <#2: high LLC miss rate suggests ...>
 
+### Vectorization Intrinsics
+- **Hand-written**: <count> — <list of intrinsics by ISA>
+- **Compiler auto-generated**: <found in binary / none>
+- **Portability concern**: <yes/no — explanation>
+
 ---
 
 ## 5. Optimization Results
@@ -131,7 +131,11 @@
 
 ---
 
-## 6. Migration Readiness Summary
+## 6. Notes About Exploration process
+
+---
+
+## 7. Migration Readiness Summary
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
