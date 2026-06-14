@@ -16,7 +16,7 @@ def run_opencode_run(prompt: str) -> bool:
             [
                 "opencode",
                 "--agent",
-                "methodology-orchestrator",
+                "amphimixis",
                 "--prompt",
                 prompt,
                 Path(".").resolve(),
