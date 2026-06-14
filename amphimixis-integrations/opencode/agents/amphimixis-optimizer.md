@@ -11,6 +11,8 @@ permission:
     "ls*": allow
     "cat*": allow
     "objdump*": allow
+    "size*": allow
+    "strip*": allow
 ---
 
 # Role
@@ -91,6 +93,7 @@ objdump -d <arm_binary> | grep -E '(vld1|vst1|vadd|vmul|vmla|vrecpe|vrsqrte)'
 Based on the bottleneck analysis, recommend specific flags (do NOT apply them — just recommend):
 
 1. **Auto-vectorization**: `-ftree-vectorize -fopt-info-vec-optimized`
+   - **Important**: Even with `-O3`, try adding `-ftree-vectorize` explicitly — it is not always enabled by `-O3` in some GCC versions for all targets.
 2. **Loop optimizations**: `-funroll-loops -fomit-frame-pointer`
 3. **Fast math** (only if safe): `-ffast-math -fno-math-errno`
 4. **LTO**: `-flto -fuse-linker-plugin`
@@ -98,23 +101,40 @@ Based on the bottleneck analysis, recommend specific flags (do NOT apply them �
 
 ### Step 4: Suggest Memory Allocator Changes
 
-If memory allocation is a bottleneck:
-1. **mimalloc**: Best general-purpose replacement, often gives 5-15% improvements
-2. **jemalloc**: Good for multi-threaded workloads
-3. **tcmalloc**: Good for small allocations
-4. **Arena allocators**: Best for heavy free/delete patterns
+If memory allocation is a bottleneck, try these allocators in order:
 
-For each, explain how to link it (e.g., `-lmimalloc` linker flag, or `LD_PRELOAD=libmimalloc.so`).
+1. **mimalloc**: Best general-purpose replacement, often gives 5-15% improvements. Link: `-lmimalloc` or `LD_PRELOAD=libmimalloc.so`
+2. **jemalloc**: Good for multi-threaded workloads. Link: `-ljemalloc` or `LD_PRELOAD=libjemalloc.so`
+3. **tcmalloc**: Good for small allocations. Link: `-ltcmalloc` or `LD_PRELOAD=libtcmalloc.so`
+4. **Arena allocators**: Best for heavy free/delete patterns. Implement a simple arena in the hot code path.
+
+For each, explain how to test it (e.g., `LD_PRELOAD=libmimalloc.so ./executable`).
 
 ### Step 5: Suggest Toolchain Improvements
 
 If the current toolchain lacks target feature support:
-- Suggest a newer version of GCC/LLVM
+- Check for a newer version of GCC/LLVM from distro repos
 - Check for specialized vendor toolchains: SiFive for RISC-V, ARM LLVM for ARM
-- Consider building a custom toolchain with `crosstool-NG`
-- Consider static linking with a modern libc/libc++ (`-static-libgcc -static-libstdc++`)
+- Consider building a custom toolchain with `crosstool-NG` — it can target specific architecture extensions
+- Consider static linking with a modern libc/libc++ (`-static-libgcc -static-libstdc++` or full `-static`) for the target platform
+  - **Important**: Test static libc/libc++ SEPARATELY from LTO. Static linking eliminates dynamic linking overhead, while LTO enables cross-module optimization. They address different bottlenecks. Test them individually and then combined.
 
-### Step 6: Code-Level Suggestions
+### Step 6: Check and Compare Executable Sizes
+
+Use `size` and `strip` to check if code size differences explain performance differences:
+
+```
+size <reference_binary>
+size <target_binary>
+strip <binary> -o <binary>.stripped
+size <binary>.stripped
+```
+
+Large code size can cause instruction cache pressure (frontend bottleneck). If LTO or static linking increased size, check:
+- Is the increase from debug info? → `strip` to check
+- Is it from inlined library code? → check with `nm` or `objdump -h`
+
+### Step 7: Code-Level Suggestions
 
 Based on hotspot analysis, suggest code-level changes:
 - If a specific function is the bottleneck, explain which algorithm or data structure change would help
@@ -133,6 +153,12 @@ Return a comprehensive optimization report:
 | <target> | <N> | <RVV/NEON/none> |
 
 **Causal Analysis**: <explain what this means for portability>
+
+## Executable Size Analysis
+| Architecture | Before strip | After strip | Debug info size |
+|-------------|:-----------:|:-----------:|:--------------:|
+| <reference> | <N> | <N> | <N> |
+| <target> | <N> | <N> | <N> |
 
 ## Bottleneck Causal Analysis
 
@@ -164,7 +190,9 @@ Provide step-by-step instructions for applying the recommended optimizations. Ex
 
 1. **Apply LTO**: Add `-flto` to compiler flags in the build recipe and rebuild
 2. **Try mimalloc**: Link with `-lmimalloc` or set `LD_PRELOAD=libmimalloc.so`
-3. **Optimize function <name>**: Replace the inner loop with a tiled version (see code suggestion above)
+3. **Try different toolchain**: Install GCC 14 from distro or build with crosstool-NG
+4. **Test static libc separately**: Add `-static-libgcc -static-libstdc++` WITHOUT `-flto` first, measure, then add `-flto` and measure again
+5. **Optimize function <name>**: Replace the inner loop with a tiled version (see code suggestion above)
 ```
 
 Return ONLY the optimization analysis and recommendations. Do not orchestrate other agents.
