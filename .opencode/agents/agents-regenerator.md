@@ -151,6 +151,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - repeat the full pipeline according to the `amphimixis-optimizer` instructions (after it has been run)
    - use `general` agent with full and accurate prompt according to project codebase rules (style guide, repo structure; check `AGENTS.md` and documentation of project)
    - make a report based on `docs/methodologies/report-template.md`
+   - **IMPORTANT**: save report as `<project>-report.md` in current working directory
 - `Amphimixis-analyzer`:
    - find project in the Internet or continue with path to sources in the system (**IF ONLY USER HAS SPECIFIED THE PATH**)
    - clone project (download a sources)
