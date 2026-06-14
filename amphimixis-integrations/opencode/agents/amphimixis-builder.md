@@ -6,6 +6,7 @@ color: "#e84d4d"
 permission:
   read: allow
   edit: deny
+  amphimixis-build: allow
   bash:
     "*": deny
     "cmake*": allow
@@ -16,10 +17,6 @@ permission:
     "cd*": allow
     "mkdir*": allow
     "which*": allow
-  task:
-    "amphimixis-build": allow
-    "build-with-flags": allow
-    "test-runner": allow
 ---
 
 # Role
@@ -66,13 +63,10 @@ Call `amphimixis-build` with:
 
 If the project has tests (determined from analysis), and the user wants to build them:
 - Include test-building flags in the build configuration (e.g., `-DBUILD_TESTING=ON` for CMake)
-- Or call `build-with-flags` with `buildTests: true`
 
 ### Step 3: Run Tests on Reference Platform
 
-Call `test-runner` with:
-- `buildDir`: path to the build directory
-- If ctest is available: it will auto-detect
+Execute tests.
 
 Record:
 - Number of tests passed
@@ -94,7 +88,7 @@ Call `amphimixis-build` with the target build name (e.g., "1_2_2" for cross-comp
 
 ### Step 5: Run Tests on Target Architecture
 
-If tests can be run on the target (either natively or via emulation), call `test-runner` with the target build directory.
+If tests can be run on the target (either natively or via emulation), execute them.
 
 **Note**: If the target is a remote machine or requires emulation, document how tests would need to be run.
 

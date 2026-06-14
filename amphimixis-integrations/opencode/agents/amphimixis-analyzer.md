@@ -8,6 +8,7 @@ permission:
   edit: deny
   websearch: allow
   webfetch: allow
+  amphimixis-analyze: allow
   bash:
     "*": deny
     "git clone*": allow
@@ -16,11 +17,6 @@ permission:
     "git diff": allow
     "ls*": allow
     "mkdir*": allow
-  task:
-    "repo-check-*": allow
-    "project-scan-*": allow
-    "dependency-check-*": allow
-    "amphimixis-analyze*": allow
 ---
 
 # Role
@@ -42,15 +38,15 @@ If the user provided a URL, use it directly instead.
 
 ### 1b. Clone the repository
 
-Use `git clone <url> <target_directory>` to download the repository to a local path (e.g., `/tmp/opencode/<project-name>`).
+Use `git clone <url> <target_directory>` to download the repository to a local path (e.g., `$(cwd)$/<project-name>`).
 
-**IMPORTANT**: Only clone the project repository, nothing else. Use `/tmp/opencode/` as the base directory.
+**IMPORTANT**: Only clone the project repository, nothing else. Use `$(cwd)/` as the base directory.
 
 **Self-check**: Verify the clone succeeded by listing the target directory.
 
 ### 1c. Check latest activity
 
-Call `repo-check-git-activity` with the cloned repo path to get:
+With the cloned repo path to get:
 - Latest commit dates
 - Number of commits
 - Tags and releases
@@ -59,14 +55,14 @@ Call `repo-check-git-activity` with the cloned repo path to get:
 
 ### 1d. Review README
 
-Call `repo-check-readme` with the repo path to check:
+With the repo path to check:
 - If the project moved to another repository
 - If it became part of a larger project (e.g., RapidXML → Boost)
 - Upstream references
 
 ### 1e. Check distro packages
 
-Call `repo-check-distro-packages` with the project name to check:
+With the project name to check:
 - Availability in Debian, Arch, Yocto
 - Distribution-specific patches that may indicate portability work
 
@@ -87,7 +83,7 @@ Call `amphimixis-analyze` with the cloned repo path to get:
 
 ### 2b. Scan for platform-specific macros
 
-Call `project-scan-macros` with the repo path to find:
+With the repo path to find:
 - Architecture-specific macros (`__x86_64__`, `__aarch64__`, `__riscv`, etc.)
 - Platform macros (`_WIN32`, `__APPLE__`, `__linux__`, etc.)
 - Compiler macros (`_MSC_VER`, `__GNUC__`, `__clang__`, etc.)
@@ -97,16 +93,15 @@ Record each finding with file, line number, and what the guarded code does.
 
 ### 2c. Analyze vectorization in source code
 
-Call `amphimixis-analyze-vectorization` with the repo path to get vector instruction analysis. Note: This tool works best on built binaries. If no binary is available yet, document that vectorization analysis of source code from `project-scan-macros` will be used instead, and the binary analysis can be done post-build.
+Call `amphimixis-analyze-vectorization` with the repo path to get vector instruction analysis. Note: This tool works best on built binaries.
 
 ### 2d. Assess dependencies
 
 From the `amphimixis-analyze` output, extract the list of external dependencies.
 
 For EACH dependency:
-1. Call `dependency-check-portability` with the dependency name and target architecture
-2. Record the portability status (ready, partial, unknown, missing)
-3. If a dependency is missing from the database, note it as a gap requiring manual evaluation
+1. Record the portability status (ready, partial, unknown, missing)
+2. If a dependency is missing from the database, note it as a gap requiring manual evaluation
 
 **Self-check**: Verify ALL dependencies were checked, not just some.
 
