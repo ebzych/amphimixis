@@ -152,7 +152,7 @@ Call `amphimixis-validate` with:
 
 Return the final configuration summary:
 
-```
+```markdown
 ## Configuration Complete
 - **Config file**: <path>
 - **Platforms configured**:

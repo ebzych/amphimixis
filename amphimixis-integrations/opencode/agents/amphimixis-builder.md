@@ -136,7 +136,7 @@ For RISC-V: `qemu-riscv64-static ./build-riscv/tests/test_suite`
 
 Return a structured summary:
 
-```
+```markdown
 ## Build Results
 
 ### Reference Platform (<reference>)
