@@ -1,7 +1,7 @@
 ---
 description: Build project on reference and target platforms, run tests, report results
 mode: subagent
-temperature: 0
+temperature: 0.3
 color: "#e84d4d"
 permission:
   read: allow

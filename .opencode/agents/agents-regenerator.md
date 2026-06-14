@@ -64,7 +64,7 @@ Create a multiagent system to projects performance analysis and migration readin
 5. Do not focus on a specific project, general purpose --- analysis of any project.
 6. The more precise and complete the description of roles, goals and all steps of agents, the better.
 7. Explicitly specify call tools and agents when creating agents.
-8. The temperature of agents must be between 0 and 0.5, except `amphimixis-optimizer` -- set to 1, `amphimixis-builder` -- 0 and `amphimixis-profiler` -- 0.
+8. The temperature of agents must be 0.3, except `amphimixis-optimizer` -- set to 1.
 9. Do not change the methodology, only suggest changes.
 10. Do not reference to `docs/methodologies/migration-readiness-exploring-methodology.md` and `docs/methodologies/report-template.md` in the agent prompts, just add necessary information from these files.
 11. Work in current working directory, **DO NOT USE `/tmp` PATH**.
