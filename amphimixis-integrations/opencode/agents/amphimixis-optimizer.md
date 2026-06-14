@@ -145,7 +145,7 @@ Based on hotspot analysis, suggest code-level changes:
 
 Return a comprehensive optimization report:
 
-```
+```markdown
 ## Vector Instruction Analysis
 | Architecture | Count | ISAs Found |
 |-------------|:-----:|------------|

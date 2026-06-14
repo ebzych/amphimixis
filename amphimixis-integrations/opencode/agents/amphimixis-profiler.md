@@ -222,7 +222,7 @@ Compare: Are the same functions hot on both platforms? If not, why?
 
 Return structured profiling results:
 
-```
+```markdown
 ## Experimental Conditions
 - **CPU**: <reference model> vs <target model>
 - **Cores pinned**: <list>

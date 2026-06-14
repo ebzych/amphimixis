@@ -169,7 +169,7 @@ Provide an overall assessment:
 
 Return the complete findings as structured markdown:
 
-```
+```markdown
 ## Repository Status
 - **Repository URL**: <url>
 - **Latest commit**: <date> (<N> days ago)
