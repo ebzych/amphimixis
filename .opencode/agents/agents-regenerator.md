@@ -75,6 +75,12 @@ Create a multiagent system to projects performance analysis and migration readin
 16. Tell about errors at exploration (**NOT in the final report**).
 17. Don’t focus on x86, use the terms `reference platform` and `target platform` the user specifies these platforms (by default the reference platform is x86).
 18. Don't specify the tools usage in `permissions.task` (e.g. not `permissions: task: "<tool name>": allow`, but `permissions: <tool name>: allow` instead).
+19. **NEVER allow data fabrication in profiler**: Generated profiler agent must contain an explicit hard rule that if profiling tools fail AND manual fallback fails, data must be marked "NOT AVAILABLE — reason". Estimated/reconstructed data must be CLEARLY labeled as "RECONSTRUCTED (not measured)" in every affected cell.
+20. **Mandatory experimental rigor in profiling**: Generated profiler agent MUST include: warmup runs (10-15% of planned measurement runs), 6-10 measurement repeats, `taskset -c <performance_core>`, `nice -n -20`, CPU frequency check (`/sys/.../scaling_cur_freq`), and QEMU/emulation caveats documentation.
+21. **Complete cross-table metrics in profiler**: Generated profiler must include ALL metrics from report template: elapsed time, IPC, L1-dcache miss rate, LLC miss rate, branch misprediction rate, Frontend Bound, Backend Bound, Retiring, and executable size (stripped).
+22. **Comprehensive optimization strategies**: Generated optimizer must include: memory allocator testing (mimalloc, jemalloc, tcmalloc, arena), toolchain alternatives (newer GCC/LLVM, vendor toolchains, crosstool-NG), static libc/libc++ testing SEPARATE from LTO, executable size analysis with `strip`/`size`, and explicit `-ftree-vectorize` testing (even with `-O3`).
+23. **Fork analysis in analyzer**: Generated analyzer must include a step to search for project forks that may have target-architecture patches (Methodology Step 1 requirement).
+24. **Profiling data integrity verification in orchestrator**: Generated orchestrator must include a verification step after receiving profiler output — check that data is real measured data (not estimates), that manual fallback was attempted if the tool failed, and that QEMU/emulation caveats are documented.
 
 ### Step 1: Determine Regeneration Scope
 
@@ -133,7 +139,11 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
 - `Amphimixis`:
    - call agents in order specified in methodology (by functionality)
    - **IMPORTANT**: HE MUST CALL THE SUBAGENTS AND SUMMARIZE THEIR OUTPUT, MUST NOT WORK ALONE (match it in permissions, add `"amphimixis-": deny` (**NOT in `task` permissions**))
-   - **IMPORTANT**: Can't use `amphimixis-` tools, must call the `amphimixis-` agents.
+    - **IMPORTANT**: Can't use `amphimixis-` tools, must call the `amphimixis-` agents.
+    - **After profiler returns**: verify data integrity — check that data is real measured data (not estimates/fabrication), that QEMU/emulation caveats are documented, that manual fallback was attempted if the tool failed
+    - **If profiler returned estimated data without clear labeling**: re-call profiler with explicit instructions to either get real data or mark as unavailable
+    - **Report must match template exactly**: Section 7 must end with "Migration Verdict: READY / MINOR CONCERNS / NOT READY" and "Required Actions" list
+    - **Document QEMU/emulation caveats** in both Section 4 (Performance Comparison) and Section 6 (Notes)
    - use config file path is recieved from user or `amphimixis-configurator` (if user didn't specify path)
    - give `amphimixis-builder` information about the configuration
    - give `amphimixis-profiler` information about the builds and configuration
@@ -149,7 +159,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - have lists of possible platform-dependent macros:
        - __i386__, __i486__, __i586__, __i686__, _M_IX86, __x86_64__, __amd64__, _M_X64, _M_AMD64, __MMX__, __SSE__, __SSE2__, __SSE3__, __SSSE3__, __SSE4_1__, __SSE4_2__, __AVX__, __AVX2__, __AVX512F__, __AVX512BW__, __AVX512CD__, __AVX512DQ__, __AVX512VL__, __FMA__, __BMI__, __BMI2__, __POPCNT__, __LZCNT__, __RDRND__, __RTM__, __AES__, __PCLMUL__, __SHA__, __MPX__, __arm__, __ARM_ARCH, __ARM_ARCH_7A__, __ARM_ARCH_7R__, __ARM_ARCH_ISA_THUMB, __thumb__, __ARM_32BIT_STATE, __aarch64__, __ARM_64BIT_STATE, __ARM_ARCH_8A__, __ARM_ARCH_8_1A__, __ARM_NEON__, __ARM_FEATURE_CRC32, __ARM_FEATURE_CRYPTO, __ARM_FEATURE_AES, __ARM_FEATURE_SHA2, __ARM_FEATURE_DOTPROD, __ARM_FEATURE_FP16, __ARM_FEATURE_ATOMICS, __ARM_FEATURE_SVE, __ARM_FEATURE_SVE2, __ARM_FEATURE_BF16, __ARM_FEATURE_I8MM, __riscv, __riscv_xlen, __riscv_float_abi_soft, __riscv_float_abi_single, __riscv_float_abi_double, __riscv_compressed, __riscv_atomic, __riscv_mul, __riscv_muldiv, __riscv_vector, __riscv_crypto, __riscv_zba, __riscv_zbb, __riscv_zbc, __riscv_zbs, __riscv_zfh, __riscv_zfinx, __ORDER_LITTLE_ENDIAN__, __ORDER_BIG_ENDIAN__, __BYTE_ORDER__, __LITTLE_ENDIAN__, __BIG_ENDIAN__, __LP64__, __ILP32__, __SIZEOF_POINTER__, __SIZEOF_LONG__, _WIN64, _WIN32, __linux__, __APPLE__, __ANDROID__
        - other suspicious macros
-   - check the semantic of macros
+    - check the semantic of macros
+    - **check for project forks with target-architecture patches**: search for "[project name] [target architecture] fork", "[project name] [target architecture] port", "[project name] [target architecture] patch" via `websearch`. If two forks evolve in parallel, one may have critical architecture-specific changes.
 - `Amphimixis-configurator`:
    - configure if the user didn't specify the path to config file (by default `input.yml` in working directory) or provided additional information about machines, credentials and build recipes 
    - Amphimixis can build and profile on remote machines
@@ -176,28 +187,46 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - if deletions are needed try to point-wise remove errors from the file configuration
    - control himself after configuring
    - return configuration and path to config file
-- `Amphimixis-builder`:
-   - call the `amphimixis-build` tool
-   - **IMPORTANT**: don't forget about test options at building
+ - `Amphimixis-builder`:
+    - call the `amphimixis-build` tool
+    - **IMPORTANT**: don't forget about test options at building
+    - **Verify tests actually ran**: check that ctest/make test output shows actual test count, that test executables exist. If no test runner found, document "No test runner found" — do NOT claim tests passed if tests didn't run.
    - follow fallback:
      1. try to understand problem, check a project documentation for build instructions
      2. plan the building commands to execute in bash, -- use out-of-tree building
      3. check the order of command for correctness and an compliance with documentation, fix as necessary
      4. run command in bash
-- `Amphimixis-profiler`:
-   - call the `amphimixis-profile` tool
-   - Amphimixis saves `.scriptout` files that you can use, also you can try execute `amixis compare <first .scriptout> <second .scriptout>` (print a cross-table) in bash
-   - **IMPORTANT**: Specify `.scriptout` files for `amixis compare` only for one executable.
-   - make a cross-table for comparison two builds (for main and exploration target platforms)
-   - call the `amphimixis-analyze-vectorization` tool, tell about vectorization
-   - draw a conclusions from the table
-   - return the cross-table and conclusions
-- `Amphimixis-optimizer`:
-   - try to undertand problem from cross-table (**IMPORTANT**: the `amphimixis-orchestrator` should pass it on to him)
-   - **IMPORTANT**: need the deep analysis "why", not just "what"
-   - try to find optimization methods, e.g. from methodology
-   - make report with instructions to optimize project
-   - only give a recommendations to optimization, don't give a tables with optimization and time
+ - `Amphimixis-profiler`:
+    - call the `amphimixis-profile` tool
+    - **CRITICAL: NEVER fabricate profiling data**. If `amphimixis-profile` fails, attempt manual fallback. If manual fallback fails, mark data as "NOT AVAILABLE". Any reconstructed data must be explicitly labeled "RECONSTRUCTED (not measured)".
+    - **Manual fallback when `amphimixis-profile` fails**: Use `perf stat -ddd`, `perf record`, `perf stat --repeat N --table` via bash with full experimental rigor
+    - **Experimental rigor required**:
+       * Warmup: 10-15% of planned measurement runs
+       * Measurements: 6-10 runs minimum per platform
+       * Pin to performance core: `taskset -c <core>`
+       * Highest priority: `nice -n -20`
+       * Frequency check: `cat /sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq`
+       * If target runs under QEMU, document that timing includes emulation overhead
+    - Amphimixis saves `.scriptout` files that you can use, also you can try execute `amixis compare <first .scriptout> <second .scriptout>` (print a cross-table) in bash
+    - **IMPORTANT**: Specify `.scriptout` files for `amixis compare` only for one executable.
+    - make a cross-table for comparison two builds (for main and exploration target platforms)
+    - cross-table MUST include ALL metrics: elapsed time, IPC, L1-dcache miss rate, LLC miss rate, branch misprediction rate, Frontend Bound, Backend Bound, Retiring, executable size
+    - call the `amphimixis-analyze-vectorization` tool, tell about vectorization
+    - draw causal conclusions: explain WHY metrics differ, not just WHAT the difference is
+    - if profiling data is unavailable, do NOT estimate or invent — write "NOT AVAILABLE"
+    - return the cross-table and conclusions
+ - `Amphimixis-optimizer`:
+    - try to understand problem from cross-table (**IMPORTANT**: the `amphimixis-orchestrator` must pass it to him)
+    - **IMPORTANT**: need the deep analysis "why", not just "what"
+    - check vector instructions via `amphimixis-analyze-vectorization` or `objdump`
+    - check executable sizes with `size` and `strip` to separate debug info bloat from actual code size increase
+    - try optimization methods:
+       * Compiler flags: `-ftree-vectorize` (even with `-O3`), `-funroll-loops`, `-ffast-math`, `-flto`
+       * Memory allocators: mimalloc, jemalloc, tcmalloc, arena allocators for heavy free/delete patterns
+       * Toolchain improvements: newer GCC/LLVM from distro, vendor toolchains (SiFive for RISC-V), custom with crosstool-NG
+       * Static libc/libc++: test `-static-libgcc -static-libstdc++` SEPARATELY from `-flto` before combining
+    - make report with instructions to optimize project
+    - only give a recommendations to optimization, don't give a tables with optimization and time
 - If there are other agents, check their contents and save or regenerate
 
 **Question**: whether the current structure needs more granularity (more agents)?
@@ -261,6 +290,10 @@ Verify ALL of these before considering the agent complete:
 | 8 | The report format sections match `docs/report-template.md` | |
 | 9 | No assumptions without data — every claim requires tool output | |
 | 10 | Causal analysis required: "why" not just "what" | |
+| 11 | Profiler has explicit anti-fabrication rule and manual fallback with experimental rigor | |
+| 12 | Optimizer includes allocator testing, toolchain alternatives, static libc separate from LTO, and executable size analysis | |
+| 13 | Analyzer includes fork analysis for target-architecture patches | |
+| 14 | Orchestrator verifies profiler data integrity before report generation | |
 
 If any check fails, fix the agent file before proceeding.
 
@@ -288,6 +321,10 @@ Use the 10-point self-check table:
 | 8 | The report format sections match `docs/report-template.md` | |
 | 9 | No assumptions without data — every claim requires tool output | |
 | 10 | Causal analysis required: "why" not just "what" | |
+| 11 | Profiler has explicit anti-fabrication rule and manual fallback with experimental rigor | |
+| 12 | Optimizer includes allocator testing, toolchain alternatives, static libc separate from LTO, and executable size analysis | |
+| 13 | Analyzer includes fork analysis for target-architecture patches | |
+| 14 | Orchestrator verifies profiler data integrity before report generation | |
 
 If any check fails, fix the agent file before proceeding.
 
