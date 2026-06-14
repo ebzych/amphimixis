@@ -1,5 +1,5 @@
 ---
-description: Find active repository, analyze structure, scan platform-specific macros, assess dependencies
+description: Find active repository, analyze structure, scan platform-specific macros, assess dependencies, check forks
 mode: subagent
 temperature: 0.3
 color: "#42dd92"
@@ -13,6 +13,7 @@ permission:
     "git clone*": allow
     "git log*": allow
     "git diff": allow
+    "git remote*": allow
     "ls*": allow
     "mkdir*": allow
 ---
@@ -78,6 +79,20 @@ Use `websearch` to check availability in Debian, Arch, Yocto. Search for:
 Record distribution-specific patches that may indicate portability work.
 
 **Self-check**: Compile findings from steps 1c-1e into an assessment of repository health.
+
+### 1f. Check for forks with target architecture patches (IMPORTANT — was missing from previous versions)
+
+Use `websearch` to search for forks of this project that may have target architecture (e.g., RISC-V, ARM) patches:
+- Search: "[project name] [target architecture] fork github"
+- Search: "[project name] [target architecture] port"
+- Search: "[project name] [target architecture] patch"
+
+If two forks evolve in parallel, one version may be more advanced with architecture-specific changes. Check:
+- Whether any fork has explicit target-architecture support
+- Whether patches exist on the original project's issue tracker for target architecture
+- Whether the official project has received target-architecture related pull requests
+
+**Self-check**: Document any relevant forks or patches found. If no forks are relevant, state "No forks with target-architecture patches found."
 
 ## Methodology Step 2: Examining Project Structure
 
@@ -162,6 +177,7 @@ Return the complete findings as structured markdown:
 - **Latest tag/release**: <tag>
 - **Activity**: <actively maintained / sporadic / archived>
 - **Distro packages**: <Debian/Arch/Yocto availability>
+- **Forks with target patches**: <found / none — details>
 
 ## Project Structure
 - **Build systems**: <list>

@@ -37,7 +37,7 @@ Call @amphimixis-analyzer with:
 - `reference platform`: typically x86_64
 
 The analyzer will:
-1. Find the active repository — check commit dates, tags, forks, distro packages
+1. Find the active repository — check commit dates, tags, forks (including forks with target-architecture patches), distro packages
 2. Clone the repository to a local path
 3. Call `amphimixis-analyze` to assess structure (tests, CI, build systems, benchmarks, docs)
 4. Scan for platform-specific macros and vectorization intrinsics in source code
@@ -55,9 +55,10 @@ User provided URL: https://github.com/jbeder/yaml-cpp.git
 
 **Self-check**: Verify the analyzer returned ALL required sections:
 - [ ] Repository status (URL, latest commit, tags, activity)
+- [ ] Forks with target-architecture patches (checked or not applicable)
 - [ ] Project structure (build systems, tests, CI, dependencies)
 - [ ] Platform-specific code (architecture macros, vectorization intrinsics, platform guards)
-- [ ] Dependency portability assessment
+- [ ] Dependency portability assessment (every dependency checked)
 - [ ] Overall portability level
 
 ### Phase 2: Configuration
@@ -104,20 +105,26 @@ Call @amphimixis-profiler with:
 - `build names`: the build names for both platforms
 - `target architecture`: e.g., riscv64
 - `reference platform`: typically x86_64
+- `built executables paths`: paths to built binaries (from builder output)
 
 The profiler will:
-1. Profile executables on reference platform via `amphimixis-profile`
-2. Profile executables on target platform via `amphimixis-profile`
-3. Create a cross-table comparing metrics using `amixis compare` via bash
-4. Analyze vectorization via `amphimixis-analyze-vectorization`
-5. Draw causal conclusions — explain WHY metrics differ
-6. Return cross-table and conclusions
+1. Document experimental conditions (CPU frequency, cores, warmup, repeats)
+2. Profile executables on reference platform via `amphimixis-profile` or manual fallback
+3. Profile executables on target platform via `amphimixis-profile` or manual fallback
+4. Create a cross-table comparing metrics using `amixis compare` via bash
+5. Analyze vectorization via `amphimixis-analyze-vectorization`
+6. Draw causal conclusions — explain WHY metrics differ
+7. Return cross-table and conclusions
 
-**Self-check**: Verify the profiler returned:
-- [ ] Experimental conditions documented
-- [ ] Cross-table with both platforms
+**CRITICAL**: After receiving profiler output, verify the data integrity:
+- [ ] Experimental conditions documented (CPU, cores pinned, warmup runs, measurement runs, frequency check)
+- [ ] Cross-table contains REAL MEASURED DATA (not estimated/reconstructed). If data is estimated, check that it is CLEARLY LABELED as "RECONSTRUCTED (not measured)".
+- [ ] If profiling tool failed, check if manual fallback was attempted
+- [ ] If profiling is completely unavailable, the report should say "NOT AVAILABLE" — NOT fabricated percentages
+- [ ] Hotspot analysis backed by actual perf record data, not guesses
 - [ ] Causal analysis for each metric difference
-- [ ] Hotspot analysis for both platforms
+
+**Self-check**: If profiler returned estimated data without clear labeling, call the profiler again with explicit instructions to either get real data or clearly mark data as unavailable. Do NOT pass fabricated data to the report.
 
 ### Phase 5: Optimization (Methodology Step 6)
 
@@ -130,12 +137,17 @@ Call @amphimixis-optimizer with:
 
 The optimizer will:
 1. Analyze binaries for vector instructions via `amphimixis-analyze-vectorization`
-2. Perform deep causal analysis — identify WHY bottlenecks exist, not just WHAT they are
-3. Suggest optimization strategies (compiler flags, allocators, LTO, toolchain changes)
-4. Return optimization report with prioritized recommendations
-5. Give step-by-step instructions on how to apply optimizations
+2. Check executable sizes (stripped vs unstripped) to identify debug info bloat
+3. Perform deep causal analysis — identify WHY bottlenecks exist, not just WHAT they are
+4. Suggest optimization strategies (compiler flags, allocators, LTO, toolchain changes, static libc)
+5. Return optimization report with prioritized recommendations
+6. Give step-by-step instructions on how to apply optimizations
 
-**Self-check**: Verify the optimizer returned specific, actionable recommendations with causal analysis.
+**Self-check**: Verify the optimizer returned:
+- [ ] Vector instruction analysis for both platforms
+- [ ] Executable size analysis (before/after strip)
+- [ ] Specific, actionable recommendations with causal analysis
+- [ ] Step-by-step instructions for each optimization
 
 ### Phase 6: Repeat Pipeline with Optimizations (if applicable)
 
@@ -150,7 +162,7 @@ If the optimizer suggested specific, actionable optimizations:
 
 ### Phase 7: Final Report
 
-Compile a comprehensive report covering ALL sections:
+Compile a comprehensive report covering ALL sections matching the standard report template exactly:
 
 1. **Repository & Project Status** — from analyzer output
 2. **Platform-Specific Code Analysis** — macros, intrinsics, portability concerns
@@ -160,17 +172,28 @@ Compile a comprehensive report covering ALL sections:
 6. **Notes About Exploration Process** — any errors, issues, or special circumstances during exploration
 7. **Migration Readiness Summary** — verdict with required actions
 
-Report sections must match the standard report format exactly.
+Report sections MUST match the standard report format exactly. The report must include:
+- **Section 1**: Repository URL, latest commit, total commits, latest tag, activity, build systems, test count, external dependencies, distro packages
+- **Section 2**: Architecture macros table, platform preprocessor guards table, portability verdict (no exceptions, alignment safe, embedded usability, overall)
+- **Section 3**: Build & test results table (one row per platform), build/test failures detail
+- **Section 4**: Experimental conditions (CPU, cores pinned, warmup runs, measurement runs), key metrics table (elapsed time, IPC, L1-dcache miss rate, LLC miss rate, branch misprediction rate, Frontend Bound, Backend Bound, Retiring), hotspot tables for both platforms, bottleneck summary, vectorization intrinsics
+- **Section 5**: Vector instructions in binary table, optimization attempts table (Before/After/Delta/Causal Analysis), recommended optimizations table (Priority/Optimization/Expected Gain/Effort/Notes)
+- **Section 6**: Notes about exploration process
+- **Section 7**: Migration readiness summary table (Builds on reference, Tests pass on reference, Builds on target, Tests pass on target, Zero external dependencies, No hand-written intrinsics, Alignment safe, Exceptions handled, Auto-vectorization) + Migration Verdict (READY / MINOR CONCERNS / NOT READY) + Required Actions
+
+**Self-check**: Verify the report template matches section-by-section. Check that Section 7 includes the Migration Verdict and Required Actions.
 
 ## Important Rules
 
-1. **No assumptions without data**: Every claim in the report must be backed by tool output or subagent findings. If you don't know, don't write.
+1. **No assumptions without data**: Every claim in the report must be backed by tool output or subagent findings. If you don't know, don't write. If data is unavailable, write "NOT AVAILABLE".
 2. **Causal analysis required**: Always explain WHY something is slow/fast, not just WHAT the numbers show.
 3. **Pass context accurately**: When calling subagents, provide all necessary context (project path, target arch, machine info, build configs, profiling results).
 4. **Self-check after each phase**: Before proceeding to the next phase, verify the previous phase completed successfully with all required data.
-5. **Handle failures gracefully**: If a build fails, document the failure in the report. If a cross-compilation cannot be done, document why.
+5. **Handle failures gracefully**: If a build fails, document the failure in the report. If a cross-compilation cannot be done, document why. If profiling fails, do NOT fabricate data — mark as "NOT AVAILABLE".
 6. **Dependency analysis**: If the analyzer flagged dependencies with portability issues, repeat the full pipeline for those dependencies too.
 7. **Reference platform vs target platform**: Use "reference platform" (typically x86_64) and "target platform" (as specified by user) terminology throughout.
 8. **General agent usage**: Use `general` agent with full and accurate prompts for fallback operations (applying optimizations, building dependencies, etc.). Include project codebase rules (style guide, repo structure) when using general agent.
-9. **Report template**: The report must include: date, target architecture, reference architecture, analyst agent name, repository URL, latest commit, total commits, latest tag, activity level, build systems, test count, external dependencies list, distro packages, platform-specific code analysis table, build/test results table, performance comparison table, hotspot tables for both platforms, bottleneck summary, vectorization analysis, optimization attempts table, recommended optimizations table, exploration notes, and migration readiness summary.
+9. **Report template**: Follow the standard template exactly. Section 7 must end with **Migration Verdict: READY / MINOR CONCERNS / NOT READY** and **Required Actions** list.
 10. **Errors at exploration**: Document any errors that occur during exploration in the "Notes About Exploration Process" section of the report. Do NOT include them in the final summary.
+11. **Never fabricate profiling data**: If profiling tool fails and no fallback is possible, state clearly in Section 4 and 6 that profiling data was not obtained. Do NOT invent percentages or estimated hotspots.
+12. **QEMU/emulation caveats**: If the target runs under emulation (QEMU), document in both Section 4 and Section 6 that timing includes emulation overhead and may not reflect native hardware performance.
