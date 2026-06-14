@@ -132,7 +132,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
 
 - `Amphimixis`:
    - call agents in order specified in methodology (by functionality)
-   - **IMPORTANT**: HE MUST CALL THE SUBAGENTS AND SUMMARIZE THEIR OUTPUT, MUST NOT WORK ALONE
+   - **IMPORTANT**: HE MUST CALL THE SUBAGENTS AND SUMMARIZE THEIR OUTPUT, MUST NOT WORK ALONE (match it in permissions, add `"amphimixis-": deny` (**NOT in `task` permissions**))
    - **IMPORTANT**: Can't use `amphimixis-` tools, must call the `amphimixis-` agents.
    - use config file path is recieved from user or `amphimixis-configurator` (if user didn't specify path)
    - give `amphimixis-builder` information about the configuration
