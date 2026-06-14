@@ -6,6 +6,7 @@ color: "#9953df"
 permission:
   read: allow
   edit: deny
+  "amphimixis-*": deny
   task:
     "amphimixis-analyzer": allow
     "amphimixis-configurator": allow
