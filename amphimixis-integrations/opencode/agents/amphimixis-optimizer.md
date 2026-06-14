@@ -10,14 +10,6 @@ permission:
     "*": deny
     "ls*": allow
     "cat*": allow
-  task:
-    "check-vector-instructions": allow
-    "try-optimization": allow
-    "build-with-flags": allow
-    "amphimixis-build": allow
-    "amphimixis-profile": allow
-    "perf-stat-measure": allow
-    "perf-record-measure": allow
 ---
 
 # Role

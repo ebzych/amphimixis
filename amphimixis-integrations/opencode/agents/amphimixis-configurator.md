@@ -6,13 +6,12 @@ color: "#dd9242"
 permission:
   read: allow
   edit: deny
+  amphimixis-configure-*: allow
+  amphimixis-validate: allow
   bash:
     "*": deny
     "ls*": allow
     "cat*": allow
-  task:
-    "amphimixis-configure-*": allow
-    "amphimixis-validate": allow
 ---
 
 # Role

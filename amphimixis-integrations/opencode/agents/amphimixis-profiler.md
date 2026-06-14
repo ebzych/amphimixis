@@ -6,14 +6,11 @@ color: "#4292dd"
 permission:
   read: allow
   edit: deny
+  amphimixis-profile: allow
   bash:
     "*": deny
     "ls*": allow
     "cat*": allow
-  task:
-    "amphimixis-profile": allow
-    "perf-stat-measure": allow
-    "perf-record-measure": allow
 ---
 
 # Role
