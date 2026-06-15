@@ -124,11 +124,27 @@ Build only:
 amixis build /path/to/project
 ```
 
+To build a **specific** build from the configuration file, use `--build-name`:
+
+```bash
+amixis build /path/to/project --build-name 1_2_1
+```
+
+The `--build-name` value must match one of the build entries in your `input.yml` (format: `<build_machine>_<run_machine>_<recipe_id>`). If omitted, every build in the configuration is processed.
+
 Profile only:
 
 ```bash
 amixis profile /path/to/project
 ```
+
+To profile a **specific** build, use `--build-name`:
+
+```bash
+amixis profile /path/to/project --build-name 1_2_1
+```
+
+If omitted, profiling runs on every successfully built build that matches the configuration.
 
 Validate a configuration file:
 
