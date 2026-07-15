@@ -4,17 +4,8 @@ const amixis = '__TEMPLATE_STRING_FOR_PATH_TO_AMIXIS_TO_BE_INSERTED_AT_INSTALLAT
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function analyze(args: any): Promise<string> {
-  let result: string = 'Internal error.';
-  try {
-    const output = await Bun.$`${amixis} analyze ${args.projectPath}`;
-    result = output.text();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    if (error.stdout) {
-      result = error.stdout.toString();
-    }
-  }
-  return result.trim();
+  const cmd = [amixis, 'analyze', args.projectPath];
+  return (await Bun.$`${cmd}`.text()).trim();
 }
 
 export default tool({
