@@ -26,7 +26,6 @@ EXAMPLES:
   async execute(args: any) {
     const cmd = [amixis, 'analyze', '-v', args.arch, args.binaryPath];
 
-    const result = await Bun.$`${cmd}`.text();
-    return result.trim();
+    return (await Bun.$`${cmd}`.text()).trim();
   },
 });
