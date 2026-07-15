@@ -28,7 +28,6 @@ def run_opencode_install(globally: bool = False) -> bool:
 
     agents_src = project_root / "amphimixis-integrations" / "opencode" / "agents"
     tools_src = project_root / "amphimixis-integrations" / "opencode" / "tools"
-    print(agents_src, tools_src, agents_dst, tools_dst)
 
     print("  Copying Amphimixis agents...")
     for f in agents_src.glob("*.md"):
@@ -85,7 +84,7 @@ def get_opencode_config_dir_path(is_global: bool = False) -> Path:
         to global directory otherwise local directory.
     """
     if is_global:
-        config_dir = Path(environ.get("XDG_CONFIG_HOME", "~/.config")).resolve()
+        config_dir = Path(environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser().resolve()
         return config_dir / "opencode"
 
     return Path(".").resolve() / ".opencode"
