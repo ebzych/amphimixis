@@ -22,7 +22,7 @@ For most users, the recommended path is to create a virtual environment and inst
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/ebzych/amphimixis.git@stable
+pip install git+https://github.com/Amphimixis/amphimixis.git@stable
 ```
 
 This is the recommended path if you only want to run `amixis` and do not want to install anything into the system Python environment.
@@ -30,7 +30,7 @@ This is the recommended path if you only want to run `amixis` and do not want to
 If you are developing Amphimixis itself, clone the repository and install dependencies with `uv`:
 
 ```bash
-git clone https://github.com/ebzych/amphimixis.git
+git clone https://github.com/Amphimixis/amphimixis.git
 cd amphimixis
 uv sync
 ```

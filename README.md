@@ -6,11 +6,11 @@
 
 # Amphimixis
 
-Amphimixis is an automated project intelligence and evaluation tool for performance and migration readiness. It helps inspect a project for existing infrastructure such as CI, tests, benchmarks, dependencies, and build scripts, then runs builds and collects performance data for further comparison.
+Amphimixis is an automated project intelligence and evaluation tool for performance and migration readiness.
 
-Amphimixis simplifies migration readiness exploration and performance analysis by partially implementing our [methodology](docs/methodologies/migration-readiness-exploring-methodology.md).
+Amphimixis has the `amixis` console utility with formal tools for analyzing repo, building and profiling a projects on remote (via SSH) and local machines, and comparing results in cross-table two builds per CPU event. So Amphimixis has the integration with LLM-chat --- `Amphimixis-Opencode`. It is LLM-agent system with tool-wrappers around `amixis` CLI. `Amphimixis-Opencode` can automate the migration analysis and generate report about project portability by [Report Template](docs/methodologies/report-template.md).
 
-> Amphimixis uses `perf` for profiling and can generate a cross‑table comparing two builds per CPU event.
+> Amphimixis simplifies migration readiness exploration and performance analysis by partially implementing our [Methodology](docs/methodologies/migration-readiness-exploring-methodology.md).
 
 ## Performance cross-table example
 
@@ -32,7 +32,7 @@ The two builds were executed on different architectures: `1_1_1` on **RISC‑V**
 - `perf` and `perf archive` on each `run_machine`
 - Target project must support CMake as the build system and Make or Ninja as the low-level runner
 
-Installation commands for system dependencies are available in [Troubleshooting → System Dependencies](docs/troubleshooting.md).
+Installation commands for system dependencies are available in [Troubleshooting → System Dependencies](docs/troubleshooting.md#system-dependencies).
 
 ## Quick start
 
@@ -41,7 +41,7 @@ If you want to try Amphimixis right away, create a virtual environment, install 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/ebzych/amphimixis.git@stable
+pip install git+https://github.com/Amphimixis/amphimixis.git@stable
 amixis init local
 amixis run /path/to/project --config local.yml
 ```

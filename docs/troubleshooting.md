@@ -24,7 +24,7 @@ If your system Python is older, install a newer version or use `uv` to manage Py
 
 ```bash
 uv venv --python 3.12
-uv pip install git+https://github.com/ebzych/amphimixis.git@stable
+uv pip install git+https://github.com/Amphimixis/amphimixis.git@stable
 ```
 
 Or you can install Python 3.12 or newer from your distribution or from python.org, then create a virtual environment and install Amphimixis with `pip`:
@@ -32,7 +32,7 @@ Or you can install Python 3.12 or newer from your distribution or from python.or
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/ebzych/amphimixis.git@stable
+pip install git+https://github.com/Amphimixis/amphimixis.git@stable
 ```
 
 ### The `amixis` command is not found after installation
