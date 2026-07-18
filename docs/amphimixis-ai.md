@@ -1,8 +1,8 @@
-# Amphimixis-Opencode — an LLM-powered assistant that automates the full migration-readiness analysis pipeline
+# Amphimixis-AI — an LLM-powered assistant that automates the full migration-readiness analysis pipeline
 
 ## About
 
-Amphimixis-Opencode helps you analyze your project for migration ability --- __it automates this process__. It provides an agent system and formal tools for Opencode:
+Amphimixis-AI helps you analyze your project for migration ability --- __it automates this process__. It provides an agent system and formal tools for Opencode:
 
 - `Amphimixis` --- orchestrator agent, and subagents which calling by orchestrator
 - Tools --- wrappers around the `amixis` CLI and other tools

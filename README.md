@@ -8,7 +8,7 @@
 
 Amphimixis is an automated project intelligence and evaluation tool for performance and migration readiness.
 
-Amphimixis has the `amixis` console utility with formal tools for analyzing repo, building and profiling a projects on remote (via SSH) and local machines, and comparing results in cross-table two builds per CPU event. So Amphimixis has the integration with LLM-chat --- `Amphimixis-Opencode`. It is LLM-agent system with tool-wrappers around `amixis` CLI. `Amphimixis-Opencode` can automate the migration analysis and generate report about project portability by [Report Template](docs/methodologies/report-template.md).
+Amphimixis has the `amixis` console utility with formal tools for analyzing repo, building and profiling a projects on remote (via SSH) and local machines, and comparing results in cross-table two builds per CPU event. So Amphimixis has the integration with LLM-chat --- `Amphimixis-AI`. It is LLM-agent system with tool-wrappers around `amixis` CLI. `Amphimixis-AI` can automate the migration analysis and generate report about project portability by [Report Template](docs/methodologies/report-template.md).
 
 > Amphimixis simplifies migration readiness exploration and performance analysis by partially implementing our [Methodology](docs/methodologies/migration-readiness-exploring-methodology.md).
 
