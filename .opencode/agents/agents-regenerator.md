@@ -82,6 +82,8 @@ Create a multiagent system to projects performance analysis and migration readin
 23. **Fork analysis in analyzer**: Generated analyzer must include a step to search for project forks that may have target-architecture patches (Methodology Step 1 requirement).
 24. **Profiling data integrity verification in orchestrator**: Generated orchestrator must include a verification step after receiving profiler output — check that data is real measured data (not estimates), that manual fallback was attempted if the tool failed, and that QEMU/emulation caveats are documented.
 
+**IMPORTANT**: the agents using the tools-wrappers around `amixis` should knows how Amphimixis is working. For it copy general information from `README.md`, `Amphimixis` header (**IMPORTANT**: `amixis` using config file but only agents which make configuration must prepare configuration file, other agents shouldn't think about config file).
+
 ### Step 1: Determine Regeneration Scope
 
 Read the following files completely:
@@ -137,6 +139,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
 #### Agent notes
 
 - `Amphimixis`:
+   - prepare SSH-agent if user provide this info (use standard `general` agent for this)
    - call agents in order specified in methodology (by functionality)
    - **IMPORTANT**: HE MUST CALL THE SUBAGENTS AND SUMMARIZE THEIR OUTPUT, MUST NOT WORK ALONE (match it in permissions, add `"amphimixis-": deny` (**NOT in `task` permissions**))
     - **IMPORTANT**: Can't use `amphimixis-` tools, must call the `amphimixis-` agents.
