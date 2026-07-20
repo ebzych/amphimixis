@@ -4,7 +4,7 @@
 
 Amphimixis-AI helps you analyze your project for migration ability --- __it automates this process__. It provides an agent system and formal tools for Opencode:
 
-- `Amphimixis` --- orchestrator agent, and subagents which calling by orchestrator
+- `Amphimixis` --- orchestrator agent, and subagents which are called by the orchestrator
 - Tools --- wrappers around the `amixis` CLI and other tools
 
 ---
@@ -28,12 +28,12 @@ amixis opencode run "<your prompt>"
 The prompt should describe the project and task. For example:
 
 ```bash
-amixis opencode run "Analyse the <Name> project, identify platform-specific code, and produce a migration report for RISC-V. Use my cross-toolchain /path/to/toolchain."
+amixis opencode run "Analyze the <Name> project, identify platform-specific code, and produce a migration report for RISC-V. Use my cross-toolchain /path/to/toolchain."
 ```
 
 This opens the Opencode TUI with `amphimixis` agent and your prompt.
 
-> **Note:** The agent expects the current working directory to contain (or point to) the project being analysed. Use an absolute path in the prompt for clarity.
+> **Note:** The agent expects the current working directory to contain (or point to) the project being analyzed. Use an absolute path in the prompt for clarity.
 
 ---
 
@@ -43,7 +43,7 @@ When invoked, `amphimixis` runs a 7-phase pipeline:
 
 | Phase                  | Subagent                  | Description                                                                                         |
 |------------------------|---------------------------|-----------------------------------------------------------------------------------------------------|
-| 1. Repository analysis | `amphimixis-analyzer`     | Find actual repo, clone it, scan for platform-specific macros and intrinsics, assess dependencies   |
+| 1. Repository analysis | `amphimixis-analyzer`     | Find the actual repo, clone it, scan for platform-specific macros and intrinsics, assess dependencies   |
 | 2. Configuration       | `amphimixis-configurator` | Create the `input.yml` (see [Usage Guide](usage_guide.md)) file with platforms, recipes, and builds |
 | 3. Build & verify      | `amphimixis-builder`      | Build on reference and target platforms, run tests                                                  |
 | 4. Profiling           | `amphimixis-profiler`     | Profile executables, produce a cross-platform comparison                                            |
