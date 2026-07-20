@@ -4,10 +4,10 @@
   "description": "[![CI](https://github.com/ebzych/amphimixis/actions/workflows/ci.yml/badge.svg)](https://github.com/ebzych/amphimixis/actions/workflows/ci.yml) [![Docs](https://img.shields.io/badge/docs-available-blue)](https://github.com/ebzych/amphimixis/tree/main/docs) [![License](https://img.shields.io/github/license/ebzych/amphimixis?color=8A2BE2)](https://github.com/ebzych/amphimixis/blob/main/LICENSE)",
   "directories": {
     "doc": "docs",
-    "test": "opencode/__tests__"
+    "test": "amphimixis-integrations/opencode/__tests__"
   },
   "scripts": {
-    "eslint": "eslint opencode/**/*.ts --format compact"
+    "eslint": "eslint amphimixis-integrations/opencode/**/*.ts --format compact"
   },
   "dependencies": {
     "bun-types": "^1.3.14",
@@ -31,10 +31,10 @@
   "author": "Amphimixis Team",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ebzych/amphimixis.git"
+    "url": "git+https://github.com/Amphimixis/amphimixis.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ebzych/amphimixis/issues"
+    "url": "https://github.com/Amphimixis/amphimixis/issues"
   }
 }
