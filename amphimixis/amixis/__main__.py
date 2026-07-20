@@ -66,7 +66,9 @@ def _main() -> bool:
         return False
 
     project = None
-    if args.command in ("run", "analyze", "build", "profile") and not args.vector:
+    if args.command in ("run", "analyze", "build", "profile") and not hasattr(
+        args, "vector"
+    ):
         if not args.path:
             parser.print_help()
             return False
