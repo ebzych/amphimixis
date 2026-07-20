@@ -38,21 +38,21 @@ def run_opencode_install(globally: bool = False) -> bool:
         shutil.copy2(f, tools_dst)
 
     # amixis script should be executed first
-    amixis_executable_path = Path(stack()[-1].filename).resolve().__str__()
+    amixis_executable_path = str(Path(stack()[-1].filename).resolve())
     for root, _, files in tools_dst.walk():
         for file in files:
-            if '.ts' in file:
+            if ".ts" in file:
                 path = Path(root) / file
                 content: str
-                with open(path, "r") as f:
-                    content = f.read() 
+                with open(str(path), encoding="UTF-8") as fh:
+                    content = fh.read()
                 content = content.replace(
                     "__TEMPLATE_STRING_FOR_PATH_TO_AMIXIS_TO_BE_INSERTED_AT_INSTALLATION__",
                     amixis_executable_path,
-                    1
-                    )
-                with open(path, "w") as f:
-                    f.write(content)
+                    1,
+                )
+                with open(str(path), "w", encoding="UTF-8") as fh:
+                    fh.write(content)
 
     print("  Installing Bun dependencies...")
     if shutil.which("bun") is not None:
@@ -84,7 +84,9 @@ def get_opencode_config_dir_path(is_global: bool = False) -> Path:
         to global directory otherwise local directory.
     """
     if is_global:
-        config_dir = Path(environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser().resolve()
+        config_dir = (
+            Path(environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser().resolve()
+        )
         return config_dir / "opencode"
 
     return Path(".").resolve() / ".opencode"

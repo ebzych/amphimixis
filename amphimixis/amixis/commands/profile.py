@@ -17,6 +17,7 @@ def add_args(parser: ArgumentParser) -> None:
 
     :param ArgumentParser parser: subcommand parser to which arguments are added
     """
+    # pylint: disable=duplicate-code
     add_path_arg(parser)
     add_config_arg(parser)
     parser.add_argument(
