@@ -7,52 +7,11 @@ import { chdir } from "process";
 
 const tmpDirPath = "/tmp/amphimixis/tests/opencode/configure";
 const tmpConfigPath = path.join(tmpDirPath, "input.yml");
+const platformConfiguringToolModulePath = "../tools/amphimixis-configure-platforms.ts";
+const recipeConfiguringToolModulePath = "../tools/amphimixis-configure-recipes.ts";
+const buildConfiguringToolModulePath = "../tools/amphimixis-configure-builds.ts";
 
 describe("Configuring tool", () => {
-  test("old configure function (backward compat)", async () => {
-    try {
-      await unlink(tmpConfigPath);
-    } catch {
-      /* empty */
-    }
-    await mkdir(tmpDirPath, { recursive: true });
-    chdir(tmpDirPath);
-    const BUILD_SYSTEM = "cmake";
-    const ARCH = "riscv";
-    const CONFIG_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
-
-    const toolModule = await import("../tools/amphimixis-configure.ts");
-    const tool = toolModule.default;
-
-    await tool.execute({
-      configFilePath: tmpConfigPath,
-      build_system: BUILD_SYSTEM,
-      platforms: [{ arch: ARCH }, { arch: ARCH }],
-      recipes: [{ config_flags: CONFIG_FLAGS }, { config_flags: CONFIG_FLAGS }],
-      builds: [{ build_machine: 1, run_machine: 1, recipe_id: 1 }],
-    });
-
-    const result = yaml.parse(
-      fs.readFileSync(tmpConfigPath, { encoding: "utf-8", flag: "r" }),
-    ) as {
-      build_system: string;
-      platforms: Array<{ id: number; arch: string }>;
-      recipes: Array<{ id: number; config_flags: string }>;
-      builds: Array<{ build_machine: number }>;
-    };
-
-    expect(result.build_system).toBe(BUILD_SYSTEM);
-    expect(result.platforms[0].id).toBe(1);
-    expect(result.platforms[0].arch).toBe(ARCH);
-    expect(result.platforms[1].id).toBe(2);
-    expect(result.platforms[1].arch).toBe(ARCH);
-    expect(result.recipes[0].id).toBe(1);
-    expect(result.recipes[0].config_flags).toBe(CONFIG_FLAGS);
-    expect(result.recipes[1].id).toBe(2);
-    expect(result.recipes[1].config_flags).toBe(CONFIG_FLAGS);
-    expect(result.builds[0].build_machine).toBe(1);
-  });
-
   test("configure-platforms creates file with auto-assigned IDs", async () => {
     try {
       await unlink(tmpConfigPath);
@@ -62,7 +21,7 @@ describe("Configuring tool", () => {
     await mkdir(tmpDirPath, { recursive: true });
     chdir(tmpDirPath);
 
-    const toolModule = await import("../tools/amphimixis-configure-platforms.ts");
+    const toolModule = await import(platformConfiguringToolModulePath);
     const tool = toolModule.default;
 
     const output = await tool.execute({
@@ -88,7 +47,7 @@ describe("Configuring tool", () => {
     await mkdir(tmpDirPath, { recursive: true });
     chdir(tmpDirPath);
 
-    const toolModule = await import("../tools/amphimixis-configure-platforms.ts");
+    const toolModule = await import(platformConfiguringToolModulePath);
     const tool = toolModule.default;
 
     await tool.execute({
@@ -110,7 +69,7 @@ describe("Configuring tool", () => {
   test("configure-recipes adds recipes and build_system", async () => {
     chdir(tmpDirPath);
 
-    const toolModule = await import("../tools/amphimixis-configure-recipes.ts");
+    const toolModule = await import(recipeConfiguringToolModulePath);
     const tool = toolModule.default;
 
     const output = await tool.execute({
@@ -145,7 +104,7 @@ describe("Configuring tool", () => {
   test("configure-builds validates and adds builds", async () => {
     chdir(tmpDirPath);
 
-    const toolModule = await import("../tools/amphimixis-configure-builds.ts");
+    const toolModule = await import(buildConfiguringToolModulePath);
     const tool = toolModule.default;
 
     const output = await tool.execute({
@@ -179,7 +138,7 @@ describe("Configuring tool", () => {
   test("configure-builds rejects invalid platform IDs", async () => {
     chdir(tmpDirPath);
 
-    const toolModule = await import("../tools/amphimixis-configure-builds.ts");
+    const toolModule = await import(buildConfiguringToolModulePath);
     const tool = toolModule.default;
 
     const output = await tool.execute({

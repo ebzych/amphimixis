@@ -3,12 +3,12 @@ import path from "path";
 import { chdir } from "process";
 import { unlink, mkdir } from "fs/promises";
 import yaml from "yaml";
-import { test, expect, describe } from "bun:test";
-import tool from "../tools/amphimixis-validate";
+import { test, expect, describe, spyOn } from "bun:test";
+import * as toolModule from "../tools/amphimixis-validate";
 
-/**
- * Test running amphimixis validator
- */
+const amixis = path.join(__dirname, "../../../.venv/bin/amixis");
+spyOn(toolModule, "amixis").mockReturnValue(amixis);
+
 describe("Validating config file tool", () => {
   test("validating function", async () => {
     const tmpDirPath = "/tmp/amphimixis/tests/opencode/validate";
@@ -55,7 +55,7 @@ describe("Validating config file tool", () => {
       }),
     );
     // @ts-ignore
-    const output = await tool.execute({ configFilePath: tmpConfigPath });
+    const output = await toolModule.default.execute({ configFilePath: tmpConfigPath });
     expect(output.toString().includes("is correct")).toBe(true);
   });
 });

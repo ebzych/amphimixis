@@ -1,12 +1,13 @@
 import {mkdir, writeFile} from 'fs/promises';
 import {chdir} from 'process';
-import {test, expect, describe} from 'bun:test';
+import {test, expect, describe, spyOn} from 'bun:test';
 import path from 'path';
-import tool from '../tools/amphimixis-analyze';
+import * as toolModule from '../tools/amphimixis-analyze';
 
-/**
- * Test running amphimixis analyzer
- */
+const amixis = path.join(__dirname, "../../../.venv/bin/amixis");
+spyOn(toolModule, "amixis").mockReturnValue(amixis);
+console.log(amixis);
+
 describe('Analyzing tool', () => {
   test('analyzing function', async () => {
     const tmpDirPath = '/tmp/amphimixis/tests/opencode/analyze';
@@ -20,7 +21,7 @@ describe('Analyzing tool', () => {
     await mkdir(testsPath, {recursive: true});
     await writeFile(makefilePath, 'all:\n\techo hello');
     // @ts-ignore
-    const output = await tool.execute({projectPath: tmpProjPath});
+    const output = await toolModule.default.execute({projectPath: tmpProjPath});
     expect(output.toString().length).toBeGreaterThan(0);
   });
 });
