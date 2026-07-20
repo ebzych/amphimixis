@@ -105,7 +105,7 @@ At minimum, `input.yml` should describe:
 - the build recipes
 - the builds that connect platforms and recipes
 
-In `builds`, you can optionally specify an `executables` list for each build. Each path must be relative to that build's output directory, for example `bin/my_app`. If `executables` is omitted, Amphimixis profiles the first executable file it finds in the build directory.
+In `builds`, you can optionally specify an `executables` list for each build. Each path must be relative to that build's output directory, for example, `bin/my_app`. If `executables` is omitted, Amphimixis profiles the first executable file it finds in the build directory.
 
 ### Using SSH keys
 
@@ -164,7 +164,7 @@ To profile a **specific** build, use `--build-name`:
 amixis profile /path/to/project --build-name 1_2_1
 ```
 
-If omitted, profiling runs on every successfully built build that matches the configuration.
+If omitted, profiling runs on every successful build that matches the configuration.
 
 Validate a configuration file:
 
