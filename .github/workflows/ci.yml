@@ -37,6 +37,8 @@ jobs:
           fi
           perf --version
           curl -fsSL https://bun.com/install | bash
+          source ~/.bash_profile
+          bun install yaml @opencode-ai/plugin
       - name: Run linters
         run: |
           shellcheck ci/*.sh
@@ -49,7 +51,8 @@ jobs:
         run: |
           echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid
           uv run pytest -m unit
-          cd amphimixis-integrations/opencode && bun test
+          source ~/.bash_profile
+          ci/bun-tests.sh
 
   integration-tests-docker:
     needs: linters-and-unit
