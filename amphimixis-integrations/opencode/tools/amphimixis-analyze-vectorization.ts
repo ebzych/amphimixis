@@ -1,6 +1,6 @@
 import { tool } from "@opencode-ai/plugin";
 
-const amixis = '__TEMPLATE_STRING_FOR_PATH_TO_AMIXIS_TO_BE_INSERTED_AT_INSTALLATION__'
+export const amixis = () => '__TEMPLATE_STRING_FOR_PATH_TO_AMIXIS_TO_BE_INSERTED_AT_INSTALLATION__';
 
 export default tool({
   description: `Use objdump to analyze a built binary for platform-specific vector instructions.
@@ -24,8 +24,7 @@ EXAMPLES:
       .describe("Target architecture (x86, avx, avx512, neon, rvv)"),
   },
   async execute(args: any) {
-    const cmd = [amixis, 'analyze', '-v', args.arch, args.binaryPath];
-
+    const cmd = [amixis(), 'analyze', '-v', args.arch, args.binaryPath];
     return (await Bun.$`${cmd}`.text()).trim();
   },
 });
