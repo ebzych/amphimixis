@@ -16,8 +16,9 @@ def add_args(parser: ArgumentParser) -> None:
 
     :param ArgumentParser parser: subcommand parser to which arguments are added
     """
-
-    subparsers = parser.add_subparsers(dest="opencode_subcommand", title="opencode options")
+    subparsers = parser.add_subparsers(
+        dest="opencode_subcommand", title="opencode options"
+    )
     subparsers.required = True
 
     install_parser = subparsers.add_parser(
@@ -50,7 +51,6 @@ def run_opencode(args: Namespace) -> bool:
     :return: True if command succeeded, False otherwise
     :rtype: bool
     """
-
     opencode_subcommand = args.opencode_subcommand
     print("hello world")
     print(args.globally)

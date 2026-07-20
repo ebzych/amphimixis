@@ -38,7 +38,7 @@ def print_help(commands, full=False) -> None:
 
 # pylint: disable=too-many-branches
 def _main() -> bool:
-    """Main function for the Amphimixis CLI tool.
+    """There is an entry point the Amphimixis console utility.
 
     :return: True if command succeeded, False otherwise
     :rtype: bool
@@ -78,7 +78,8 @@ def _main() -> bool:
             if not DEFAULT_CONFIG_PATH.exists():
                 script_dir = Path(__file__).parent.resolve()
                 shutil.copy(
-                    script_dir / ".." / "samples" / "local.yml", Path("input.yml").resolve()
+                    script_dir / ".." / "samples" / "local.yml",
+                    Path("input.yml").resolve(),
                 )
                 print("Created input.yml from samples/local.yml")
         else:
@@ -120,8 +121,11 @@ def _main() -> bool:
             parser.print_help()
             return False
 
+
 if __name__ == "__main__":
     sys.exit(0 if _main() else 1)
 
+
 def main() -> bool:
+    """Reverse return value."""
     return not _main()

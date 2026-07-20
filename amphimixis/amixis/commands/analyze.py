@@ -8,7 +8,7 @@ import yaml
 from amphimixis.amixis.utils import add_path_arg
 from amphimixis.core.analyzer import analyze
 from amphimixis.core.binary_analyzer import analyze_vectorization
-from amphimixis.core.general import Arch, IUI, NULL_UI, Project
+from amphimixis.core.general import IUI, NULL_UI, Arch, Project
 
 HELP_MESSAGE = "Analyze the project and detect existing CI, tests, build systems, etc."
 
