@@ -1,22 +1,23 @@
-# Read to understand the main purpose of the project and tool usage
+# AGENTS.md for Amphimixis project
+
+## Read to understand the main purpose of the project and tool usage
 
 1. `README.md`
 2. `docs/usage_guide.md`
 3. `docs/config_instructions.md`
 
-# Rules
+## Rules
 
 1. If you change uncommited files, commit them before.
 2. Commit your changes for versioning.
 3. Check CI pass, run the `ci/runner.sh` script.
 
-# Actions
+## Actions
 
 - To regenerate Amphimixis agents call `agents-regenerator` at `.opencode/agents/agents-regenerator.md`.
 - To create command, understand that the CLI commands are located in `amphimixis/amixis/commands/`; complex commands are combined into one module directory: `add`, `opencode`, etc; the commands haves the examples and main examples in `amphimixis/amixis/parser.py`; the commands are called from `amphimixis/amixis/__main__.py`; `amphimixis/amixis/utils` contains general tools for creating commands; the commands changing requires changes of documentation and examples.
-- To implement new field in Amphimixis configuration file, understand that 
 
-# Commits and PR Titles
+## Commits and PR Titles
 
 Use conventional commit-style messages and PR titles: type(scope): summary.
 
@@ -25,9 +26,9 @@ Examples: `fix(amixis.commands.opencode.install): fix path to amixis`, `docs: up
 
 Use feature-branches to developing, don't commit to `main`.
 
-# Style Guide
+## Style Guide
 
-## General principles
+### General principles
 
 - Use PEP 8 and Google TypeScript style guides.
 - Use `pathlib.Path` instead of `os.path` for Python.
@@ -37,6 +38,6 @@ Use feature-branches to developing, don't commit to `main`.
 - Modules must have a public API via `all` in `__init__.py`, if module is complex, otherwise use underscore in the name, e.g. `_print_with_decorators()` -- not in API.
 - Prefer OOP and design patterns.
 
-## Complex Logic
+### Complex Logic
 
 When a function has several validation branches or supporting details, make the main function read as the happy path and move supporting details into small helpers below it.
