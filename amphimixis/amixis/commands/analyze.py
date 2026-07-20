@@ -28,6 +28,8 @@ def add_args(parser: ArgumentParser) -> None:
     parser.add_argument(
         "--vector",
         "-v",
+        action="store",
+        dest="vector",
         choices=list(VECTOR_ARCH_MAP),
         metavar="ARCH",
         help=(
