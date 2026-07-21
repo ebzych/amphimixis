@@ -47,6 +47,8 @@ jobs:
           ci/mypy.sh
           ci/pylint.sh
           ci/ruff.sh
+          source ~/.bash_profile
+          ci/eslint.sh
       - name: Run unit tests
         run: |
           echo '-1' | sudo tee /proc/sys/kernel/perf_event_paranoid

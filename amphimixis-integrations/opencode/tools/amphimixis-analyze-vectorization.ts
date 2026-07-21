@@ -23,7 +23,7 @@ EXAMPLES:
       .string()
       .describe("Target architecture (x86, avx, avx512, neon, rvv)"),
   },
-  async execute(args: any) {
+  async execute(args) {
     const cmd = [amixis(), 'analyze', '-v', args.arch, args.binaryPath];
     return (await Bun.$`${cmd}`.text()).trim();
   },
