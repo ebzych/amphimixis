@@ -5,6 +5,8 @@
 1. `README.md`
 2. `docs/usage_guide.md`
 3. `docs/config_instructions.md`
+4. `docs/amphimixis-ai.md`
+5. `amphimixis-integrations/opencode/tech-doc.md`
 
 ## Rules
 
@@ -37,6 +39,7 @@ Use feature-branches to developing, don't commit to `main`.
 - Use return codes instead of exceptions as possible.
 - Modules must have a public API via `all` in `__init__.py`, if module is complex, otherwise use underscore in the name, e.g. `_print_with_decorators()` -- not in API.
 - Prefer OOP and design patterns.
+- The imports must be at the top of the file.
 
 ### Complex Logic
 
