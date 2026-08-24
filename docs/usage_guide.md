@@ -110,6 +110,12 @@ The full pipeline:
 1. profiles the resulting executables
 1. prints profiling results in the console
 
+Profiling results are saved to `<project name>.pkl` (pickle). A human-readable copy with the `perf stat` output converted from CSV to dictionaries is also saved as `<project name>.json`. To save it as YAML instead, use `--stats-format` (works with both `run` and `profile`):
+
+```bash
+amixis run /path/to/project --stats-format yaml
+```
+
 ## Run individual commands
 
 Analyze only:
@@ -146,6 +152,12 @@ amixis profile /path/to/project --build-name 1_2_1
 
 If omitted, profiling runs on every successful build that matches the configuration.
 
+Like `run`, `profile` saves `<project name>.pkl` and a human-readable perf stat copy. Use `--stats-format yaml` to get YAML instead of JSON:
+
+```bash
+amixis profile /path/to/project --stats-format yaml
+```
+
 Validate a configuration file:
 
 ```bash
@@ -174,6 +186,12 @@ To limit how many symbols with the largest delta are shown for each event:
 
 ```bash
 amixis compare build1.scriptout build2.scriptout --max-rows 10
+```
+
+Every comparison also saves the cross-tables as Markdown to `cross-tables/CT-<first file>-<second file>.md`, independently of how they are printed. To print the cross-tables themselves as Markdown tables instead of the default plain-text format, use `--cross-table-format` (`md` is an alias of `markdown`):
+
+```bash
+amixis compare build1.scriptout build2.scriptout --cross-table-format markdown
 ```
 
 ## Add a toolchain
