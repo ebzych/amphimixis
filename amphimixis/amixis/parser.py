@@ -22,8 +22,7 @@ Examples:
       → Run pipeline and profile only the 'cycles' and 'cache-misses' events.
 
   amixis run /path/to/project --stats-format yaml
-      → Save perf stat data to <project name>.yaml instead of .json
-        (the <project name>.pkl pickle is saved anyway).
+      → Save perf stat data to <project name>.yaml instead of .json.
 
   amixis analyze /path/to/project
       → Analyzes the project and detects existing CI, tests, benchmarks, etc.
@@ -82,8 +81,7 @@ EXAMPLES = {
   amixis run /path/to/project --events cycles cache-misses
       → Run pipeline and profile only the 'cycles' and 'cache-misses' events
   amixis run /path/to/project --stats-format yaml
-      → Save perf stat data to <project name>.yaml instead of .json
-        (the <project name>.pkl pickle is saved anyway)""",
+      → Save perf stat data to <project name>.yaml instead of .json""",
     "analyze": """Examples:
   amixis analyze /path/to/project
       → Analyze project and detect existing CI, tests, build systems, etc.
@@ -106,8 +104,7 @@ EXAMPLES = {
   amixis profile /path/to/project --build-name 1_2_1
       → Profile only the named build from input.yml
   amixis profile /path/to/project --stats-format yaml
-      → Save perf stat data to <project name>.yaml instead of .json
-        (the <project name>.pkl pickle is saved anyway)""",
+      → Save perf stat data to <project name>.yaml instead of .json""",
     "validate": """Examples:
   amixis validate /path/to/input/config
       → Check config file correctness""",
