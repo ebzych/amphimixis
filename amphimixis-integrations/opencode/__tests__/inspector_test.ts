@@ -45,7 +45,9 @@ async function prepareCase(name: string, files: Record<string, string>): Promise
   await mkdir(dir, { recursive: true });
   chdir(dir);
   for (const [fileName, content] of Object.entries(files)) {
-    await writeFile(path.join(dir, fileName), content);
+    const filePath = path.join(dir, fileName);
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, content);
   }
 }
 
@@ -77,7 +79,7 @@ describe('Inspector inspect()', () => {
   test('accepts correct cross-table and improvements data', async () => {
     await prepareCase('correct', {
       'stats.json': '{}',
-      'CT-ref-opt.md': CT_TABLE,
+      'cross-tables/CT-ref-opt.md': CT_TABLE,
       'improvements.json': IMPROVEMENTS_JSON,
       'amphimixis-tinyxml2-report.md': REPORT,
     });
@@ -92,7 +94,7 @@ describe('Inspector inspect()', () => {
     const wrongReport = REPORT.replace('| main | 10 | 12 | 2 |', '| main | 10 | 12 | 5 |');
     await prepareCase('wrong-cross-table', {
       'stats.json': '{}',
-      'CT-ref-opt.md': CT_TABLE,
+      'cross-tables/CT-ref-opt.md': CT_TABLE,
       'improvements.json': IMPROVEMENTS_JSON,
       'amphimixis-tinyxml2-report.md': wrongReport,
     });
@@ -105,7 +107,7 @@ describe('Inspector inspect()', () => {
     const wrongReport = REPORT.replace('| runtime | 10 | 12 | 20 |', '| runtime | 11 | 12 | 20 |');
     await prepareCase('wrong-improvements', {
       'stats.json': '{}',
-      'CT-ref-opt.md': CT_TABLE,
+      'cross-tables/CT-ref-opt.md': CT_TABLE,
       'improvements.json': IMPROVEMENTS_JSON,
       'amphimixis-tinyxml2-report.md': wrongReport,
     });
