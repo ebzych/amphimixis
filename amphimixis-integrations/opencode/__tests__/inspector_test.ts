@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 import { chdir } from 'process';
-import { inspect } from '../plugins/amphimixis-inspector';
+import InspectorGeneral from '../../inspector_general';
 
 const TESTS_DIR = '/tmp/amphimixis/tests/opencode/inspector';
 
@@ -55,10 +55,10 @@ function joinOutput(output: string[]): string {
   return output.join('\n');
 }
 
-describe('Inspector inspect()', () => {
+describe('Inspector InspectorGeneral.inspect()', () => {
   test('reports all missing required steps when no files are present', async () => {
     await prepareCase('empty', {});
-    const output = joinOutput(inspect()[1]);
+    const output = joinOutput(InspectorGeneral.inspect()[1]);
 
     expect(output).toContain('## Missing required steps');
     expect(output).toContain('- using `amphimixis-compare` tool to');
@@ -69,7 +69,7 @@ describe('Inspector inspect()', () => {
 
   test('marks missing steps without the fatal report message when only the report exists', async () => {
     await prepareCase('report-only', { 'amphimixis-tinyxml2-report.md': REPORT });
-    const output = joinOutput(inspect()[1]);
+    const output = joinOutput(InspectorGeneral.inspect()[1]);
 
     expect(output).toContain('## Missing required steps');
     expect(output).not.toContain('- FATAL: no report file found, please');
@@ -83,7 +83,7 @@ describe('Inspector inspect()', () => {
       'improvements.json': IMPROVEMENTS_JSON,
       'amphimixis-tinyxml2-report.md': REPORT,
     });
-    const output = joinOutput(inspect()[1]);
+    const output = joinOutput(InspectorGeneral.inspect()[1]);
 
     expect(output).toContain('## Cross-table inspection results');
     expect(output).toContain('- All fine.');
@@ -98,7 +98,7 @@ describe('Inspector inspect()', () => {
       'improvements.json': IMPROVEMENTS_JSON,
       'amphimixis-tinyxml2-report.md': wrongReport,
     });
-    const output = joinOutput(inspect()[1]);
+    const output = joinOutput(InspectorGeneral.inspect()[1]);
 
     expect(output).toContain('- Table incorrect, read the "CT-<...>.md" files again');
   });
@@ -111,7 +111,7 @@ describe('Inspector inspect()', () => {
       'improvements.json': IMPROVEMENTS_JSON,
       'amphimixis-tinyxml2-report.md': wrongReport,
     });
-    const output = joinOutput(inspect()[1]);
+    const output = joinOutput(InspectorGeneral.inspect()[1]);
 
     expect(output).toContain('- Improvements table contains incorrect data, read the');
   });
