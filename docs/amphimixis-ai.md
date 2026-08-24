@@ -41,40 +41,56 @@ This opens the Opencode TUI with `amphimixis` agent and your prompt.
 
 When invoked, `amphimixis` runs a 7-phase pipeline:
 
-| Phase                  | Subagent                  | Description                                                                                         |
-|------------------------|---------------------------|-----------------------------------------------------------------------------------------------------|
-| 1. Repository analysis | `amphimixis-analyzer`     | Find the actual repo, clone it, scan for platform-specific macros and intrinsics, assess dependencies   |
-| 2. Configuration       | `amphimixis-configurator` | Create the `input.yml` (see [Usage Guide](usage_guide.md)) file with platforms, recipes, and builds |
-| 3. Build & verify      | `amphimixis-builder`      | Build on reference and target platforms, run tests                                                  |
-| 4. Profiling           | `amphimixis-profiler`     | Profile executables, produce a cross-platform comparison                                            |
-| 5. Optimization        | `amphimixis-optimizer`    | Analyse bottlenecks and suggest improvements                                                        |
-| 6. Repeat pipeline     | `amphimixis`              | Apply optimizations, rebuild, re-profile, compare before/after                                      |
-| 7. Final report        | `amphimixis`              | Compile a structured report by the [Report Template](methodologies/report-template.md)              |
+| Phase                                       | Worker                       | Description                                                                                           |
+|---------------------------------------------|------------------------------|-------------------------------------------------------------------------------------------------------|
+| 1. Repository analysis                      | `amphimixis-analyzer`        | Find the actual repo, clone it, scan for platform-specific macros and intrinsics, assess dependencies |
+| * Session of previous agent inspection      | `amphimixis-inspect-session` | Do nothing                                                                                            |
+| 2. Configuration                            | `amphimixis-configurator`    | Create the `input.yml` (see [Usage Guide](usage_guide.md)) file with platforms, recipes, and builds   |
+| * Session of previous agent inspection      | `amphimixis-inspect-session` | Do nothing                                                                                            |
+| 3. Build & verify                           | `amphimixis-builder`         | Build on reference and target platforms, run tests                                                    |
+| * Session of previous agent inspection      | `amphimixis-inspect-session` | Inspect session for errors in work                                                                    |
+| 4. Profiling                                | `amphimixis-profiler`        | Profile executables, produce a cross-platform comparison                                              |
+| * Session of previous agent inspection      | `amphimixis-inspect-session` | Inspect session for errors in work                                                                    |
+| 5. Optimization                             | `amphimixis-optimizer`       | Analyse bottlenecks and suggest improvements                                                          |
+| * Session of previous agent inspection      | `amphimixis-inspect-session` | Inspect session for errors in work                                                                    |
+| 6. Repeat pipeline                          | `amphimixis`                 | Apply optimizations, rebuild, re-profile, compare before/after                                        |
+| 7. Final report                             | `amphimixis`                 | Compile a structured report by the [Report Template](methodologies/report-template.md)                |
+| * Session of orchestrating agent inspection | `amphimixis-inspect-session` | Inspect session for errors in work                                                                    |
 
 The agent hierarchy follows a strict delegation pattern:
 
 ```
-amphimixis (orchestrator)   mode: all
+amphimixis (orchestrator)          mode: all
 │   delegates work, never calls tools directly
 │
-├── amphimixis-analyzer     mode: subagent
+├── amphimixis-analyzer            mode: subagent
 │   └── uses: amphimixis-analyze.ts, amphimixis-analyze-vectorization.ts
+|
+├── * amphimixis-inspect-session   command (run plan agent)
 │
-├── amphimixis-configurator mode: subagent
+├── amphimixis-configurator        mode: subagent
 │   └── uses: amphimixis-configure-platforms.ts,
 │             amphimixis-configure-recipes.ts,
 │             amphimixis-configure-builds.ts,
 │             amphimixis-validate.ts
+|
+├── * amphimixis-inspect-session   command (run plan agent)
 │
-├── amphimixis-builder      mode: subagent
+├── amphimixis-builder             mode: subagent
 │   └── uses: amphimixis-build.ts
+|
+├── * amphimixis-inspect-session   command (run plan agent)
 │
-├── amphimixis-profiler     mode: subagent
+├── amphimixis-profiler            mode: subagent
 │   └── uses: amphimixis-profile.ts,
 │             amphimixis-analyze-vectorization.ts
+|
+├── * amphimixis-inspect-session   command (run plan agent)
 │
-└── amphimixis-optimizer    mode: subagent
-    └── uses: amphimixis-analyze-vectorization.ts
+└── amphimixis-optimizer           mode: subagent
+|   └── uses: amphimixis-analyze-vectorization.ts
+|
+└── * amphimixis-inspect-session   command (run plan agent)
 ```
 
 Each subagent receives structured context from its predecessor and passes results forward. The orchestrator validates completeness after each phase before proceeding.
