@@ -16,6 +16,34 @@ class Arch(StrEnum):
     ARM = "arm"
 
 
+class StatsFileFormat(StrEnum):
+    """Formats for human-readable profiling statistics files."""
+
+    JSON = "json"
+    YAML = "yaml"
+
+
+class CrossTableFormat(StrEnum):
+    """Console output formats for a performance cross-table."""
+
+    ORIGINAL = "original"
+    MARKDOWN = "markdown"
+
+    @classmethod
+    def from_cli_value(cls, value: str) -> "CrossTableFormat":
+        """Convert a CLI argument value to a format.
+
+        ``md`` is accepted as an alias of ``markdown``.
+
+        :param str value: raw CLI value (``original``, ``markdown`` or ``md``)
+        :return: cross-table format
+        :rtype: CrossTableFormat
+        """
+        if value == "md":
+            return cls.MARKDOWN
+        return cls(value)
+
+
 # pylint: disable=too-many-instance-attributes
 @dataclass
 class ProfileStats:
