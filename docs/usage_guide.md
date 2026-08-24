@@ -110,7 +110,7 @@ The full pipeline:
 1. profiles the resulting executables
 1. prints profiling results in the console
 
-Profiling results are saved to `<project name>.pkl` (pickle). A human-readable copy with the `perf stat` output converted from CSV to dictionaries is also saved as `<project name>.json`. To save it as YAML instead, use `--stats-format` (works with both `run` and `profile`):
+A human-readable `perf stat` output is saved as `<project name>.json`. To save it as YAML instead, use `--stats-format` (works with both `run` and `profile`):
 
 ```bash
 amixis run /path/to/project --stats-format yaml
