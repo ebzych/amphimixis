@@ -36,28 +36,31 @@ amphimixis-integrations/opencode/
 │   ├── amphimixis-configure-builds.ts
 │   ├── amphimixis-profile.ts
 │   └── amphimixis-validate.ts
+├── plugins/            <- opencode plugins
+│   └── amphimixis-inspector.ts
 └── __tests__/          <- LLM-tools tests
     ├── analyzing_test.ts
     ├── building_test.ts
     ├── configuring_test.ts
     ├── profiling_test.ts
-    └── validating_test.ts
+    ├── validating_test.ts
+    └── inspector_test.ts
 ```
 
-The agents are installed into Opencode via `amixis opencode install [--global]` (see [docs/opencode-agent.md](../../docs/opencode-agent.md)) or by manual copying.
+The agents are installed into Opencode via `amixis opencode install [--global]` and removed via `amixis opencode uninstall [--global]` (see [docs/amphimixis-ai.md](../../docs/amphimixis-ai.md)) or by manual copying.
 
 ---
 
 ## Agents reference
 
-| Agent | File | Role | Delegates to / Uses |
-|-------|------|------|---------------------|
-| `amphimixis` (orchestrator) | `agents/amphimixis.md` | Coordinates the full pipeline; compiles final report | All subagents |
-| `amphimixis-analyzer` | `agents/amphimixis-analyzer.md` | Clone repo, scan macros/intrinsics, assess deps | `amphimixis-analyze` tool |
-| `amphimixis-configurator` | `agents/amphimixis-configurator.md` | Create `input.yml` (platforms → recipes → builds) | configure-* tools, validate tool |
-| `amphimixis-builder` | `agents/amphimixis-builder.md` | Build on reference + target, run tests | `amphimixis-build` tool |
-| `amphimixis-profiler` | `agents/amphimixis-profiler.md` | Profile executables, cross-table comparison | `amphimixis-profile`, `amphimixis-analyze-vectorization` |
-| `amphimixis-optimizer` | `agents/amphimixis-optimizer.md` | Analyse bottlenecks, suggest optimisations | `amphimixis-analyze-vectorization` |
+| Agent                       | File                                | Role                                                 | Delegates to / Uses |
+|-----------------------------|-------------------------------------|------------------------------------------------------|---------------------|
+| `amphimixis` (orchestrator) | `agents/amphimixis.md`              | Coordinates the full pipeline; compiles final report | All subagents |
+| `amphimixis-analyzer`       | `agents/amphimixis-analyzer.md`     | Clone repo, scan macros/intrinsics, assess deps      | `amphimixis-analyze` tool |
+| `amphimixis-configurator`   | `agents/amphimixis-configurator.md` | Create `input.yml` (platforms → recipes → builds)    | configure-* tools, validate tool |
+| `amphimixis-builder`        | `agents/amphimixis-builder.md`      | Build on reference + target, run tests               | `amphimixis-build` tool |
+| `amphimixis-profiler`       | `agents/amphimixis-profiler.md`     | Profile executables, cross-table comparison          | `amphimixis-profile`, `amphimixis-analyze-vectorization` |
+| `amphimixis-optimizer`      | `agents/amphimixis-optimizer.md`    | Analyse bottlenecks, suggest optimisations           | `amphimixis-analyze-vectorization` |
 
 ---
 
@@ -66,7 +69,7 @@ The agents are installed into Opencode via `amixis opencode install [--global]` 
 ### Service agents
 
 - `agents-regenerator` --- [`/.opencode/agents/agents-regenerator.md`](../../.opencode/agents/agents-regenerator.md) --- knows how to regenerate agents
-- `migration-expert` --- [`.opencode/agents/migration-expert.md`](../../.opencode/agents/migration-expert.md) --- assesses the report from the generated agent (to improve generated agents)
+- `migration-expert` --- [`.opencode/agents/migration-expert.md`](../../.opencode/agents/migration-expert.md) --- assesses the agent session and report from the generated agent (to improve generated agents)
 
 ### Pipeline
 
@@ -104,11 +107,17 @@ Regeneration is triggered manually by calling the `agents-regenerator` agent:
 
    4. `migration-expert`
       
-       with prompt "Assess this report: \<report content\>"
+       with prompt "Assess these session and report: read \<path to session\> and \<path to report\>"
 
-      Evaluates report from p.3 against methodology:
-      quality, completeness, correctness, experimental rigour.
+      Evaluates agent session and report from p.3 against methodology:
+      quality, completeness, correctness, experimental rigour, tool correctness.
 
+      - are the tools falling?
+      - are the tasks delegating?
+      - are the data hallucinating?
+      - whether LLM counts numbers or causes a tool to count improvement
+      - is there unnecessary duplication of information?
+      - do all agents CORRECTLY understand the main purpose and do all steps correctly?
       - Is there unnecessary duplication?
       - Is the analysis too superficial?
       - Is the experiment pure and reproducible?
@@ -144,14 +153,13 @@ Regeneration is triggered manually by calling the `agents-regenerator` agent:
 
 ## Tools reference
 
-| Tool                             | Action                                                       |
-|----------------------------------|--------------------------------------------------------------|
-| amphimixis-analyze               | Run `amixis analyze /path/to/project`                        |
-| amphimixis-analyze-vectorization | Run `amixis analyze -v /path/to/project`                     |
-| amphimixis-build                 | Run `amixis build /path/to/project`                          |
+| Tool                             | Action                                                               |
+|----------------------------------|----------------------------------------------------------------------|
+| amphimixis-analyze               | Run `amixis analyze /path/to/project`                                |
+| amphimixis-analyze-vectorization | Run `amixis analyze -v /path/to/project`                             |
+| amphimixis-build                 | Run `amixis build /path/to/project`                                  |
 | amphimixis-configure-platforms   | Add new platforms to the `platforms` field in the amixis config file |
-| amphimixis-configure-recipes     | Add new recipes to the `recipes` field in the amixis config file |
-| amphimixis-configure-builds      | Add new builds to the `builds` field in the amixis config file |
-| amphimixis-profile               | Run `amixis profile /path/to/project`                        |
-| amphimixis-validate              | Run `amixis validate /path/to/config/file`                   |
-
+| amphimixis-configure-recipes     | Add new recipes to the `recipes` field in the amixis config file     |
+| amphimixis-configure-builds      | Add new builds to the `builds` field in the amixis config file       |
+| amphimixis-profile               | Run `amixis profile /path/to/project`                                |
+| amphimixis-validate              | Run `amixis validate /path/to/config/file`                           |
