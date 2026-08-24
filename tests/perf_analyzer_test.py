@@ -81,9 +81,7 @@ def test_serialize_stats_converts_perf_stat_to_dicts() -> None:
     assert isinstance(perf_stat, list)
     assert perf_stat[0]["event"] == "cycles"
 
-    without_stat = Profiler._serialize_stats(
-        {"build1": {"a.out": ProfileStats()}}
-    )
+    without_stat = Profiler._serialize_stats({"build1": {"a.out": ProfileStats()}})
     assert without_stat["build1"]["a.out"]["perf_stat"] is None
 
 
@@ -105,9 +103,7 @@ def get_stats_profiler(mocker: pytest_mock.MockerFixture, tmp_path: Path):
         shell_mock = mocker.Mock()
         shell_mock.connect.return_value = shell_mock
         shell_mock.get_project_workdir.return_value = str(tmp_path)
-        mocker.patch(
-            "amphimixis.core.profiler.shell.Shell", return_value=shell_mock
-        )
+        mocker.patch("amphimixis.core.profiler.shell.Shell", return_value=shell_mock)
         return Profiler(project, build)
 
     return _profiler
@@ -161,18 +157,6 @@ def test_save_stats_yaml(
 
 
 @pytest.mark.unit
-def test_cross_table_format_md_alias() -> None:
-    assert CrossTableFormat.from_cli_value("md") == CrossTableFormat.MARKDOWN
-    assert (
-        CrossTableFormat.from_cli_value("markdown") == CrossTableFormat.MARKDOWN
-    )
-    assert (
-        CrossTableFormat.from_cli_value("original")
-        == CrossTableFormat.ORIGINAL
-    )
-
-
-@pytest.mark.unit
 def test_format_df_to_markdown_escapes_symbols() -> None:
     data_a = {"my_func": 100}
     data_b = {"my_func": 300, "other*func[1]": 50}
@@ -213,13 +197,18 @@ def test_compare_saves_markdown_in_original_mode(
 
 @pytest.mark.unit
 def test_compare_prints_and_saves_markdown(
-    scriptout_files, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
+    scriptout_files: tuple[str, str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys,
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
     assert (
         perf_analyzer.main(
-            *scriptout_files, cross_table_format=CrossTableFormat.MARKDOWN
+            scriptout_files[0],
+            scriptout_files[1],
+            cross_table_format=CrossTableFormat.MARKDOWN,
         )
         == 0
     )

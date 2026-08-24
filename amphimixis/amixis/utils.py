@@ -74,10 +74,9 @@ def add_cross_table_format_arg(parser: ArgumentParser) -> None:
     """
     parser.add_argument(
         "--cross-table-format",
-        type=CrossTableFormat.from_cli_value,
-        choices=[fmt.value for fmt in CrossTableFormat] + ["md"],
+        choices=[fmt.value for fmt in CrossTableFormat],
         default=CrossTableFormat.ORIGINAL,
-        help="console output format for cross-tables: original, markdown (md) "
+        help="console output format for cross-tables: original, markdown "
         "(default: original). Markdown is always saved to a CT-*.md file",
     )
 
