@@ -285,11 +285,17 @@ export default class InspectorGeneral {
   }
 
   private static getCrossTableContentsFromAmixisFiles(): Root | undefined {
-    const fileNames = fs.readdirSync(process.cwd())
-      .filter(item => (item.startsWith('CT-') && item.endsWith('.md')));
+    const crossTablesDir = `${cwd()}/cross-tables`;
+    let fileNames: string[];
+    try {
+      fileNames = fs.readdirSync(crossTablesDir)
+        .filter(item => (item.startsWith('CT-') && item.endsWith('.md')));
+    } catch {
+      return undefined;
+    }
     const fileContents =
       fileNames.map(
-        (name) => fs.readFileSync(name, 'utf-8')
+        (name) => fs.readFileSync(`${crossTablesDir}/${name}`, 'utf-8')
       ).join('\n');
 
     if (!fileContents)
