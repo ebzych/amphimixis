@@ -60,8 +60,7 @@ def add_stats_format_arg(parser: ArgumentParser) -> None:
         type=StatsFileFormat,
         choices=list(StatsFileFormat),
         default=StatsFileFormat.JSON,
-        help="format of the additional human-readable perf stat file "
-        "(default: json). The <project name>.pkl pickle is saved anyway",
+        help="format of the additional human-readable perf stat file (default: json)",
     )
 
 
