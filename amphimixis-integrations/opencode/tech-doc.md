@@ -38,6 +38,8 @@ amphimixis-integrations/opencode/
 │   └── amphimixis-validate.ts
 ├── plugins/            <- opencode plugins
 │   └── amphimixis-inspector.ts
+├── commands/           <- opencode commands
+│   └── amphimixis-inspect-session.md   
 └── __tests__/          <- LLM-tools tests
     ├── analyzing_test.ts
     ├── building_test.ts
