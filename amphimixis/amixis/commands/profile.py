@@ -5,9 +5,13 @@ import tempfile
 from argparse import ArgumentParser
 from os import path
 
-from amphimixis.amixis.utils import add_config_arg, add_path_arg
+from amphimixis.amixis.utils import (
+    add_config_arg,
+    add_path_arg,
+    add_stats_format_arg,
+)
 from amphimixis.core import Profiler, Shell, parse_config
-from amphimixis.core.general import IUI, NULL_UI, Project
+from amphimixis.core.general import IUI, NULL_UI, Project, StatsFileFormat
 
 HELP_MESSAGE = "Profile the performance of builds"
 
@@ -20,6 +24,7 @@ def add_args(parser: ArgumentParser) -> None:
     # pylint: disable=duplicate-code
     add_path_arg(parser)
     add_config_arg(parser)
+    add_stats_format_arg(parser)
     parser.add_argument(
         "--build-name",
         type=str,
@@ -72,12 +77,14 @@ def setup_profiling_environment(project: Project, ui: IUI) -> bool:
     return success
 
 
+# pylint: disable=too-many-arguments
 def run_profile(
     project: Project,
     config_file_path: str,
     ui: IUI = NULL_UI,
     events: list | None = None,
     build_name: str | None = None,
+    stats_format: StatsFileFormat = StatsFileFormat.JSON,
 ) -> bool:
     """Execute project profiling.
 
@@ -86,6 +93,8 @@ def run_profile(
     :param IUI ui: User interface for progress display
     :param list[str] | None events: List of perf events to record
     :param str | None build_name: Optional name of a specific build to profile
+    :param StatsFileFormat stats_format: Format of the additional human-readable
+        perf stat file (``<project name>.json`` or ``<project name>.yaml``)
     :return: True if profiling succeeded, False otherwise
     :rtype: bool
     """
@@ -105,7 +114,7 @@ def run_profile(
             continue
         profiler_ = Profiler(project, build, ui)
         successful_execs = profiler_.profile_all(events=events)
-        profiler_.save_stats()
+        profiler_.save_stats(stats_file_format=stats_format)
         profiler_.cleanup()
         if not successful_execs or (
             build.executables and successful_execs != build.executables
