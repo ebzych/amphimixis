@@ -21,6 +21,10 @@ Examples:
   amixis run /path/to/project --events cycles cache-misses
       → Run pipeline and profile only the 'cycles' and 'cache-misses' events.
 
+  amixis run /path/to/project --stats-format yaml
+      → Save perf stat data to <project name>.yaml instead of .json
+        (the <project name>.pkl pickle is saved anyway).
+
   amixis analyze /path/to/project
       → Analyzes the project and detects existing CI, tests, benchmarks, etc.
   amixis analyze -v riscv ./build/bin/app
@@ -41,6 +45,10 @@ Examples:
 
   amixis compare file1.scriptout file2.scriptout
       → Compares two perf output files (.scriptout) and displays the results.
+
+  amixis compare file1.scriptout file2.scriptout --cross-table-format md
+      → Compares two perf output files and prints cross-tables as Markdown.
+        Markdown is always saved to cross-tables/CT-<file1>-<file2>.md.
 
   amixis compare file1.scriptout file2.scriptout --events cycles
       → Compares two perf output files (.scriptout) using only the 'cycles' event.
@@ -72,7 +80,10 @@ EXAMPLES = {
   amixis run --config=config_file /path/to/project
       → Run with custom config file
   amixis run /path/to/project --events cycles cache-misses
-      → Run pipeline and profile only the 'cycles' and 'cache-misses' events""",
+      → Run pipeline and profile only the 'cycles' and 'cache-misses' events
+  amixis run /path/to/project --stats-format yaml
+      → Save perf stat data to <project name>.yaml instead of .json
+        (the <project name>.pkl pickle is saved anyway)""",
     "analyze": """Examples:
   amixis analyze /path/to/project
       → Analyze project and detect existing CI, tests, build systems, etc.
@@ -93,7 +104,10 @@ EXAMPLES = {
   amixis profile /path/to/project --events cycles cache-misses
       → Profile with specific perf events
   amixis profile /path/to/project --build-name 1_2_1
-      → Profile only the named build from input.yml""",
+      → Profile only the named build from input.yml
+  amixis profile /path/to/project --stats-format yaml
+      → Save perf stat data to <project name>.yaml instead of .json
+        (the <project name>.pkl pickle is saved anyway)""",
     "validate": """Examples:
   amixis validate /path/to/input/config
       → Check config file correctness""",
@@ -103,7 +117,10 @@ EXAMPLES = {
   amixis compare file1.scriptout file2.scriptout --max-rows 10
       → Compare with max 10 rows per event
   amixis compare file1.scriptout file2.scriptout --events cycles
-      → Compare only the 'cycles' event""",
+      → Compare only the 'cycles' event
+  amixis compare file1.scriptout file2.scriptout --cross-table-format md
+      → Print cross-tables as Markdown (always saved to
+        cross-tables/CT-file1-file2.md)""",
     "clean": """Examples:
   amixis clean
       → Interactive mode: select builds to clean

@@ -90,7 +90,13 @@ def _main() -> bool:
         case "init":
             return cmd.run_init(args.sample_name)
         case "run":
-            return cmd.run_full_pipeline(project, config_file, ui, events=target_events)
+            return cmd.run_full_pipeline(
+                project,
+                config_file,
+                ui,
+                events=target_events,
+                stats_format=args.stats_format,
+            )
         case "analyze":
             if args.vector:
                 return cmd.run_vector_analyse(args.path, args.vector)
@@ -104,10 +110,16 @@ def _main() -> bool:
                 ui,
                 events=target_events,
                 build_name=args.build_name,
+                stats_format=args.stats_format,
             )
         case "compare":
             return cmd.run_compare(
-                args.file1, args.file2, target_events, args.max_rows, ui
+                args.file1,
+                args.file2,
+                target_events,
+                args.max_rows,
+                ui,
+                cross_table_format=args.cross_table_format,
             )
         case "validate":
             return cmd.validate_cmd(args, ui)
