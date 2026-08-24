@@ -152,7 +152,7 @@ amixis profile /path/to/project --build-name 1_2_1
 
 If omitted, profiling runs on every successful build that matches the configuration.
 
-Like `run`, `profile` saves `<project name>.pkl` and a human-readable perf stat copy. Use `--stats-format yaml` to get YAML instead of JSON:
+`run` and `profile` commands saves a human-readable perf stat file `\<project name\>.json`. Use `--stats-format yaml` to get YAML instead of JSON:
 
 ```bash
 amixis profile /path/to/project --stats-format yaml
