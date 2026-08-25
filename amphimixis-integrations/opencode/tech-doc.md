@@ -35,7 +35,8 @@ amphimixis-integrations/opencode/
 │   ├── amphimixis-configure-recipes.ts
 │   ├── amphimixis-configure-builds.ts
 │   ├── amphimixis-profile.ts
-│   └── amphimixis-validate.ts
+│   ├── amphimixis-validate.ts
+│   └── calculate-optimization-improvement.ts
 ├── plugins/            <- opencode plugins
 │   └── amphimixis-inspector.ts
 ├── commands/           <- opencode commands
@@ -160,6 +161,7 @@ Regeneration is triggered manually by calling the `agents-regenerator` agent:
 | amphimixis-analyze               | Run `amixis analyze /path/to/project`                                |
 | amphimixis-analyze-vectorization | Run `amixis analyze -v /path/to/project`                             |
 | amphimixis-build                 | Run `amixis build /path/to/project`                                  |
+| calculate-optimization-improvement | Calculate improvement `(optimizedValue / baselineValue) * 100` formally (not by LLM) and append the record to `improvements.json` |
 | amphimixis-configure-platforms   | Add new platforms to the `platforms` field in the amixis config file |
 | amphimixis-configure-recipes     | Add new recipes to the `recipes` field in the amixis config file     |
 | amphimixis-configure-builds      | Add new builds to the `builds` field in the amixis config file       |
