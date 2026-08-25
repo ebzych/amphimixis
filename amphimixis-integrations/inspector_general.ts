@@ -13,9 +13,9 @@ type Improvement = {
   measuredObject: string;
   baselineBuild: string;
   optimizedBuild: string;
-  baselineValue: string;
-  optimizedValue: string;
-  improvementPcnt: string;
+  baselineValue: number;
+  optimizedValue: number;
+  improvementPcnt: number;
 };
 
 export default class InspectorGeneral {
@@ -59,7 +59,7 @@ export default class InspectorGeneral {
     }
     if (improvements === undefined) {
       missingFilesOutput.push(
-        '- using `calculate - optimization - improvement`'
+        '- using `calculate-optimization-improvement`'
         + ' tool to get data about optimization improvements'
       );
     }
@@ -262,9 +262,12 @@ export default class InspectorGeneral {
         if (improvements.find(
           (imprvInFile) => (
             imprvInFile.measuredObject === InspectorGeneral.joinChildrenText(imprv.children[0])
-            && imprvInFile.baselineValue === InspectorGeneral.joinChildrenText(imprv.children[1])
-            && imprvInFile.optimizedValue === InspectorGeneral.joinChildrenText(imprv.children[2])
-            && imprvInFile.improvementPcnt === InspectorGeneral.joinChildrenText(imprv.children[3])
+            && imprvInFile.baselineValue
+            === Number(InspectorGeneral.joinChildrenText(imprv.children[1]))
+            && imprvInFile.optimizedValue
+            === Number(InspectorGeneral.joinChildrenText(imprv.children[2]))
+            && imprvInFile.improvementPcnt
+            === Number(InspectorGeneral.joinChildrenText(imprv.children[3]))
           )
         ) !== undefined)
           break searchingImprovementInFile;

@@ -15,7 +15,7 @@ const CT_TABLE = [
 const IMPROVEMENTS_TABLE = [
   '| Measured | Baseline value | Optimized value | Improvement % |',
   '| --- | --- | --- | --- |',
-  '| runtime | 10 | 12 | 20 |',
+  '| runtime | 10 | 12 | 120 |',
 ].join('\n');
 
 const REPORT = [
@@ -34,9 +34,9 @@ const IMPROVEMENTS_JSON = JSON.stringify([{
   measuredObject: 'runtime',
   baselineBuild: 'opt',
   optimizedBuild: 'base',
-  baselineValue: '10',
-  optimizedValue: '12',
-  improvementPcnt: '20',
+  baselineValue: 10,
+  optimizedValue: 12,
+  improvementPcnt: 120,
 }]);
 
 async function prepareCase(name: string, files: Record<string, string>): Promise<void> {
@@ -104,7 +104,7 @@ describe('Inspector InspectorGeneral.inspect()', () => {
   });
 
   test('rejects an improvements table that differs from improvements.json', async () => {
-    const wrongReport = REPORT.replace('| runtime | 10 | 12 | 20 |', '| runtime | 11 | 12 | 20 |');
+    const wrongReport = REPORT.replace('| runtime | 10 | 12 | 120 |', '| runtime | 11 | 12 | 120 |');
     await prepareCase('wrong-improvements', {
       'stats.json': '{}',
       'cross-tables/CT-ref-opt.md': CT_TABLE,
