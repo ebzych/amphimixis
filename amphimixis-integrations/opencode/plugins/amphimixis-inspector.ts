@@ -3,7 +3,11 @@ import type { OpencodeClient, Part } from '@opencode-ai/sdk';
 import { Mutex } from 'async-mutex';
 import { writeFileSync } from 'fs';
 import assert from 'node:assert/strict';
-const InspectorGeneral = (await import('../../inspector_general')).default;
+const inspectorPaths = ['./lib/inspector_general', '../../inspector_general'];
+let InspectorGeneral: any;
+for (const p of inspectorPaths) {
+  try { InspectorGeneral = (await import(p)).default; break; } catch {}
+}
 
 let lastMessageText: string | undefined = undefined;
 
