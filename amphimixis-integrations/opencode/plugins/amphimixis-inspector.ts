@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const inspectorPaths = ['./lib/inspector_general', '../../inspector_general'];
 let InspectorGeneral: any;
 for (const p of inspectorPaths) {
-  try { InspectorGeneral = (await import(p)).default; break; } catch {}
+  try { InspectorGeneral = (await import(p)).default; break; } catch { }
 }
 
 let lastMessageText: string | undefined = undefined;
