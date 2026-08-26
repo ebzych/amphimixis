@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 import { chdir } from 'process';
-const InspectorGeneral = (await import('../../inspector_general')).default;
+import InspectorGeneral from '../../inspector_general';
 
 const TESTS_DIR = '/tmp/amphimixis/tests/opencode/inspector';
 
