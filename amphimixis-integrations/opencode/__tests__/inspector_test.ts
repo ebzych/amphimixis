@@ -2,8 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 import { chdir } from 'process';
-const InspectorGeneral = (await import('./lib/inspector_general')
-  .catch(async () => { return await import('../../inspector_general') })).default;
+const InspectorGeneral = (await import('../../inspector_general')).default;
 
 const TESTS_DIR = '/tmp/amphimixis/tests/opencode/inspector';
 
