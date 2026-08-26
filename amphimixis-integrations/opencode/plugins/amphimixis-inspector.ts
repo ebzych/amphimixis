@@ -1,10 +1,12 @@
 import type { Plugin } from '@opencode-ai/plugin';
 import type { OpencodeClient, Part } from '@opencode-ai/sdk';
 import { Mutex } from 'async-mutex';
-import assert from 'node:assert/strict';
-import InspectorGeneral from '../../inspector_general';
 import { writeFileSync } from 'fs';
-import { wrap } from 'node:module';
+import assert from 'node:assert/strict';
+// import InspectorGeneral from '../../inspector_general';
+
+const InspectorGeneral = await import('./lib/inspector_general')
+  .catch(async () => { return await import('../../inspector_general') });
 
 let lastMessageText: string | undefined = undefined;
 
@@ -44,11 +46,11 @@ class WrapperForOpencode {
   static readonly DEFAULT_PROVIDER = 'opencode';
   static readonly DEFAULT_MODEL = 'big-pickle';
   private static readonly ORCHESTRATOR_AGENT_NAME = 'amphimixis';
-  
+
   private static sessions: Record<string, SessionData> = {};
   private static sessionMtx: Mutex = new Mutex();
   private static readonly MAX_ATTEMPTS_FORMAL_INSPECTION_PER_SESSION: number = 5;
-  
+
   static {
     assert(
       WrapperForOpencode.MAX_ATTEMPTS_FORMAL_INSPECTION_PER_SESSION > 0,
@@ -180,7 +182,7 @@ class WrapperForOpencode {
     };
 
     if (agent !== undefined)
-      promptData = { ...promptData, agent: agent}
+      promptData = { ...promptData, agent: agent }
 
     client.session.prompt(promptData);
   }
@@ -199,14 +201,14 @@ class WrapperForOpencode {
           === InspectionStatus.OK
         )
           return;
-    });
+      });
 
     const output = await WrapperForOpencode.getAllSessionText(
       client,
       inspectedSessionID
     );
     writeFileSync('.inspected-session', String(output), 'utf-8');
-        
+
     let commandData: any = {
       path:
       {
@@ -235,7 +237,7 @@ class WrapperForOpencode {
       client,
       String(
         (await client.session.command(commandData))
-        .data?.info.sessionID
+          .data?.info.sessionID
       )
     ));
 
