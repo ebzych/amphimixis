@@ -4,10 +4,12 @@ from argparse import ArgumentParser, Namespace
 
 from amphimixis.amixis.commands.opencode.install import run_opencode_install
 from amphimixis.amixis.commands.opencode.run import run_opencode_run
+from amphimixis.amixis.commands.opencode.uninstall import run_opencode_uninstall
 
 HELP_MESSAGE = "Run Amphimixis LLM-agent in Opencode"
 
 _INSTALL_SUBCMD = "install"
+_UNINSTALL_SUBCMD = "uninstall"
 _RUN_SUBCMD = "run"
 
 
@@ -33,6 +35,18 @@ def add_args(parser: ArgumentParser) -> None:
         help="install globally into XDG_CONFIG_HOME/opencode",
     )
 
+    uninstall_parser = subparsers.add_parser(
+        _UNINSTALL_SUBCMD,
+        help="remove Amphimixis LLM-agent with tools from Opencode locally or globally",
+    )
+    uninstall_parser.add_argument(
+        "-g",
+        "--global",
+        action="store_true",
+        dest="globally",
+        help="uninstall globally from XDG_CONFIG_HOME/opencode",
+    )
+
     run_parser = subparsers.add_parser(
         _RUN_SUBCMD,
         help="run Amphimixis LLM-agent in Opencode with a specialized prompt",
@@ -52,10 +66,12 @@ def run_opencode(args: Namespace) -> bool:
     :rtype: bool
     """
     opencode_subcommand = args.opencode_subcommand
-    print("hello world")
-    print(args.globally)
+
     if opencode_subcommand == _INSTALL_SUBCMD:
         return run_opencode_install(globally=args.globally)
+
+    if opencode_subcommand == _UNINSTALL_SUBCMD:
+        return run_opencode_uninstall(globally=args.globally)
 
     if opencode_subcommand == _RUN_SUBCMD:
         return run_opencode_run(prompt=args.prompt)

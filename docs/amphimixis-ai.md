@@ -121,6 +121,7 @@ The configure tools write YAML directly rather than calling the CLI — they man
 ### Requirements
 
 - A working `amixis` installation (see [Usage Guide](usage_guide.md#choose-an-installation-method))
+- `amixis` must be on `PATH` (tools invoke `amixis` as a subprocess)
 - The Opencode CLI (`opencode`) installed and available on `PATH`
 - `bun` for installing test/utility dependencies
 
@@ -130,7 +131,7 @@ The configure tools write YAML directly rather than calling the CLI — they man
 amixis opencode install
 ```
 
-This copies agents and tools into the local `.opencode/` directory.
+This copies agents, tools, commands, and plugins into the local `.opencode/` directory.
 
 For a system-wide installation, pass the `--global` flag:
 
@@ -138,7 +139,18 @@ For a system-wide installation, pass the `--global` flag:
 amixis opencode install --global
 ```
 
-This installs the agents and tools into `$XDG_CONFIG_HOME/opencode` (defaults to `~/.config/opencode`).
+This installs into `$XDG_CONFIG_HOME/opencode` (defaults to `~/.config/opencode`).
+
+### Uninstall
+
+```bash
+amixis opencode uninstall
+amixis opencode uninstall --global
+```
+
+Removes only the files that were placed by `install`. Leaves `package.json`,
+`node_modules`, `bun.lock`, `opencode.json(c)`, and any user-owned files
+untouched.
 
 ---
 

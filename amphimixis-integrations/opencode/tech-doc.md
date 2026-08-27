@@ -18,39 +18,49 @@ A system of agents and tools in this directory implements [this methodology](../
 ## Directory structure
 
 ```
-amphimixis-integrations/opencode/
-├── tech-doc.md
-├── agents/             <- agent definitions
-│   ├── amphimixis.md              orchestrator of following subagents
-│   ├── amphimixis-analyzer.md     repository analyzer
-│   ├── amphimixis-configurator.md config writer (create or edit `amixis` config file)
-│   ├── amphimixis-builder.md      build & test runner
-│   ├── amphimixis-profiler.md     performance profiler
-│   └── amphimixis-optimizer.md    optimization recommender
-├── tools/              <- TypeScript wrappers under which the `amixis` works and other tools
-│   ├── amphimixis-analyze.ts
-│   ├── amphimixis-analyze-vectorization.ts
-│   ├── amphimixis-build.ts
-│   ├── amphimixis-configure-platforms.ts
-│   ├── amphimixis-configure-recipes.ts
-│   ├── amphimixis-configure-builds.ts
-│   ├── amphimixis-profile.ts
-│   ├── amphimixis-validate.ts
-│   └── calculate-optimization-improvement.ts
-├── plugins/            <- opencode plugins
-│   └── amphimixis-inspector.ts
-├── commands/           <- opencode commands
-│   └── amphimixis-inspect-session.md   
-└── __tests__/          <- LLM-tools tests
-    ├── analyzing_test.ts
-    ├── building_test.ts
-    ├── configuring_test.ts
-    ├── profiling_test.ts
-    ├── validating_test.ts
-    └── inspector_test.ts
+amphimixis-integrations/
+├── inspector_general.ts      <- report inspector logic (shared, installed to plugins/lib/)
+└── opencode/
+    ├── tech-doc.md
+    ├── agents/             <- agent definitions
+    │   ├── amphimixis.md              orchestrator of following subagents
+    │   ├── amphimixis-analyzer.md     repository analyzer
+    │   ├── amphimixis-configurator.md config writer (create or edit `amixis` config file)
+    │   ├── amphimixis-builder.md      build & test runner
+    │   ├── amphimixis-profiler.md     performance profiler
+    │   └── amphimixis-optimizer.md    optimization recommender
+    ├── tools/              <- TypeScript wrappers under which the `amixis` works and other tools
+    │   ├── amphimixis-analyze.ts
+    │   ├── amphimixis-analyze-vectorization.ts
+    │   ├── amphimixis-build.ts
+    │   ├── amphimixis-configure-platforms.ts
+    │   ├── amphimixis-configure-recipes.ts
+    │   ├── amphimixis-configure-builds.ts
+    │   ├── amphimixis-profile.ts
+    │   ├── amphimixis-validate.ts
+    │   └── calculate-optimization-improvement.ts
+    ├── plugins/            <- opencode plugins
+    │   └── amphimixis-inspector.ts
+    ├── commands/           <- opencode commands
+    │   └── amphimixis-inspect-session.md
+    └── __tests__/          <- LLM-tools tests
+        ├── analyzing_test.ts
+        ├── building_test.ts
+        ├── configuring_test.ts
+        ├── profiling_test.ts
+        ├── validating_test.ts
+        └── inspector_test.ts
 ```
 
-The agents are installed into Opencode via `amixis opencode install [--global]` and removed via `amixis opencode uninstall [--global]` (see [docs/amphimixis-ai.md](../../docs/amphimixis-ai.md)) or by manual copying.
+### Installed layout
+
+`amixis opencode install` copies the above into the Opencode config directory.
+The plugin dynamically resolves `inspector_general` at runtime — first trying
+the installed `plugins/lib/inspector_general.ts`, then falling back to the
+source-tree path `../../inspector_general.ts` for development and testing.
+
+Tools call `amixis` as a subprocess, so `amixis` must be on `PATH` after
+installation (via pip install, venv activation, alias, etc.).
 
 ---
 
