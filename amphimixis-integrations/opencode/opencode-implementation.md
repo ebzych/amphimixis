@@ -89,7 +89,7 @@ The plugin tracks a per-session inspection status (`NOT_INSPECTED`, `OK`, `TO_FI
 
 ### `amphimixis-inspect-session` command
 
-The `commands/amphimixis-inspect-session.md` command is a plan agent (subtask) that reads the first string of `.inspected-session` to learn the inspected agent (defaults to `amphimixis`), then acts situationally:
+The `commands/amphimixis-inspect-session.md` command is most simple legal method to delegate task to subagent (native subtask delegation) and call it from code, in this case, orchestrator delegates checking to plan agent that reads the first string of `.inspected-session` to learn the inspected agent (defaults to `amphimixis`), then acts situationally:
 
 - for every agent — the agent must not write the tool-owned files (`CT-*.md`, `improvements.json`, `<project name>.json`) by itself, and all actions must run in the current directory;
 - for `amphimixis-builder` and `amphimixis-profiler` — the project must have been built and profiled for all machines; build and run machine info comes from the config file (usually `input.yml`): `platforms` lists machine info, `build_machine` and `run_machine` reference platform IDs;
