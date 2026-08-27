@@ -1,6 +1,5 @@
 """Opencode uninstall subcommand."""
 
-from os import environ
 from pathlib import Path
 
 from amphimixis.amixis.commands.opencode.install import (
