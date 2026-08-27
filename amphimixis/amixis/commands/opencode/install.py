@@ -2,7 +2,6 @@
 
 import shutil
 import subprocess
-from inspect import stack
 from os import environ
 from pathlib import Path
 
@@ -18,59 +17,59 @@ def run_opencode_install(globally: bool = False) -> bool:
     self_path = Path(__file__).parent.resolve()
     project_root = self_path.parent.parent.parent.parent.resolve()
     config_dir = get_opencode_config_dir_path(is_global=globally)
-    agents_dst = config_dir / "agents"
-    tools_dst = config_dir / "tools"
+
+    src_root = project_root / "amphimixis-integrations" / "opencode"
+    src_general = project_root / "amphimixis-integrations" / "inspector_general.ts"
 
     print(f"Installing methodology agents and tools to {config_dir}")
 
-    agents_dst.mkdir(parents=True, exist_ok=True)
-    tools_dst.mkdir(parents=True, exist_ok=True)
+    install_sources = [
+        (src_root / "agents", "*.md", config_dir / "agents", "agents"),
+        (src_root / "tools", "*.ts", config_dir / "tools", "tools"),
+        (src_root / "commands", "*.md", config_dir / "commands", "commands"),
+        (src_root / "plugins", "*.ts", config_dir / "plugins", "plugins"),
+    ]
 
-    agents_src = project_root / "amphimixis-integrations" / "opencode" / "agents"
-    tools_src = project_root / "amphimixis-integrations" / "opencode" / "tools"
+    for src_dir, pattern, dst_dir, label in install_sources:
+        if not src_dir.exists():
+            continue
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+        for f in src_dir.glob(pattern):
+            shutil.copy2(f, dst_dir)
+            count += 1
+        print(f"  Copied {count} {label}")
 
-    print("  Copying Amphimixis agents...")
-    for f in agents_src.glob("*.md"):
-        shutil.copy2(f, agents_dst)
-
-    print("  Copying Amphimixis tools...")
-    for f in tools_src.glob("*.ts"):
-        shutil.copy2(f, tools_dst)
-
-    # amixis script should be executed first
-    amixis_executable_path = str(Path(stack()[-1].filename).resolve())
-    for root, _, files in tools_dst.walk():
-        for file in files:
-            if ".ts" in file:
-                path = Path(root) / file
-                content: str
-                with open(str(path), encoding="UTF-8") as fh:
-                    content = fh.read()
-                content = content.replace(
-                    "__TEMPLATE_STRING_FOR_PATH_TO_AMIXIS_TO_BE_INSERTED_AT_INSTALLATION__",
-                    amixis_executable_path,
-                    1,
-                )
-                with open(str(path), "w", encoding="UTF-8") as fh:
-                    fh.write(content)
+    if src_general.exists():
+        dst_general = config_dir / "plugins" / "lib" / "inspector_general.ts"
+        dst_general.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src_general, dst_general)
+        print("  Copied inspector_general to plugins/lib/")
 
     print("  Installing Bun dependencies...")
     if shutil.which("bun") is not None:
         subprocess.run(
-            ["bun", "install", "yaml"],
+            [
+                "bun",
+                "install",
+                "yaml",
+                "async-mutex",
+                "unified",
+                "remark-parse",
+                "remark-gfm",
+            ],
             cwd=config_dir,
             check=False,
         )
     else:
         print("    bun not found — install it from https://bun.sh")
 
-    agent_count = len(list(agents_dst.glob("*.md")))
-    tool_count = len(list(tools_dst.glob("*.ts")))
-
     print()
     print("Installation complete!")
-    print(f"  Agents installed: {agent_count}")
-    print(f"  Tools installed: {tool_count}")
+    print("  Agents:  ", len(list((config_dir / "agents").glob("*.md"))))
+    print("  Tools:   ", len(list((config_dir / "tools").glob("*.ts"))))
+    print("  Commands:", len(list((config_dir / "commands").glob("*.md"))))
+    print("  Plugins: ", len(list((config_dir / "plugins").glob("*.ts"))))
     print()
     print("Methodology agents and tools are now available in opencode.")
 

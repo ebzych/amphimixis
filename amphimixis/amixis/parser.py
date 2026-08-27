@@ -130,6 +130,17 @@ EXAMPLES = {
       → Interactively create input.yml configuration file
   amixis add toolchain
       → Interactively add a toolchain to global config""",
+    "opencode": """Examples:
+  amixis opencode install
+      → Install Amphimixis agents, tools, and plugin into local .opencode/
+  amixis opencode install --global
+      → Install into XDG_CONFIG_HOME/opencode (~/.config/opencode)
+  amixis opencode uninstall
+      → Remove Amphimixis files from local .opencode/
+  amixis opencode uninstall --global
+      → Remove from XDG_CONFIG_HOME/opencode
+  amixis opencode run "<your prompt>"
+      → Open Opencode TUI with the amphimixis agent""",
 }
 
 

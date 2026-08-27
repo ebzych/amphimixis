@@ -1,6 +1,6 @@
 import {tool} from '@opencode-ai/plugin';
 
-export const amixis = () => '__TEMPLATE_STRING_FOR_PATH_TO_AMIXIS_TO_BE_INSERTED_AT_INSTALLATION__';
+export const amixis = () => 'amixis';
 
 export default tool({
   description: 'Check the Amphimixis configuration file for correctness',
