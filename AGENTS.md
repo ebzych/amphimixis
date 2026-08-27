@@ -6,7 +6,8 @@
 2. `docs/usage_guide.md`
 3. `docs/config_instructions.md`
 4. `docs/amphimixis-ai.md`
-5. `amphimixis-integrations/opencode/tech-doc.md`
+5. `amphimixis-integrations/ai-system-doc.md`
+6. `amphimixis-integrations/opencode/opencode-implementation.md`
 
 ## Rules
 
