@@ -13,6 +13,7 @@ Amphimixis-AI helps you analyze your project for migration ability --- __it auto
 
 - [Usage](#usage)
 - [Pipeline](#pipeline)
+- [Versioning](#versioning)
 - [Tool reference](#tool-reference)
 - [Installation](#installation)
 - [Running the tests](#running-the-tests)
@@ -94,6 +95,33 @@ amphimixis (orchestrator)          mode: all
 ```
 
 Each subagent receives structured context from its predecessor and passes results forward. The orchestrator validates completeness after each phase before proceeding.
+
+---
+
+## Versioning
+
+The agent system is versioned to make generated artifacts reproducible and traceable back to the methodology that produced them.
+
+Three components carry a SemVer-like `<major>.<minor>.<patch>` version:
+
+| Component            | Where it lives                                                          |
+|----------------------|-------------------------------------------------------------------------|
+| Methodology          | `> **Version**: …` in the methodology document                           |
+| Regeneration pipeline | one shared version for `agents-regenerator` and `migration-expert`, marked in each definition |
+
+Segment meanings (like SemVer): **major** — structural change / reorganization / full regeneration; **minor** — new feature / update; **patch** — small change, bug fix, correction, hand-made change.
+
+Every generated agent carries an `amphimixis-ai version` field with three dash-separated segments:
+
+```
+<methodology ver.>-<regeneration-pipeline ver.>-<regen count>.<hand-made patch>
+```
+
+- The first two segments record the fixed versions of the methodology and regeneration pipeline that generated the agent.
+- The last segment is the concrete agent's own version: its first slot bumps on each regeneration, its second slot bumps on hand-made (manual, out-of-regeneration) corrections.
+- When the methodology or the regeneration-pipeline version changes, the last segment resets to `1.0`.
+
+Current values: methodology `0.1.0`, regeneration pipeline `0.1.0`, and a freshly generated agent is `amphimixis-ai version: 0.1.0-0.1.0-1.0`.
 
 ---
 

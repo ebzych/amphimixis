@@ -20,6 +20,8 @@ permission:
     explore: allow
 ---
 
+> **Version**: 0.1.0
+
 You have two scenarios to process: correction of agents on expert feedback and regeneration of agents.
 
 **IMPORTANT**: The actions in the first scenario must match the rules for the second scenario (**read Scenario 2 before acting on Scenario 1**).
@@ -103,6 +105,31 @@ Create a multiagent system for project performance analysis and migration readin
 27. **Matched experimental conditions**: Generated profiler and builder agents MUST ensure that experimental conditions on both platforms match wherever possible: identical warmup runs (10-15% of measurement runs), identical number of measurement runs (6-10 minimum), identical core pinning (`taskset -c <core>`), identical priority (`nice -n -20`), and identical frequency check procedure. Any unavoidable differences (different CPU models, different core counts, QEMU overhead) MUST be documented in the Experimental Conditions section.
 
 28. **No raw perf stat output in report**: Generated agents MUST NOT include raw `perf stat` output dumps in the report. The report contains only structured data: key metrics tables, hotspot tables, cross-tables, and causal analysis. Raw profiling data stays in tool output files.
+
+29. **Versioning [amphimixis-ai version]** : Every generated agent definition MUST carry an `amphimixis-ai version` field in its frontmatter. Three components are versioned with a SemVer-like three-part version `<major>.<minor>.<patch>`: the **methodology**, and the **regeneration pipeline** (one shared version for all regeneration agents — `agents-regenerator` and `migration-expert`).
+
+   **Semantics of each segment** (like SemVer):
+   - **major** — structural change of the document, reorganization, or a full regeneration.
+   - **minor** — a new feature / update.
+   - **patch** — a small change, bug fix, correction, or hand-made change.
+
+   **Produced-agent version format** (the value of `amphimixis-ai version` for a generated agent) is three dash-separated segments:
+
+   ```
+   <methodology ver.>-<regeneration-pipeline ver.>-<regen count>.<hand-made patch>
+   ```
+
+   - Segment 1 — the **methodology version**, read from `**Version**: <major>.<minor>.<patch>` in `docs/methodologies/migration-readiness-exploring-methodology.md`. Never hardcode it; always take it from the file to keep it in sync.
+   - Segment 2 — the **regeneration-pipeline version** (shared by `agents-regenerator` and `migration-expert`), read from their `**Version**: <major>.<minor>.<patch>` markers. Never hardcode it; keep it in sync.
+   - Segment 3 — the **concrete agent's own version**, working like SemVer Major.Patch:
+      - first slot (`regen count`) — bumps on each regeneration of the concrete agent by this pipeline.
+      - second slot (`hand-made patch`) — bumps on direct, manual edits made to the existing agent definition, outside of regeneration.
+
+   **IMPORTANT reset rule**: if segment 1 (methodology) or segment 2 (regeneration-pipeline) has been updated, then the last two parts (segment 3) reset to `1.0`.
+
+   Example: for methodology version `0.1.0` and regeneration-pipeline version `0.1.0`, a freshly regenerated agent with no hand-made patches is `amphimixis-ai version: 0.1.0-0.1.0-1.0`.
+
+   **IMPORTANT**: When regenerating an existing agent, read its current `amphimixis-ai version`. If methodology or regeneration-pipeline versions are unchanged, keep segments 1–2 identical and either bump the `regen count` (regeneration) or the `hand-made patch` (manual correction) slot. If either source version changed, reset segment 3 to `1.0`. First-time-generated agents start at `0.1.0-0.1.0-1.0`.
 
 **IMPORTANT**: the agents using the tool wrappers around `amixis` should know how Amphimixis works. To do so, copy general information from the `Amphimixis` header in `README.md` (**IMPORTANT**: `amixis` uses a config file, but only agents that handle configuration must prepare it; other agents should not worry about the config file).
 
@@ -573,6 +600,7 @@ Verify ALL of these before considering the agent complete:
 | 25 | Configurator has qemu-system address instructions (hostfwd + bridged/TAP) | |
 | 26 | Configurator has qemu-user prefix rule (`qemu-riscv64 <executable>`) | |
 | 27 | Configurator has self-check-loop after amphimixis-validate (9 semantic checks) | |
+| 28 | `amphimixis-ai version` present, format `<maj>.<min>.<patch>-<maj>.<min>.<patch>-<maj>.<patch>`, segments 1–2 synced to methodology + regeneration-pipeline versions, segment 3 reset to `1.0` on source change and otherwise bumped per policy (rule 29) | |
 
 If any check fails, fix the agent file before proceeding.
 
@@ -617,6 +645,7 @@ Use the full self-check table (same as Step 2c):
 | 25 | Configurator has qemu-system address instructions (hostfwd + bridged/TAP) | |
 | 26 | Configurator has qemu-user prefix rule (`qemu-riscv64 <executable>`) | |
 | 27 | Configurator has self-check-loop after amphimixis-validate (9 semantic checks) | |
+| 28 | `amphimixis-ai version` present, format `<maj>.<min>.<patch>-<maj>.<min>.<patch>-<maj>.<patch>`, segments 1–2 synced to methodology + regeneration-pipeline versions, segment 3 reset to `1.0` on source change and otherwise bumped per policy (rule 29) | |
 
 If any check fails, fix the agent file before proceeding.
 
@@ -644,3 +673,4 @@ If any check fails, fix the agent file before proceeding.
 - [ ] qemu-system address instructions in configurator (COPY IMPORTANT)
 - [ ] qemu-user prefix rule in configurator (COPY IMPORTANT)
 - [ ] Configurator self-check-loop (9 semantic checks)
+- [ ] `amphimixis-ai version` present in every generated agent, following format `<maj>.<min>.<patch>-<maj>.<min>.<patch>-<maj>.<patch>` with segments 1–2 synced to methodology + regeneration-pipeline versions and segment 3 bumped/reset per rule 29
