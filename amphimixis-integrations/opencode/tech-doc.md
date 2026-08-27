@@ -7,6 +7,7 @@
 - [Agents reference](#agents-reference)
 - [Regeneration pipeline](#regeneration-pipeline)
 - [When to regenerate](#when-to-regenerate)
+- [Versioning](#versioning)
 - [Tools reference](#tools-reference)
 
 ---
@@ -161,6 +162,38 @@ Regeneration is triggered manually by calling the `agents-regenerator` agent:
 | Report template updated                          | PARTIAL — regenerate agents that produce reports |
 | Tool interface changed (rare)                    | PARTIAL — regenerate agents that use the tool    |
 | Editorial changes only (wording, clarifications) | NONE — skip regeneration                         |
+
+## Versioning
+
+Three components carry a SemVer-like three-part version `<major>.<minor>.<patch>`:
+
+- **Methodology** — marked by the `> **Version**: <major>.<minor>.<patch>` line at the top of `docs/methodologies/migration-readiness-exploring-methodology.md`.
+- **Regeneration pipeline** — **one shared version for all regeneration agents** (`agents-regenerator` and `migration-expert`), marked by the `> **Version**: <major>.<minor>.<patch>` line near the top of each of their definitions (`.opencode/agents/agents-regenerator.md` and `.opencode/agents/migration-expert.md`).
+
+Segment semantics (like SemVer):
+
+| Segment | Meaning                                                       |
+|---------|---------------------------------------------------------------|
+| `major` | structural change of the document, reorganization, full (re)generation |
+| `minor` | a new feature / update                                        |
+| `patch` | a small change, bug fix, correction, or hand-made change       |
+
+### Produced agents
+
+Every generated agent definition carries an `amphimixis-ai version` frontmatter field with **three dash-separated segments**:
+
+```
+<methodology ver.>-<regeneration-pipeline ver.>-<regen count>.<hand-made patch>
+```
+
+- Segments 1–2 record the fixed versions of the generating sources (methodology and regeneration pipeline) used to produce the agent.
+- Segment 3 is the concrete agent's own version, working like SemVer Major.Patch:
+  - first slot (`regen count`) bumps on each regeneration by the pipeline;
+  - second slot (`hand-made patch`) bumps on direct manual edits outside regeneration.
+
+**Reset rule**: if segment 1 (methodology) or segment 2 (regeneration pipeline) changes, segment 3 resets to `1.0`.
+
+Current values: methodology `0.1.0`, regeneration pipeline `0.1.0`, so a freshly generated agent with no hand-made patches is `amphimixis-ai version: 0.1.0-0.1.0-1.0`.
 
 ---
 
