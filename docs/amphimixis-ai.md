@@ -107,7 +107,7 @@ Three components carry a SemVer-like `<major>.<minor>.<patch>` version:
 | Component            | Where it lives                                                          |
 |----------------------|-------------------------------------------------------------------------|
 | Methodology          | `> **Version**: …` in the methodology document                           |
-| Regeneration pipeline | one shared version for `agents-regenerator` and `migration-expert`, marked in each definition |
+| Regeneration pipeline | one shared version for `agents-regenerator` and `migration-expert`, in the `regeneration-pipeline version` frontmatter field of each definition |
 
 Segment meanings (like SemVer): **major** — structural change / reorganization / full regeneration; **minor** — new feature / update; **patch** — small change, bug fix, correction, hand-made change.
 

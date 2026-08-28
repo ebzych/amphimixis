@@ -17,9 +17,8 @@ permission:
     "git diff": allow
   task:
     explore: allow
+regeneration-pipeline version: 0.1.0
 ---
-
-> **Version**: 0.1.0
 
 # Role
 
