@@ -3,12 +3,13 @@ description: Find active repository, analyze structure, scan platform-specific m
 mode: subagent
 temperature: 0.3
 color: "#42dd92"
+amphimixis-ai version: 0.1.0-0.1.0-1.0
 permission:
   read: allow
   edit: deny
+  grep: allow
   websearch: allow
   webfetch: allow
-  amphimixis-analyze: allow
   bash:
     "git clone*": allow
     "git log*": allow
@@ -80,7 +81,7 @@ Record distribution-specific patches that may indicate portability work.
 
 **Self-check**: Compile findings from steps 1c-1e into an assessment of repository health.
 
-### 1f. Check for forks with target architecture patches (IMPORTANT — was missing from previous versions)
+### 1f. Check for forks with target architecture patches
 
 Use `websearch` to search for forks of this project that may have target architecture (e.g., RISC-V, ARM) patches:
 - Search: "[project name] [target architecture] fork github"
