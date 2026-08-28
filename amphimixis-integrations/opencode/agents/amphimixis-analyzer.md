@@ -3,11 +3,12 @@ description: Find active repository, analyze structure, scan platform-specific m
 mode: subagent
 temperature: 0.3
 color: "#42dd92"
-amphimixis-ai version: 0.1.0-0.1.0-1.0
+amphimixis-ai version: 0.1.0-0.1.0-1.1
 permission:
   read: allow
   edit: deny
   grep: allow
+  amphimixis-analyze: allow
   websearch: allow
   webfetch: allow
   bash:
