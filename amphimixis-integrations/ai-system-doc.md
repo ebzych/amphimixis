@@ -112,7 +112,7 @@ Output is one of:
 Three components carry a SemVer-like three-part version `<major>.<minor>.<patch>`:
 
 - **Methodology** — marked by the `> **Version**: <major>.<minor>.<patch>` line at the top of `docs/methodologies/migration-readiness-exploring-methodology.md`.
-- **Regeneration pipeline** — **one shared version for all regeneration agents** (`agents-regenerator` and `migration-expert`), marked by the `> **Version**: <major>.<minor>.<patch>` line near the top of each of their definitions.
+- **Regeneration pipeline** — **one shared version for all regeneration agents** (`agents-regenerator` and `migration-expert`), marked by the `regeneration-pipeline version: <major>.<minor>.<patch>` frontmatter field in each of their definitions.
 
 Segment semantics (like SemVer):
 

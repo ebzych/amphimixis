@@ -19,9 +19,8 @@ permission:
   task:
     migration-expert: allow
     explore: allow
+regeneration-pipeline version: 0.1.0
 ---
-
-> **Version**: 0.1.0
 
 You have two scenarios to process: correction of agents on expert feedback and regeneration of agents.
 
@@ -121,7 +120,7 @@ Create a multiagent system for project performance analysis and migration readin
    ```
 
    - Segment 1 — the **methodology version**, read from `**Version**: <major>.<minor>.<patch>` in `docs/methodologies/migration-readiness-exploring-methodology.md`. Never hardcode it; always take it from the file to keep it in sync.
-   - Segment 2 — the **regeneration-pipeline version** (shared by `agents-regenerator` and `migration-expert`), read from their `**Version**: <major>.<minor>.<patch>` markers. Never hardcode it; keep it in sync.
+   - Segment 2 — the **regeneration-pipeline version** (shared by `agents-regenerator` and `migration-expert`), read from their `regeneration-pipeline version: <major>.<minor>.<patch>` frontmatter fields. Never hardcode it; keep it in sync.
    - Segment 3 — the **concrete agent's own version**, working like SemVer Major.Patch:
       - first slot (`regen count`) — bumps on each regeneration of the concrete agent by this pipeline.
       - second slot (`hand-made patch`) — bumps on direct, manual edits made to the existing agent definition, outside of regeneration.
