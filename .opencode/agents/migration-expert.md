@@ -1,7 +1,6 @@
 ---
 description: Migration expert. Assesses the project’s research for portability.
 mode: all
-model: opencode/deepseek-v4-flash-free
 temperature: 0.5
 color: "#a6ff00"
 permission:

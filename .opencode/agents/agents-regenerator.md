@@ -1,7 +1,6 @@
 ---
 description: Regenerate Amphimixis agents in accordance with the Amphimixis methodology
 mode: all
-model: opencode/big-pickle
 temperature: 0.5
 color: "#bc46f8"
 permission:
