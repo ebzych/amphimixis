@@ -2,12 +2,7 @@ import type { Plugin } from '@opencode-ai/plugin';
 import type { OpencodeClient, Part } from '@opencode-ai/sdk';
 import { Mutex } from 'async-mutex';
 import { writeFileSync } from 'fs';
-import assert from 'node:assert/strict';
-const inspectorPaths = ['./lib/inspector_general', '../../inspector_general'];
-let InspectorGeneral: any;
-for (const p of inspectorPaths) {
-  try { InspectorGeneral = (await import(p)).default; break; } catch { }
-}
+import InspectorGeneral from 'inspector_general';
 
 let lastMessageText: string | undefined = undefined;
 
@@ -52,12 +47,12 @@ class WrapperForOpencode {
   private static sessionMtx: Mutex = new Mutex();
   private static readonly MAX_ATTEMPTS_FORMAL_INSPECTION_PER_SESSION: number = 5;
 
-  static {
-    assert(
-      WrapperForOpencode.MAX_ATTEMPTS_FORMAL_INSPECTION_PER_SESSION > 0,
-      'Expected positive number of attempts'
-    );
-  }
+  // static {
+  //   assert(
+  //     WrapperForOpencode.MAX_ATTEMPTS_FORMAL_INSPECTION_PER_SESSION > 0,
+  //     'Expected positive number of attempts'
+  //   );
+  // }
 
   static async inspectSubtaskSession(client: OpencodeClient, sessionID: string, msgPart: Part) {
     if (
