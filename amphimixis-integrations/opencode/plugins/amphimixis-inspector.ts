@@ -91,10 +91,7 @@ class WrapperForOpencode {
         WrapperForOpencode.callInspectorForAgentSession(
           client,
           sessionID,
-          String(await WrapperForOpencode.getAllSessionText(
-            client,
-            sessionID,
-          ))
+          sessionID,
         );
       }
 
@@ -197,7 +194,8 @@ class WrapperForOpencode {
           === InspectionStatus.OK
         )
           return;
-      });
+      }
+    );
 
     const output = await WrapperForOpencode.getAllSessionText(
       client,
