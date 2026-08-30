@@ -137,7 +137,8 @@ class WrapperForOpencode {
           sessionID,
           'The work on the project has not been completed.'
           + ' Check yourself to completing all tasks.\n\n'
-          + inspectOutput
+          + inspectOutput,
+          this.ORCHESTRATOR_AGENT_NAME,
         );
       }
     }
