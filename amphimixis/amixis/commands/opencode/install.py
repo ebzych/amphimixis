@@ -41,10 +41,10 @@ def run_opencode_install(globally: bool = False) -> bool:
         print(f"  Copied {count} {label}")
 
     if src_general.exists():
-        dst_general = config_dir / "plugins" / "lib" / "inspector_general.ts"
+        dst_general = config_dir / "node_modules" / "inspector_general.ts"
         dst_general.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src_general, dst_general)
-        print("  Copied inspector_general to plugins/lib/")
+        print("  Copied inspector_general to {Opencode config dir}/node_modules/")
 
     print("  Installing Bun dependencies...")
     if shutil.which("bun") is not None:
