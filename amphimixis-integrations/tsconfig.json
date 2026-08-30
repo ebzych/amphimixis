@@ -3,22 +3,36 @@
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "lib": ["ES2022"],
-    "types": ["node", "bun"],
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node",
+      "bun"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "*": [
+        "./*"
+      ],
+      "inspector_general": [
+        "../node_modules/inspector_general.ts",
+        "./inspector_general.ts"
+      ]
+    }
   },
   "include": [
     "..",
-    "amphimixis-integrations/opencode/tools/**/*.ts",
-    ".opencode/node_modules/@opencode-ai/plugin/dist/*.d.ts",
-    "node_modules/**/*"
+    "opencode/tools/**/*.ts"
   ],
-  "exclude": ["node_modules"],
+  "exclude": [
+    "node_modules"
+  ],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"
