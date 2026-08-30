@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { mkdir, rm, writeFile } from 'fs/promises';
+import InspectorGeneral from 'inspector_general';
 import path from 'path';
 import { chdir } from 'process';
-import InspectorGeneral from '../../inspector_general';
 
 const TESTS_DIR = '/tmp/amphimixis/tests/opencode/inspector';
 
