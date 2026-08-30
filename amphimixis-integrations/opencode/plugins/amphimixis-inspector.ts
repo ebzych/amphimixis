@@ -7,6 +7,13 @@ import InspectorGeneral from 'inspector_general';
 let lastMessageText: string | undefined = undefined;
 
 const AmphimixisInspector: Plugin = async ({ client }) => {
+  client.app.log({
+    body: {
+      service: 'amphimixis-inspector',
+      level: 'info',
+      message: 'Plugin is initialized',
+    }
+  });
   return {
     event: async ({ event }) => {
       if (event.type === 'message.part.updated') {
@@ -62,6 +69,13 @@ class WrapperForOpencode {
       && msgPart.state.input.subagent_type !== 'amphimixis-inspector'
       && msgPart.state.status === 'completed'
     ) {
+      client.app.log({
+        body: {
+          service: 'amphimixis-inspector',
+          level: 'debug',
+          message: 'Subtask is been inspecting now',
+        }
+      });
       // get subagent sessionID
       const subSessionID = String(msgPart.state.metadata?.sessionID);
       WrapperForOpencode.callInspectorForAgentSession(
@@ -84,10 +98,24 @@ class WrapperForOpencode {
       && lastMessageText.match('WORK ON THE .*? IS COMPLETED')
       && WrapperForOpencode.isAttemptAvailable(sessionID)
     ) {
+      client.app.log({
+        body: {
+          service: 'amphimixis-inspector',
+          level: 'debug',
+          message: 'Main task is been inspecting now',
+        }
+      });
       if (
         WrapperForOpencode.sessions[sessionID].inspectionStatus
         !== InspectionStatus.OK
       ) {
+        client.app.log({
+          body: {
+            service: 'amphimixis-inspector',
+            level: 'debug',
+            message: 'Call Inspector for main task',
+          }
+        });
         WrapperForOpencode.callInspectorForAgentSession(
           client,
           sessionID,
@@ -95,6 +123,13 @@ class WrapperForOpencode {
         );
       }
 
+      client.app.log({
+        body: {
+          service: 'amphimixis-inspector',
+          level: 'debug',
+          message: 'Report content inspecting',
+        }
+      });
       let [isSuccessful, inspectOutput] = InspectorGeneral.inspect();
       if (!isSuccessful) {
         WrapperForOpencode.sendPrompt(
@@ -192,8 +227,16 @@ class WrapperForOpencode {
         if (
           WrapperForOpencode.sessions[inspectedSessionID].inspectionStatus
           === InspectionStatus.OK
-        )
+        ) {
+          client.app.log({
+            body: {
+              service: 'amphimixis-inspector',
+              level: 'debug',
+              message: 'Session already has been inspected',
+            }
+          });
           return;
+        }
       }
     );
 
@@ -227,7 +270,14 @@ class WrapperForOpencode {
       }
     }
 
-    const cmdOutput = String(WrapperForOpencode.getAllSessionText(
+    client.app.log({
+      body: {
+        service: 'amphimixis-inspector',
+        level: 'debug',
+        message: 'Run command amphimixis-inspect-session',
+      }
+    });
+    const cmdOutput = String(await WrapperForOpencode.getAllSessionText(
       client,
       String(
         (await client.session.command(commandData))
@@ -240,10 +290,24 @@ class WrapperForOpencode {
         if (cmdOutput.match(/INSPECTION IS PASSED/i)) {
           WrapperForOpencode.sessions[inspectedSessionID].inspectionStatus =
             InspectionStatus.OK;
+          client.app.log({
+            body: {
+              service: 'amphimixis-inspector',
+              level: 'debug',
+              message: 'Inspection is passed',
+            }
+          });
         }
         else {
           WrapperForOpencode.sessions[inspectedSessionID].inspectionStatus =
             InspectionStatus.TO_FIX;
+          client.app.log({
+            body: {
+              service: 'amphimixis-inspector',
+              level: 'debug',
+              message: 'Inspection is failed',
+            }
+          });
         }
       }
     );
