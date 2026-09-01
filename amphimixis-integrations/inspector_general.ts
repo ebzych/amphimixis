@@ -1,5 +1,7 @@
 import fs from 'fs';
 import type { Heading, Root, Table, TableCell, TableRow } from 'mdast';
+import { gfmTableToMarkdown } from 'mdast-util-gfm-table';
+import { toMarkdown } from 'mdast-util-to-markdown';
 import { cwd } from 'process';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
@@ -132,7 +134,8 @@ export default class InspectorGeneral {
       if (child?.type === 'text')
         text += child?.value;
       if ('children' in child && child?.children)
-        InspectorGeneral.joinChildrenText(child as ParentOfTextChildren, text);
+        text +=
+          InspectorGeneral.joinChildrenText(child as ParentOfTextChildren, text);
     }
 
     return text;
@@ -155,12 +158,16 @@ export default class InspectorGeneral {
       // reportCTable: Table = { ..., children: TableRow[] }
       // TableRow { ..., children: TableCell[] }
       // TableCell { ..., children: <type kind of Text>[] }
-      reportCTable?.children[0].children.length !== InspectorGeneral.CT_HEADERS.length // exactly equal
+      reportCTable?.children[0].children.length
+      !== InspectorGeneral.CT_HEADERS.length // exactly equal
       || InspectorGeneral.joinChildrenText(reportCTable?.children[0]?.children[0])
       !== InspectorGeneral.CT_HEADERS[0]
-      || !/.* %/.test(InspectorGeneral.joinChildrenText(reportCTable?.children[0]?.children[1]))
-      || !/.* %/.test(InspectorGeneral.joinChildrenText(reportCTable?.children[0]?.children[2]))
-      || InspectorGeneral.joinChildrenText(reportCTable?.children[0]?.children[3])
+      || !/.* %/.test(InspectorGeneral.joinChildrenText(
+        reportCTable?.children[0]?.children[1]))
+      || !/.* %/.test(InspectorGeneral.joinChildrenText(
+        reportCTable?.children[0]?.children[2]))
+      || InspectorGeneral.joinChildrenText(
+        reportCTable?.children[0]?.children[3])
       !== InspectorGeneral.CT_HEADERS[3]
     ) {
       output.push(
@@ -172,23 +179,27 @@ export default class InspectorGeneral {
 
     InspectorGeneral.sortTableRowsByFirstColumn(reportCTable);
     lookUpTable: {
-      for (const cTable of cTables) {
+      for (const srcTable of cTables) {
+        const cTable: Table = { ...srcTable, children: [...srcTable.children] };
         InspectorGeneral.sortTableRowsByFirstColumn(cTable);
 
-        if (cTable.children.length !== reportCTable.children.length)
+        if (cTable.children.length !== reportCTable.children.length
+          || cTable.children.length === 0)
           continue;
 
         tablesComparison: {
           for (let i: number = 0; i < reportCTable.children.length; ++i) {
+            const reportRow = reportCTable.children[i];
+            const cTableRow = cTable.children[i];
             if (
-              reportCTable.children[i].children.length
-              !== cTable.children[i].children.length
+              reportRow.children.length
+              !== cTableRow.children.length
             )
               break tablesComparison;
 
             for (
               let j: number = 0;
-              j < reportCTable.children[i].children.length;
+              j < reportRow.children.length;
               ++j
             ) {
               if (
@@ -203,10 +214,13 @@ export default class InspectorGeneral {
         } // tablesComparison
 
       }
+      const mdReportCTable = toMarkdown(reportCTable, {
+        extensions: [gfmTableToMarkdown()]
+      });
       output.push(
         '- Table incorrect, read the "CT-<...>.md" files again'
         + ' and copy all tables from there without changes in the report:\n'
-        + String(reportCTable)
+        + mdReportCTable
       );
       return [false, output];
 
@@ -258,26 +272,31 @@ export default class InspectorGeneral {
     );
 
     searchingImprovementInFile: {
-      for (const imprv of reportImprovement.children) {
-        if (improvements.find(
+      // skip the header row: only the data rows must match improvements.json
+      for (let r: number = 1; r < reportImprovement.children.length; ++r) {
+        const imprv = reportImprovement.children[r];
+        const rowMatches = improvements.some(
           (imprvInFile) => (
-            imprvInFile.measuredObject === InspectorGeneral.joinChildrenText(imprv.children[0])
+            imprvInFile.measuredObject === InspectorGeneral.cellText(imprv, 0)
             && imprvInFile.baselineValue
-            === Number(InspectorGeneral.joinChildrenText(imprv.children[1]))
+            === Number(InspectorGeneral.cellText(imprv, 1))
             && imprvInFile.optimizedValue
-            === Number(InspectorGeneral.joinChildrenText(imprv.children[2]))
+            === Number(InspectorGeneral.cellText(imprv, 2))
             && imprvInFile.improvementPcnt
-            === Number(InspectorGeneral.joinChildrenText(imprv.children[3]))
+            === Number(InspectorGeneral.cellText(imprv, 3))
           )
-        ) !== undefined)
+        );
+        if (!rowMatches)
           break searchingImprovementInFile;
       }
-
+      const mdReportImprovement = toMarkdown(reportImprovement, {
+        extensions: [gfmTableToMarkdown()]
+      });
       output.push(
         '- Improvements table contains incorrect data, read the'
         + ' "improvements.json" file again and copy all rows from there'
         + '  without changes in the report:\n'
-        + String(reportImprovement)
+        + mdReportImprovement
       );
       return [false, output];
 
