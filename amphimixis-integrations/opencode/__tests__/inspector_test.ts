@@ -123,6 +123,9 @@ type EventHandler = (args: { event: Record<string, unknown> }) => Promise<unknow
 function makeClient() {
   const prompts: string[] = [];
   const client = {
+    app: {
+      log: async () => {},
+    },
     session: {
       prompt: async (args: { body: { parts: Array<{ text: string }> } }) => {
         prompts.push(args.body.parts[0].text);

@@ -110,6 +110,13 @@ class WrapperForOpencode {
   ) {
     const isWorkFinished = await WrapperForOpencode.sessionMtx.runExclusive(
       () => {
+        if (!(sessionID in WrapperForOpencode.sessions)) {
+          WrapperForOpencode.sessions[sessionID] = {
+            attemptCount: 0,
+            inspectionStatus: InspectionStatus.NOT_INSPECTED,
+            lastMessageText: undefined,
+          };
+        }
         return WrapperForOpencode.sessions[sessionID]
           .lastMessageText
           && WrapperForOpencode.sessions[sessionID]
