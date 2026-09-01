@@ -272,21 +272,18 @@ export default class InspectorGeneral {
     );
 
     searchingImprovementInFile: {
-      // skip the header row: only the data rows must match improvements.json
-      for (let r: number = 1; r < reportImprovement.children.length; ++r) {
-        const imprv = reportImprovement.children[r];
-        const rowMatches = improvements.some(
+      for (const imprv of reportImprovement.children) {
+        if (improvements.find(
           (imprvInFile) => (
-            imprvInFile.measuredObject === InspectorGeneral.cellText(imprv, 0)
+            imprvInFile.measuredObject === InspectorGeneral.joinChildrenText(imprv.children[0])
             && imprvInFile.baselineValue
-            === Number(InspectorGeneral.cellText(imprv, 1))
+            === Number(InspectorGeneral.joinChildrenText(imprv.children[1]))
             && imprvInFile.optimizedValue
-            === Number(InspectorGeneral.cellText(imprv, 2))
+            === Number(InspectorGeneral.joinChildrenText(imprv.children[2]))
             && imprvInFile.improvementPcnt
-            === Number(InspectorGeneral.cellText(imprv, 3))
+            === Number(InspectorGeneral.joinChildrenText(imprv.children[3]))
           )
-        );
-        if (!rowMatches)
+        ) !== undefined)
           break searchingImprovementInFile;
       }
       const mdReportImprovement = toMarkdown(reportImprovement, {
