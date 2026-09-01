@@ -162,7 +162,7 @@ class WrapperForOpencode {
           sessionID,
           'The work on the project has not been completed.'
           + ' Check yourself to completing all tasks.\n\n'
-          + inspectOutput,
+          + inspectOutput.join('\n'),
           WrapperForOpencode.ORCHESTRATOR_AGENT_NAME,
         );
       }
@@ -217,20 +217,7 @@ class WrapperForOpencode {
     provider?: string,
     model?: string,
   ): void {
-    let modelData: any = {
-      providerID: WrapperForOpencode.DEFAULT_PROVIDER,
-      modelID: WrapperForOpencode.DEFAULT_MODEL
-    };
-
-    if (provider && model) {
-      modelData = {
-        providerID: provider,
-        modelID: model,
-      };
-    }
-
     let bodyData: any = {
-      model: modelData,
       parts: [
         {
           type: 'text',
@@ -238,6 +225,16 @@ class WrapperForOpencode {
         }
       ],
     };
+
+    if (provider && model) {
+      bodyData = {
+        ...bodyData,
+        model: {
+          providerID: provider,
+          modelID: model,
+        },
+      };
+    }
 
     if (agent !== undefined)
       bodyData = { ...bodyData, agent: agent }
