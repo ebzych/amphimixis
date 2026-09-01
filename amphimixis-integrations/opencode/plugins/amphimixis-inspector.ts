@@ -293,6 +293,7 @@ class WrapperForOpencode {
       body:
       {
         command: 'amphimixis-inspect-session',
+        arguments: '',
       },
     };
 
