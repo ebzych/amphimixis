@@ -87,7 +87,7 @@ class WrapperForOpencode {
         body: {
           service: 'amphimixis-inspector',
           level: 'debug',
-          message: 'Subtask is been inspecting now',
+          message: 'AIP: subtask is been inspecting now',
         }
       });
       // get subagent sessionID
