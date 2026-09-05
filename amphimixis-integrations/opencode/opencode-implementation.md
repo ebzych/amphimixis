@@ -54,12 +54,12 @@ Every agent file in `agents/` is a markdown definition that carries an `amphimix
 ## Installed layout
 
 `amixis opencode install` copies the above into the Opencode config directory.
-The plugin dynamically resolves `inspector_general` at runtime — first trying
-the installed `plugins/lib/inspector_general.ts`, then falling back to the
-source-tree path `../../inspector_general.ts` for development and testing.
+The plugin dynamically resolves `inspector_general` at runtime — it is
+installed to `node_modules/inspector_general.ts` in the config directory.
 
-Tools call `amixis` as a subprocess, so `amixis` must be on `PATH` after
-installation (via pip install, venv activation, alias, etc.).
+Tools call `amixis` as a subprocess. The `amixis` executable path is written
+into the installed tools at install time (via the `$AMIXIS_PATH` template
+substitution).
 
 ---
 
@@ -76,13 +76,13 @@ Shared report-inspection logic (not Opencode-specific) that checks the correctne
 - verifies each cross-table — exactly 4 columns in strict order (`Symbol | {First build name} % | {Second build name} % | Delta %`), copied unchanged from the corresponding `cross-tables/CT-*.md` file;
 - checks that required data sources exist (cross-tables via `amphimixis-compare`, improvements via `calculate-optimization-improvement`, the report file itself) and reports missing steps otherwise.
 
-It is installed to `plugins/lib/inspector_general.ts` and resolved at runtime by the plugin.
+It is installed to `node_modules/inspector_general.ts` and resolved at runtime by the plugin.
 
 ### `amphimixis-inspector` plugin
 
 The `plugins/amphimixis-inspector.ts` plugin hooks the Opencode event stream (`message.part.updated`) and performs two kinds of inspection:
 
-- **Subtask session inspection**: when a `task` tool call to an `amphimixis-*` subagent (other than `amphimixis-inspector`) completes, the whole subagent session is collected into a script, written to `.inspected-session`, and the `amphimixis-inspect-session` command is run on it in the parent session.
+- **Subtask session inspection**: when a `task` tool call to an `amphimixis-*` subagent (other than `amphimixis-inspector`) completes, the whole subagent session is collected into a script (exported via `opencode export <sessionID>`), written to `.inspected-session`, and the `amphimixis-inspect-session` command is run on it in the parent session.
 - **Main session inspection**: when a step finishes and the last message matches `WORK ON THE .*? IS COMPLETED`, the main session is inspected the same way, and additionally the shared `InspectorGeneral.inspect()` runs against the report. If the formal inspection fails, a prompt is sent to the orchestrator agent to check itself to completing all tasks (up to a maximum number of formal inspection attempts per session).
 
 The plugin tracks a per-session inspection status (`NOT_INSPECTED`, `OK`, `TO_FIX`): a session is marked `OK` when the inspecting command output contains `INSPECTION IS PASSED`; otherwise it stays in the `TO_FIX` state and can be re-inspected on the next completion.
