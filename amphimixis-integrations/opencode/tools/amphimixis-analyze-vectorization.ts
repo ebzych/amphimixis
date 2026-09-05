@@ -1,6 +1,9 @@
 import { tool } from "@opencode-ai/plugin";
 
-export const amixis = () => 'amixis';
+export const amixis = () => {
+  const installed = '$AMIXIS_PATH';
+  return installed === '$AMIXIS_PATH' ? 'amixis' : installed;
+};
 
 export default tool({
   description: `Use objdump to analyze a built binary for platform-specific vector instructions.

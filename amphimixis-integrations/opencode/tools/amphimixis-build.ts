@@ -1,6 +1,10 @@
+import path from 'node:path';
 import {tool} from '@opencode-ai/plugin';
 
-export const amixis = () => 'amixis';
+export const amixis = () => {
+  const installed = '$AMIXIS_PATH';
+  return installed === '$AMIXIS_PATH' ? 'amixis' : installed;
+};
 
 export default tool({
   description:
@@ -27,11 +31,14 @@ export default tool({
         ),
   },
   async execute(args) {
+    const projectDir = path.isAbsolute(args.project_path)
+      ? args.project_path
+      : `./${path.basename(args.project_path)}`;
     const cmd = [amixis(), 'build', args.project_path];
     if (args.config) cmd.push(`--config=${args.config}`);
     if (args.build_name) cmd.push(`--build-name=${args.build_name}`);
 
-    const result = await Bun.$`${cmd}`.text();
+    const result = await Bun.$.cwd(projectDir)`${cmd}`.text();
     return result.trim();
   },
 });
