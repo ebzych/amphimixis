@@ -50,6 +50,7 @@ enum InspectionStatus {
   NOT_INSPECTED,
   OK,
   TO_FIX,
+  FAILED,
 }
 
 type SessionData = {
