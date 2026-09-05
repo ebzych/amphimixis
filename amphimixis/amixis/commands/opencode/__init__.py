@@ -31,7 +31,7 @@ def add_args(parser: ArgumentParser) -> None:
         "-g",
         "--global",
         action="store_true",
-        dest="globally",
+        dest="is_global",
         help="install globally into XDG_CONFIG_HOME/opencode",
     )
 
@@ -43,7 +43,7 @@ def add_args(parser: ArgumentParser) -> None:
         "-g",
         "--global",
         action="store_true",
-        dest="globally",
+        dest="is_global",
         help="uninstall globally from XDG_CONFIG_HOME/opencode",
     )
 
@@ -55,6 +55,12 @@ def add_args(parser: ArgumentParser) -> None:
         "prompt",
         type=str,
         help="prompt to pass to opencode",
+    )
+    run_parser.add_argument(
+        "--package-mode",
+        action="store_true",
+        help="run opencode non-interactively and print only text messages"
+        " filtered with jq",
     )
 
 
@@ -68,12 +74,15 @@ def run_opencode(args: Namespace) -> bool:
     opencode_subcommand = args.opencode_subcommand
 
     if opencode_subcommand == _INSTALL_SUBCMD:
-        return run_opencode_install(globally=args.globally)
+        return run_opencode_install(is_global=args.is_global)
 
     if opencode_subcommand == _UNINSTALL_SUBCMD:
-        return run_opencode_uninstall(globally=args.globally)
+        return run_opencode_uninstall(is_global=args.is_global)
 
     if opencode_subcommand == _RUN_SUBCMD:
-        return run_opencode_run(prompt=args.prompt)
+        return run_opencode_run(
+            prompt=args.prompt,
+            package_mode=args.package_mode,
+        )
 
     return False

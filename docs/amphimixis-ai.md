@@ -34,6 +34,12 @@ amixis opencode run "Analyze the <Name> project, identify platform-specific code
 
 This opens the Opencode TUI with `amphimixis` agent and your prompt.
 
+For non-interactive runs, use `--package-mode`. It runs `opencode` non-interactively and prints only the text messages produced by the session:
+
+```bash
+amixis opencode run --package-mode "<your prompt>"
+```
+
 > **Note:** The agent expects the current working directory to contain (or point to) the project being analyzed. Use an absolute path in the prompt for clarity.
 
 ---
@@ -152,6 +158,7 @@ The configure tools write YAML directly rather than calling the CLI — they man
 - `amixis` must be on `PATH` (tools invoke `amixis` as a subprocess)
 - The Opencode CLI (`opencode`) installed and available on `PATH`
 - `bun` for installing test/utility dependencies
+- `jq` for `--package-mode` (installed automatically into the Opencode config dir with `amixis opencode install` via the `node-jq` package, or install it from <https://jqlang.org>)
 
 ### Install the agents and tools
 
@@ -159,7 +166,7 @@ The configure tools write YAML directly rather than calling the CLI — they man
 amixis opencode install
 ```
 
-This copies agents, tools, commands, and plugins into the local `.opencode/` directory.
+This copies agents, tools, commands, and plugins into the local `.opencode/` directory, writes the `amixis` executable path into the installed tools, and installs Bun dependencies (including `node-jq`, which ships the `jq` binary used by `--package-mode`).
 
 For a system-wide installation, pass the `--global` flag:
 
