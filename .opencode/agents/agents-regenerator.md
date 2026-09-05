@@ -130,6 +130,8 @@ Create a multiagent system for project performance analysis and migration readin
 
    **IMPORTANT**: When regenerating an existing agent, read its current `amphimixis-ai version`. If methodology or regeneration-pipeline versions are unchanged, keep segments 1–2 identical and either bump the `regen count` (regeneration) or the `hand-made patch` (manual correction) slot. If either source version changed, reset segment 3 to `1.0`. First-time-generated agents start at `0.1.0-0.1.0-1.0`.
 
+30. **Working directory of generated agents**: Generated project-working agents (analyzer, configurator, builder, profiler, optimizer) MUST contain an explicit instruction to work in `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. All analysis, build, and profile actions must be performed from inside that directory, and all generated files must be written there.
+
 **IMPORTANT**: the agents using the tool wrappers around `amixis` should know how Amphimixis works. To do so, copy general information from the `Amphimixis` header in `README.md` (**IMPORTANT**: `amixis` uses a config file, but only agents that handle configuration must prepare it; other agents should not worry about the config file).
 
 ### Step 1: Determine Regeneration Scope
