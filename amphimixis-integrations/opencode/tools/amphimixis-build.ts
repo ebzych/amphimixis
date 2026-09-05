@@ -1,10 +1,7 @@
 import path from 'node:path';
 import {tool} from '@opencode-ai/plugin';
 
-export const amixis = () => {
-  const installed = '$AMIXIS_PATH';
-  return installed === '$AMIXIS_PATH' ? 'amixis' : installed;
-};
+export const amixis = () => '$AMIXIS_PATH';
 
 export default tool({
   description:
