@@ -50,6 +50,7 @@ enum InspectionStatus {
   NOT_INSPECTED,
   OK,
   TO_FIX,
+  FAILED,
 }
 
 type SessionData = {
@@ -169,7 +170,7 @@ class WrapperForOpencode {
     }
   }
 
-  static async getAllSessionText(
+  static async ip getAllSessionText(
     client: OpencodeClient,
     sessionId: string,
     agent?: string,
