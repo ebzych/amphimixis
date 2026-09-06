@@ -6,7 +6,7 @@ import InspectorGeneral from 'inspector_general';
 import assert from 'node:assert/strict';
 
 const AmphimixisInspector: Plugin = async ({ client }) => {
-  client.app.log({
+  await client.app.log({
     body: {
       service: 'amphimixis-inspector',
       level: 'info',
@@ -19,7 +19,7 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
         const msgPart = event.properties.part;
         const sessionId = msgPart.sessionID;
 
-        WrapperForOpencode.inspectSubtaskSession(client, sessionId, msgPart);
+        await WrapperForOpencode.inspectSubtaskSession(client, sessionId, msgPart);
 
         if (msgPart.type === 'text') {
           await WrapperForOpencode.sessionMtx.runExclusive(
@@ -38,7 +38,7 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
           )
         }
 
-        WrapperForOpencode.inspectMainSession(client, sessionId, msgPart);
+        await WrapperForOpencode.inspectMainSession(client, sessionId, msgPart);
       }
     }
   };
@@ -84,7 +84,7 @@ class WrapperForOpencode {
       && msgPart.state.input.subagent_type !== 'amphimixis-inspector'
       && msgPart.state.status === 'completed'
     ) {
-      client.app.log({
+      await client.app.log({
         body: {
           service: 'amphimixis-inspector',
           level: 'debug',
@@ -95,7 +95,7 @@ class WrapperForOpencode {
       const subSessionId = msgPart.state.metadata?.sessionId;
       if (subSessionId === undefined)
         return;
-      WrapperForOpencode.callInspectorForAgentSession(
+      await WrapperForOpencode.callInspectorForAgentSession(
         client,
         sessionId,
         String(subSessionId),
@@ -128,28 +128,21 @@ class WrapperForOpencode {
       && isWorkFinished
       && await WrapperForOpencode.isAttemptAvailable(sessionId)
     ) {
-      client.app.log({
+      await client.app.log({
         body: {
           service: 'amphimixis-inspector',
           level: 'debug',
-          message: 'AIP: inspect main task',
+          message: 'AIP: inspect main task. Call Inspector for main task',
         }
       });
 
-      client.app.log({
-        body: {
-          service: 'amphimixis-inspector',
-          level: 'debug',
-          message: 'AIP: call Inspector for main task',
-        }
-      });
-      WrapperForOpencode.callInspectorForAgentSession(
+      await WrapperForOpencode.callInspectorForAgentSession(
         client,
         sessionId,
         sessionId,
       );
 
-      client.app.log({
+      await client.app.log({
         body: {
           service: 'amphimixis-inspector',
           level: 'debug',
@@ -158,7 +151,7 @@ class WrapperForOpencode {
       });
       const [isSuccessful, inspectOutput] = InspectorGeneral.inspect();
       if (!isSuccessful) {
-        WrapperForOpencode.sendPrompt(
+        await WrapperForOpencode.sendPrompt(
           client,
           sessionId,
           'The work on the project has not been completed.'
@@ -210,14 +203,14 @@ class WrapperForOpencode {
     return textContent;
   }
 
-  static sendPrompt(
+  static async sendPrompt(
     client: OpencodeClient,
     sessionId: string,
     prompt: string,
     agent: string | undefined = WrapperForOpencode.ORCHESTRATOR_AGENT_NAME,
     provider?: string,
     model?: string,
-  ): void {
+  ): Promise<void> {
     let bodyData: any = {
       parts: [
         {
@@ -240,7 +233,7 @@ class WrapperForOpencode {
     if (agent !== undefined)
       bodyData = { ...bodyData, agent: agent }
 
-    client.session.prompt({
+    await client.session.prompt({
       path: {
         id: sessionId
       },
@@ -263,7 +256,7 @@ class WrapperForOpencode {
         === InspectionStatus.OK
     );
     if (isInspected) {
-      client.app.log({
+      await client.app.log({
         body: {
           service: 'amphimixis-inspector',
           level: 'debug',
@@ -308,7 +301,7 @@ class WrapperForOpencode {
       }
     }
 
-    client.app.log({
+    await client.app.log({
       body: {
         service: 'amphimixis-inspector',
         level: 'debug',
@@ -336,7 +329,7 @@ class WrapperForOpencode {
         if (String(cmdLastMsgText).match(/INSPECTION IS PASSED/i)) {
           WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus =
             InspectionStatus.OK;
-          client.app.log({
+          await client.app.log({
             body: {
               service: 'amphimixis-inspector',
               level: 'debug',
@@ -347,7 +340,7 @@ class WrapperForOpencode {
         else {
           WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus =
             InspectionStatus.TO_FIX;
-          client.app.log({
+          await client.app.log({
             body: {
               service: 'amphimixis-inspector',
               level: 'debug',
