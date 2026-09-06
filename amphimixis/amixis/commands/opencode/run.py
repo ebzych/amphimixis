@@ -63,10 +63,11 @@ def _run_opencode_run_package_mode(prompt: str) -> bool:
         "opencode run --format json --agent amphimixis "
         + shlex.quote(prompt)
         + " | "
-        + shlex.quote(jq_path)
+        + jq_path
         + " -r "
         + shlex.quote(JQ_FILTER)
     )
+    print(command)
     subprocess.run(command, shell=True, check=True)
     return True
 
@@ -79,12 +80,12 @@ def _resolve_jq() -> str | None:
     """
     system_jq = shutil.which("jq")
     if system_jq is not None:
-        return system_jq
+        return shlex.quote(system_jq)
 
     for global_path in (False, True):
         config_dir = get_opencode_config_dir_path(is_global=global_path)
-        node_jq = config_dir / "node_modules" / "node-jq" / "bin" / "jq"
+        node_jq = config_dir / "node_modules" / "node-jq" / "node-jq"
         if node_jq.exists():
-            return str(node_jq)
+            return "bun run node-jq"
 
     return None
