@@ -17,28 +17,28 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
     event: async ({ event }) => {
       if (event.type === 'message.part.updated') {
         const msgPart = event.properties.part;
-        const sessionID = msgPart.sessionID;
+        const sessionId = msgPart.sessionID;
 
-        WrapperForOpencode.inspectSubtaskSession(client, sessionID, msgPart);
+        WrapperForOpencode.inspectSubtaskSession(client, sessionId, msgPart);
 
         if (msgPart.type === 'text') {
           await WrapperForOpencode.sessionMtx.runExclusive(
             async () => {
-              if (!(sessionID in WrapperForOpencode.sessions)) {
-                WrapperForOpencode.sessions[sessionID] =
+              if (!(sessionId in WrapperForOpencode.sessions)) {
+                WrapperForOpencode.sessions[sessionId] =
                 {
                   attemptCount: 0,
                   inspectionStatus: InspectionStatus.NOT_INSPECTED,
                   lastMessageText: undefined,
                 };
               }
-              WrapperForOpencode.sessions[sessionID]
+              WrapperForOpencode.sessions[sessionId]
                 .lastMessageText = msgPart.text;
             }
           )
         }
 
-        WrapperForOpencode.inspectMainSession(client, sessionID, msgPart);
+        WrapperForOpencode.inspectMainSession(client, sessionId, msgPart);
       }
     }
   };
@@ -76,7 +76,7 @@ class WrapperForOpencode {
     );
   }
 
-  static async inspectSubtaskSession(client: OpencodeClient, sessionID: string, msgPart: Part) {
+  static async inspectSubtaskSession(client: OpencodeClient, sessionId: string, msgPart: Part) {
     if (
       msgPart.type === 'tool'
       && msgPart.tool === 'task'
@@ -91,14 +91,14 @@ class WrapperForOpencode {
           message: 'AIP: subtask is been inspecting now',
         }
       });
-      // get subagent sessionID
-      const subSessionID = msgPart.state.metadata?.sessionID;
-      if (subSessionID === undefined)
+      // get subagent sessionId
+      const subSessionId = msgPart.state.metadata?.sessionId;
+      if (subSessionId === undefined)
         return;
       WrapperForOpencode.callInspectorForAgentSession(
         client,
-        sessionID,
-        String(subSessionID),
+        sessionId,
+        String(subSessionId),
         String(msgPart.state.input.subagent_type),
       );
     }
@@ -106,27 +106,27 @@ class WrapperForOpencode {
 
   static async inspectMainSession(
     client: OpencodeClient,
-    sessionID: string,
+    sessionId: string,
     msgPart: Part,
   ) {
     const isWorkFinished = await WrapperForOpencode.sessionMtx.runExclusive(
       () => {
-        if (!(sessionID in WrapperForOpencode.sessions)) {
-          WrapperForOpencode.sessions[sessionID] = {
+        if (!(sessionId in WrapperForOpencode.sessions)) {
+          WrapperForOpencode.sessions[sessionId] = {
             attemptCount: 0,
             inspectionStatus: InspectionStatus.NOT_INSPECTED,
             lastMessageText: undefined,
           };
         }
-        return WrapperForOpencode.sessions[sessionID]
+        return WrapperForOpencode.sessions[sessionId]
           .lastMessageText
-          && WrapperForOpencode.sessions[sessionID]
+          && WrapperForOpencode.sessions[sessionId]
             .lastMessageText.match('WORK ON THE .*? IS COMPLETED');
       });
     if (
       msgPart.type === 'step-finish'
       && isWorkFinished
-      && await WrapperForOpencode.isAttemptAvailable(sessionID)
+      && await WrapperForOpencode.isAttemptAvailable(sessionId)
     ) {
       client.app.log({
         body: {
@@ -145,8 +145,8 @@ class WrapperForOpencode {
       });
       WrapperForOpencode.callInspectorForAgentSession(
         client,
-        sessionID,
-        sessionID,
+        sessionId,
+        sessionId,
       );
 
       client.app.log({
@@ -160,7 +160,7 @@ class WrapperForOpencode {
       if (!isSuccessful) {
         WrapperForOpencode.sendPrompt(
           client,
-          sessionID,
+          sessionId,
           'The work on the project has not been completed.'
           + ' Check yourself to completing all tasks.\n\n'
           + inspectOutput.join('\n'),
@@ -212,7 +212,7 @@ class WrapperForOpencode {
 
   static sendPrompt(
     client: OpencodeClient,
-    sessionID: string,
+    sessionId: string,
     prompt: string,
     agent: string | undefined = WrapperForOpencode.ORCHESTRATOR_AGENT_NAME,
     provider?: string,
@@ -231,8 +231,8 @@ class WrapperForOpencode {
       bodyData = {
         ...bodyData,
         model: {
-          providerID: provider,
-          modelID: model,
+          providerId: provider,
+          modelId: model,
         },
       };
     }
@@ -242,7 +242,7 @@ class WrapperForOpencode {
 
     client.session.prompt({
       path: {
-        id: sessionID
+        id: sessionId
       },
       body: bodyData,
     });
@@ -250,16 +250,16 @@ class WrapperForOpencode {
 
   static async callInspectorForAgentSession(
     client: OpencodeClient,
-    sessionID: string,
-    inspectedSessionID: string,
+    sessionId: string,
+    inspectedSessionId: string,
     sessionAgent: string | undefined = undefined,
     model?: string,
     provider?: string,
   ): Promise<void> {
     const isInspected = await WrapperForOpencode.sessionMtx.runExclusive(
       async () =>
-        inspectedSessionID in WrapperForOpencode.sessions
-        && WrapperForOpencode.sessions[inspectedSessionID].inspectionStatus
+        inspectedSessionId in WrapperForOpencode.sessions
+        && WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus
         === InspectionStatus.OK
     );
     if (isInspected) {
@@ -275,7 +275,7 @@ class WrapperForOpencode {
 
     const output = await WrapperForOpencode.getAllSessionText(
       client,
-      inspectedSessionID
+      inspectedSessionId
     );
     writeFileSync(
       '.inspected-session',
@@ -286,7 +286,7 @@ class WrapperForOpencode {
     let commandData: any = {
       path:
       {
-        id: sessionID,
+        id: sessionId,
       },
       body:
       {
@@ -315,26 +315,26 @@ class WrapperForOpencode {
         message: 'AIP: run command amphimixis-inspect-session',
       }
     });
-    const cmdSessionID = (await client.session.command(commandData))
+    const cmdSessionId = (await client.session.command(commandData))
       .data?.info.sessionID;
     const cmdLastMsgText = await WrapperForOpencode.sessionMtx.runExclusive(
       () =>
-        cmdSessionID && String(cmdSessionID) in WrapperForOpencode.sessions
-          ? WrapperForOpencode.sessions[String(cmdSessionID)].lastMessageText
+        cmdSessionId && String(cmdSessionId) in WrapperForOpencode.sessions
+          ? WrapperForOpencode.sessions[String(cmdSessionId)].lastMessageText
           : undefined
     );
 
     await WrapperForOpencode.sessionMtx.runExclusive(
       async () => {
-        if (!(inspectedSessionID in WrapperForOpencode.sessions)) {
-          WrapperForOpencode.sessions[inspectedSessionID] = {
+        if (!(inspectedSessionId in WrapperForOpencode.sessions)) {
+          WrapperForOpencode.sessions[inspectedSessionId] = {
             attemptCount: 0,
             inspectionStatus: InspectionStatus.NOT_INSPECTED,
             lastMessageText: undefined,
           };
         }
         if (String(cmdLastMsgText).match(/INSPECTION IS PASSED/i)) {
-          WrapperForOpencode.sessions[inspectedSessionID].inspectionStatus =
+          WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus =
             InspectionStatus.OK;
           client.app.log({
             body: {
@@ -345,7 +345,7 @@ class WrapperForOpencode {
           });
         }
         else {
-          WrapperForOpencode.sessions[inspectedSessionID].inspectionStatus =
+          WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus =
             InspectionStatus.TO_FIX;
           client.app.log({
             body: {
@@ -359,21 +359,21 @@ class WrapperForOpencode {
     );
   }
 
-  private static async isAttemptAvailable(sessionID: string): Promise<boolean> {
+  private static async isAttemptAvailable(sessionId: string): Promise<boolean> {
     // lock to avoid race conditions in multi-session client
     return await WrapperForOpencode.sessionMtx.runExclusive(() => {
-      if (WrapperForOpencode.sessions[sessionID] === undefined) {
-        WrapperForOpencode.sessions[sessionID] = {
+      if (WrapperForOpencode.sessions[sessionId] === undefined) {
+        WrapperForOpencode.sessions[sessionId] = {
           attemptCount: 1,
           inspectionStatus: InspectionStatus.NOT_INSPECTED,
           lastMessageText: undefined,
         };
       }
       else if (
-        WrapperForOpencode.sessions[sessionID].attemptCount
+        WrapperForOpencode.sessions[sessionId].attemptCount
         <= WrapperForOpencode.MAX_ATTEMPTS_FORMAL_INSPECTION_PER_SESSION
       )
-        WrapperForOpencode.sessions[sessionID].attemptCount += 1;
+        WrapperForOpencode.sessions[sessionId].attemptCount += 1;
       else
         return false;
       return true;
