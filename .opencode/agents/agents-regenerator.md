@@ -77,7 +77,7 @@ Create a multiagent system for project performance analysis and migration readin
 8. The temperature of agents must be 0.3, except `amphimixis-optimizer` which must be set to 1.
 9. Do not change the methodology, only suggest changes.
 10. Do not reference `docs/methodologies/migration-readiness-exploring-methodology.md` and `docs/methodologies/report-template.md` in the agent prompts, just add necessary information from these files.
-11. Work in current working directory, **DO NOT USE `/tmp` PATH**.
+11. Work in current working directory, **DO NOT USE `/tmp` PATH** — never use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All generated files must be in project workspace.
 12. Do not read the global configuration of Opencode (`.config/opencode/`)
 13. The more **examples**, the better.
 14. Use simple representations of information (for example do not use graph representation of logic), agent should be the most understandable for any LLM model.
