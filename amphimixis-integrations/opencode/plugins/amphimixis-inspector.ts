@@ -101,7 +101,7 @@ class WrapperForOpencode {
     if (
       msgPart.type === 'tool'
       && msgPart.tool === 'task'
-      // && String(msgPart.state.input.subagent_type).match(/^amphimixis-.*/i)
+      && String(msgPart.state.input.subagent_type).match(/^amphimixis-.*/i)
       && msgPart.state.status === 'completed'
     ) {
       const subagent = String(msgPart.state.input.subagent_type);
@@ -141,8 +141,8 @@ class WrapperForOpencode {
         }
         return WrapperForOpencode.sessions[sessionId]
           .lastMessageText
-        // && WrapperForOpencode.sessions[sessionId]
-        //   .lastMessageText.match('WORK ON THE .*? IS COMPLETED');
+          && WrapperForOpencode.sessions[sessionId]
+            .lastMessageText.match('WORK ON THE .*? IS COMPLETED');
       });
     if (
       msgPart.type === 'step-finish'
@@ -150,6 +150,7 @@ class WrapperForOpencode {
       && isWorkFinished
       && await WrapperForOpencode.isAttemptAvailable(sessionId)
     ) {
+      // 1. call LLM inspection
       await WrapperForOpencode.log(
         client,
         `inspect main task. Call Inspector for main task.`
@@ -163,6 +164,7 @@ class WrapperForOpencode {
         agent,
       );
 
+      // 2. formally inspect report content
       await WrapperForOpencode.log(
         client,
         `report content inspecting. Session=${sessionId}`,
@@ -203,7 +205,7 @@ class WrapperForOpencode {
     if (!candidate) return undefined
     if (typeof candidate === 'string') return candidate
     if (typeof candidate === 'number') return String(candidate)
-    // object like { id: "build", name: "Build" }
+    // object like { id: 'build', name: 'Build' }
     if (candidate && typeof candidate === 'object') return (candidate.id ?? candidate.name) as string | undefined
     return undefined
   }
