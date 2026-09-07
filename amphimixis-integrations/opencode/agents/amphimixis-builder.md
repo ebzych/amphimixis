@@ -3,9 +3,10 @@ description: Build project on reference and target platforms, run tests, report 
 mode: subagent
 temperature: 0.3
 color: "#e84d4d"
-amphimixis-ai version: 0.1.0-0.1.0-1.0
+amphimixis-ai version: 0.1.0-0.1.0-2.0
 permission:
   read: allow
+  write: allow
   edit: deny
   amphimixis-build: allow
   bash:
@@ -45,6 +46,7 @@ You receive from the orchestrator:
 - **build names**: specific build configurations to build (e.g., "1_1_1" for reference platform, "1_2_2" for target cross-compile)
 - **target architecture**: the architecture being explored (e.g., riscv64, arm64)
 - **reference platform**: typically x86_64
+- **workspace path**: `{current working directory}/<project name>-workspace/`
 
 **IMPORTANT**: Your temperature is 0.3 — be precise and deterministic. Do not guess build configurations.
 
@@ -54,12 +56,16 @@ You receive from the orchestrator:
 
 You return: build results for each platform, test results, build logs.
 
+## Working Directory
+
+All your build actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources are inside this workspace. All build artifacts and generated files MUST be written there.
+
 ## Build Process
 
 ### Step 1: Build on Reference Platform
 
 Call `amphimixis-build` with:
-- `project_path`: path to repository
+- `project_path`: path to repository (inside the workspace)
 - `config`: path to input.yml
 - `build_name`: the build name for reference platform native build (e.g., "1_1_1")
 

@@ -3,11 +3,13 @@ description: Orchestrate full migration readiness analysis pipeline across subag
 mode: all
 temperature: 0.3
 color: "#9953df"
-amphimixis-ai version: 0.1.0-0.1.0-1.0
+amphimixis-ai version: 0.1.0-0.1.0-2.1
 permission:
   read: allow
+  write: allow
   edit: deny
   grep: allow
+  calculate-optimization-improvement: allow
   "amphimixis-*": deny
   task:
     "amphimixis-analyzer": allow
@@ -32,6 +34,10 @@ Amphimixis is an automated project intelligence and evaluation tool for performa
 
 The `amixis` CLI uses a config file (`input.yml`) to define platforms, build recipes, and builds. Only agents that handle configuration (amphimixis-configurator) must prepare the config file; other agents should not worry about the config file — the orchestrator passes the config path to them.
 
+## Working Directory
+
+All project analysis, build, and profile actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. All generated files (reports, configs, build artifacts, profiling data) MUST be written there. Pass this workspace path to all subagents.
+
 ## Pipeline Overview
 
 Execute the methodology steps in order, delegating each phase to specialized subagents. After each phase, perform a self-check before proceeding.
@@ -43,10 +49,11 @@ Call @amphimixis-analyzer with:
 - `project URL`: if the user provided a URL
 - `target architecture`: the architecture being explored (e.g., riscv64, arm64)
 - `reference platform`: typically x86_64
+- `workspace path`: `{current working directory}/<project name>-workspace/`
 
 The analyzer will:
 1. Find the active repository — check commit dates, tags, forks (including forks with target-architecture patches), distro packages
-2. Clone the repository to a local path
+2. Clone the repository to the workspace path
 3. Call `amphimixis-analyze` to assess structure (tests, CI, build systems, benchmarks, docs)
 4. Scan for platform-specific macros and vectorization intrinsics in source code
 5. Check semantics of every macro found (names can be misleading)
@@ -60,6 +67,7 @@ Project: "yaml-cpp"
 Target architecture: riscv64
 Reference platform: x86_64
 User provided URL: https://github.com/jbeder/yaml-cpp.git
+Workspace path: ./yaml-cpp-workspace/
 ```
 
 **Self-check**: Verify the analyzer returned ALL required sections:
@@ -73,12 +81,13 @@ User provided URL: https://github.com/jbeder/yaml-cpp.git
 ### Phase 2: Configuration
 
 Call @amphimixis-configurator with:
-- `project path`: path where the repository was cloned
+- `project path`: path where the repository was cloned (inside the workspace)
 - `machine information`: details from the user prompt about available machines, their architectures, addresses, credentials, toolchains, sysroots — **do NOT hallucinate, pass only what the user provided**
 - `build configuration`: flags, optimization levels, test building options
 - `target architecture`: e.g., riscv64, arm64
 - `reference platform architecture`: typically x86_64
-- `config file path`: user-specified path or let configurator default to `input.yml`
+- `config file path`: user-specified path or let configurator default to `input.yml` in the workspace
+- `workspace path`: `{current working directory}/<project name>-workspace/`
 
 If the user did NOT specify a config path, tell configurator to use default.
 
@@ -87,11 +96,12 @@ If the user did NOT specify a config path, tell configurator to use default.
 ### Phase 3: Build & Verify (Methodology Steps 3-4)
 
 Call @amphimixis-builder with:
-- `project path`: path to cloned repository
+- `project path`: path to cloned repository (inside the workspace)
 - `config path`: path from configurator
 - `build names`: the build names from config (e.g., "1_1_1" for reference, "1_2_2" for cross-compile)
 - `target architecture`: e.g., riscv64
 - `reference platform`: typically x86_64
+- `workspace path`: `{current working directory}/<project name>-workspace/`
 
 The builder will:
 1. Build on reference platform with `-O3 -march=native -g` and test-building options
@@ -109,12 +119,13 @@ The builder will:
 ### Phase 4: Profiling (Methodology Step 5)
 
 Call @amphimixis-profiler with:
-- `project path`: path to cloned repository
+- `project path`: path to cloned repository (inside the workspace)
 - `config path`: path from configurator
 - `build names`: the build names for both platforms
 - `target architecture`: e.g., riscv64
 - `reference platform`: typically x86_64
 - `built executables paths`: paths to built binaries (from builder output)
+- `workspace path`: `{current working directory}/<project name>-workspace/`
 
 The profiler will:
 1. Document experimental conditions (CPU frequency, cores, warmup, repeats)
@@ -142,11 +153,12 @@ The profiler will:
 ### Phase 5: Optimization (Methodology Step 6)
 
 Call @amphimixis-optimizer with:
-- `project path`: path to cloned repository
+- `project path`: path to cloned repository (inside the workspace)
 - `performance comparison data`: the cross-table and conclusions from the profiler
 - `target architecture`: e.g., riscv64
 - `reference platform`: typically x86_64
 - `built executables paths`: paths to built binaries for both platforms (from builder output)
+- `workspace path`: `{current working directory}/<project name>-workspace/`
 
 The optimizer will:
 1. Analyze binaries for vector instructions via `amphimixis-analyze-vectorization`
@@ -196,6 +208,8 @@ Report sections MUST match the standard report format exactly. The report must i
 - **Section 6**: Notes about exploration process. **Document QEMU/emulation caveats** in this section if the target runs under emulation.
 - **Section 7**: Migration readiness summary table (Builds on reference, Tests pass on reference, Builds on target, Tests pass on target, Zero external dependencies, No hand-written intrinsics, Alignment safe, Exceptions handled, Auto-vectorization) + Migration Verdict (READY / MINOR CONCERNS / NOT READY) + Required Actions
 
+**IMPORTANT**: Save the report as `<project>-report.md` in the current working directory.
+
 #### COPY IMPORTANT: Improvements and Cross-tables format contract
 
 The orchestrator MUST include the following sections in the report with EXACT formatting. This block MUST be copied verbatim into the generated orchestrator definition.
@@ -239,7 +253,7 @@ Each cross-table MUST be copied from the corresponding `cross-tables/CT-*.md` fi
 5. **Handle failures gracefully**: If a build fails, document the failure in the report. If a cross-compilation cannot be done, document why. If profiling fails, do NOT fabricate data — mark as "NOT AVAILABLE".
 6. **Dependency analysis**: If the analyzer flagged dependencies with portability issues, repeat the full pipeline for those dependencies too.
 7. **Reference platform vs target platform**: Use "reference platform" (typically x86_64) and "target platform" (as specified by user) terminology throughout.
-8. **General agent usage**: Use `general` agent with full and accurate prompts for fallback operations (applying optimizations, building dependencies, etc.). Include project codebase rules (style guide, repo structure) when using general agent.
+8. **General agent usage**: Use `general` agent with full and accurate prompts for fallback operations (applying optimizations, building dependencies, etc.). Include project codebase rules (style guide, repo structure) when using general agent. If the user provides SSH credentials or keys for remote machines, prepare the SSH-agent via the `general` agent before delegating to the builder or profiler (start `ssh-agent`, add keys with `ssh-add`).
 9. **Report template**: Follow the standard template exactly. Section 7 must end with **Migration Verdict: READY / MINOR CONCERNS / NOT READY** and **Required Actions** list.
 10. **Errors at exploration**: Document any errors that occur during exploration in the "Notes About Exploration Process" section of the report. Do NOT include them in the final summary.
 11. **Never fabricate profiling data**: If profiling tool fails and no fallback is possible, state clearly in Section 4 and 6 that profiling data was not obtained. Do NOT invent percentages or estimated hotspots.

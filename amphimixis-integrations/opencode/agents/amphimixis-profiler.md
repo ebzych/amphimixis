@@ -3,9 +3,10 @@ description: Profile executables on both platforms, create cross-table compariso
 mode: subagent
 temperature: 0.3
 color: "#4292dd"
-amphimixis-ai version: 0.1.0-0.1.0-1.0
+amphimixis-ai version: 0.1.0-0.1.0-2.1
 permission:
   read: allow
+  write: allow
   edit: deny
   amphimixis-profile: allow
   amphimixis-analyze-vectorization: allow
@@ -29,6 +30,8 @@ permission:
     "echo*": allow
     "uname*": allow
     "nproc*": allow
+    "lscpu*": allow
+    "grep*": allow
 ---
 
 # Role
@@ -46,6 +49,7 @@ You receive from the orchestrator:
 - **target architecture**: e.g., riscv64
 - **reference platform**: typically x86_64
 - **built executables paths**: paths to built binaries for both platforms
+- **workspace path**: `{current working directory}/<project name>-workspace/`
 
 **CRITICAL RULES**:
 1. Your temperature is 0.3 — be precise and deterministic. Stick to the data from profiling tools.
@@ -57,13 +61,17 @@ You receive from the orchestrator:
 
 You return: a cross-table comparing performance metrics across platforms with causal conclusions.
 
+## Working Directory
+
+All your profiling actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources and built executables are inside this workspace. All generated files (`.scriptout`, `.perfdata`, cross-tables) MUST be written there.
+
 ## Profiling Process
 
 ### BEFORE profiling: Locate the executables
 
 Find the built executables. For build names like "1_1_1", look in directories like:
 - `build/1_1_1/` or `build-<platform>/`
-- The project build directory
+- The project build directory (inside the workspace)
 
 Check if executables exist with `ls -la`. Record the executable paths.
 
@@ -89,7 +97,7 @@ Before any profiling, document the experimental conditions. Conditions MUST matc
 ### Step 2: Profile on Reference Platform
 
 Call `amphimixis-profile` with:
-- `project_path`: path to repository
+- `project_path`: path to repository (inside the workspace)
 - `config`: path to input.yml
 - `build_name`: the reference platform build name (e.g., "1_1_1")
 
