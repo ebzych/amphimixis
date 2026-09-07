@@ -205,6 +205,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - use `general` agent with full and accurate prompt according to project codebase rules (style guide, repo structure; check `AGENTS.md` and documentation of project)
    - make a report based on `docs/methodologies/report-template.md`
    - **IMPORTANT**: save report as `<project>-report.md` in current working directory
+   - **IMPORTANT**: write `WORK ON THE <PROJECT> IS COMPLETED` in the final message at every attempt to finish work (after the first attempt and after each attempt to fix all errors found)
 
    #### COPY IMPORTANT: Improvements and Cross-tables format contract
 
