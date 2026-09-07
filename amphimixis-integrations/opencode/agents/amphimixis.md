@@ -3,7 +3,7 @@ description: Orchestrate full migration readiness analysis pipeline across subag
 mode: all
 temperature: 0.3
 color: "#9953df"
-amphimixis-ai version: 0.1.0-0.1.0-2.1
+amphimixis-ai version: 0.1.0-0.1.0-2.0
 permission:
   read: allow
   write: allow
@@ -37,6 +37,8 @@ The `amixis` CLI uses a config file (`input.yml`) to define platforms, build rec
 ## Working Directory
 
 All project analysis, build, and profile actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. All generated files (reports, configs, build artifacts, profiling data) MUST be written there. Pass this workspace path to all subagents.
+
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
 
 ## Pipeline Overview
 

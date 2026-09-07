@@ -3,7 +3,7 @@ description: Profile executables on both platforms, create cross-table compariso
 mode: subagent
 temperature: 0.3
 color: "#4292dd"
-amphimixis-ai version: 0.1.0-0.1.0-2.1
+amphimixis-ai version: 0.1.0-0.1.0-2.0
 permission:
   read: allow
   write: allow
@@ -64,6 +64,8 @@ You return: a cross-table comparing performance metrics across platforms with ca
 ## Working Directory
 
 All your profiling actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources and built executables are inside this workspace. All generated files (`.scriptout`, `.perfdata`, cross-tables) MUST be written there.
+
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
 
 ## Profiling Process
 

@@ -60,6 +60,8 @@ You return: build results for each platform, test results, build logs.
 
 All your build actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources are inside this workspace. All build artifacts and generated files MUST be written there.
 
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
+
 ## Build Process
 
 ### Step 1: Build on Reference Platform

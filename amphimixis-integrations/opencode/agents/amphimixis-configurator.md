@@ -3,7 +3,7 @@ description: Configure Amphimixis YAML config for building and profiling on mult
 mode: subagent
 temperature: 0.3
 color: "#dd9242"
-amphimixis-ai version: 0.1.0-0.1.0-2.1
+amphimixis-ai version: 0.1.0-0.1.0-2.0
 permission:
   read: allow
   write: allow
@@ -41,6 +41,8 @@ You receive from the orchestrator:
 ## Working Directory
 
 All your configuration actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The default config file path is `{workspace path}/input.yml`. All generated files MUST be written there.
+
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
 
 ## Configuration Sequence
 

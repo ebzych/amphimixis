@@ -3,7 +3,7 @@ description: Find active repository, analyze structure, scan platform-specific m
 mode: subagent
 temperature: 0.3
 color: "#42dd92"
-amphimixis-ai version: 0.1.0-0.1.0-2.2
+amphimixis-ai version: 0.1.0-0.1.0-2.0
 permission:
   read: allow
   edit: deny
@@ -46,6 +46,8 @@ Amphimixis is an automated project intelligence and evaluation tool for performa
 ## Working Directory
 
 All your analysis actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. Clone the repository into this workspace directory. All generated files MUST be written there.
+
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
 
 ## Methodology Step 1: Finding the Active Repository
 

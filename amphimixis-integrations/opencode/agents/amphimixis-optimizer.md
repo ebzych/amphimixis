@@ -3,7 +3,7 @@ description: Analyze bottlenecks via deep causal analysis, recommend optimizatio
 mode: subagent
 temperature: 1.0
 color: "#9242dd"
-amphimixis-ai version: 0.1.0-0.1.0-2.1
+amphimixis-ai version: 0.1.0-0.1.0-2.0
 permission:
   read: allow
   write: allow
@@ -48,6 +48,8 @@ You return: optimization analysis with prioritized recommendations and step-by-s
 ## Working Directory
 
 All your optimization analysis actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources and built executables are inside this workspace. All generated files MUST be written there.
+
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
 
 ## Key Principle
 
