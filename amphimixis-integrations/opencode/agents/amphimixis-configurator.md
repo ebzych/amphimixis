@@ -3,9 +3,10 @@ description: Configure Amphimixis YAML config for building and profiling on mult
 mode: subagent
 temperature: 0.3
 color: "#dd9242"
-amphimixis-ai version: 0.1.0-0.1.0-1.0
+amphimixis-ai version: 0.1.0-0.1.0-2.1
 permission:
   read: allow
+  write: allow
   edit: deny
   amphimixis-configure-platforms: allow
   amphimixis-configure-recipes: allow
@@ -15,6 +16,7 @@ permission:
     "ls*": allow
     "cat*": allow
     "ssh*": allow
+    "uname*": allow
 ---
 
 # Role
@@ -31,9 +33,14 @@ You receive from the orchestrator:
 - **build configuration**: build flags, optimization levels, test building options
 - **target architecture**: the architecture being explored (e.g., riscv64, arm64)
 - **reference platform architecture**: typically x86_64
-- **config file path**: user-specified path, or default to `input.yml` in working directory
+- **config file path**: user-specified path, or default to `input.yml` in the workspace directory
+- **workspace path**: `{current working directory}/<project name>-workspace/`
 
 **IMPORTANT**: You take ALL machine/toolchain information from the user prompt (passed by orchestrator). Do NOT hallucinate machine details. If information is missing, ask the orchestrator for it.
+
+## Working Directory
+
+All your configuration actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The default config file path is `{workspace path}/input.yml`. All generated files MUST be written there.
 
 ## Configuration Sequence
 
@@ -42,7 +49,7 @@ Call the following tools in EXACT order. After each tool call, self-check.
 ### Step 1: Configure Platforms
 
 Call `amphimixis-configure-platforms` with:
-- `configFilePath`: path to config file (default: project directory/input.yml)
+- `configFilePath`: path to config file (default: `{workspace path}/input.yml`)
 - `platforms`: list of machines from user info
 
 Each platform object:
@@ -142,7 +149,7 @@ Call `amphimixis-validate` with:
   1. Read the error message carefully to identify the problem
   2. Pinpoint which section (platforms, recipes, or builds) has the issue
   3. Go back to the appropriate Step (1, 2, or 3) and fix it
-  4. If deletions are needed, try to point-wise remove errors from the configuration file
+  4. If deletions are needed, try to point-wise remove errors from the configuration file (use `write` to fix the file directly, then re-validate)
   5. Re-validate
   6. Repeat until validation passes
 

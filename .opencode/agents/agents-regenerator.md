@@ -138,7 +138,7 @@ Create a multiagent system for project performance analysis and migration readin
 
 Read the following files completely:
 1. `docs/methodologies/migration-readiness-exploring-methodology.md` (the updated version)
-2. `amphimixis-integrations/opencode/agents/amphimixis-orchestrator.md`
+2. `amphimixis-integrations/opencode/agents/amphimixis.md`
 3. `amphimixis-integrations/opencode/agents/amphimixis-analyzer.md`
 4. `amphimixis-integrations/opencode/agents/amphimixis-configurator.md`
 5. `amphimixis-integrations/opencode/agents/amphimixis-builder.md`
