@@ -38,7 +38,14 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
           )
         }
 
-        await WrapperForOpencode.inspectMainSession(client, sessionId, msgPart);
+        await WrapperForOpencode.inspectMainSession(
+          client,
+          sessionId,
+          msgPart,
+          String(
+            WrapperForOpencode.getAgentFromEvent(event)
+          ),
+        );
       }
     }
   };
@@ -47,10 +54,11 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
 export default AmphimixisInspector;
 
 enum InspectionStatus {
+  NO_NEED,
   NOT_INSPECTED,
-  OK,
-  TO_FIX,
   FAILED,
+  TO_FIX,
+  OK,
 }
 
 type SessionData = {
@@ -80,8 +88,7 @@ class WrapperForOpencode {
     if (
       msgPart.type === 'tool'
       && msgPart.tool === 'task'
-      && String(msgPart.state.input.subagent_type).match(/^amphimixis-.*/i)
-      && msgPart.state.input.subagent_type !== 'amphimixis-inspector'
+      // && String(msgPart.state.input.subagent_type).match(/^amphimixis-.*/i)
       && msgPart.state.status === 'completed'
     ) {
       await client.app.log({
@@ -108,6 +115,7 @@ class WrapperForOpencode {
     client: OpencodeClient,
     sessionId: string,
     msgPart: Part,
+    agent: string,
   ) {
     const isWorkFinished = await WrapperForOpencode.sessionMtx.runExclusive(
       () => {
@@ -120,11 +128,12 @@ class WrapperForOpencode {
         }
         return WrapperForOpencode.sessions[sessionId]
           .lastMessageText
-          && WrapperForOpencode.sessions[sessionId]
-            .lastMessageText.match('WORK ON THE .*? IS COMPLETED');
+        // && WrapperForOpencode.sessions[sessionId]
+        //   .lastMessageText.match('WORK ON THE .*? IS COMPLETED');
       });
     if (
       msgPart.type === 'step-finish'
+      && agent === WrapperForOpencode.ORCHESTRATOR_AGENT_NAME
       && isWorkFinished
       && await WrapperForOpencode.isAttemptAvailable(sessionId)
     ) {
@@ -140,6 +149,7 @@ class WrapperForOpencode {
         client,
         sessionId,
         sessionId,
+        agent,
       );
 
       await client.app.log({
@@ -161,6 +171,33 @@ class WrapperForOpencode {
         );
       }
     }
+  }
+
+  static getAgentFromEvent(ev: unknown): string | undefined {
+    if (!ev || typeof ev !== "object") return undefined
+    const e = ev as Record<string, any>
+
+    // common place the runtime puts payload
+    const payload = e.data ?? e.event?.data ?? e.event ?? e
+
+    // common message/part locations that carry agent info
+    const msg = payload?.info ?? payload?.message ?? payload?.part ?? payload
+
+    // candidate agent values (order matters: prefer explicit message.agent)
+    const candidate =
+      msg?.agent ??
+      (Array.isArray(msg?.agents) ? msg.agents[0] : undefined) ??
+      msg?.request?.agent ??
+      msg?.run?.agent ??
+      msg?.metadata?.agent ??
+      payload?.agent
+
+    if (!candidate) return undefined
+    if (typeof candidate === "string") return candidate
+    if (typeof candidate === "number") return String(candidate)
+    // object like { id: "build", name: "Build" }
+    if (candidate && typeof candidate === "object") return (candidate.id ?? candidate.name) as string | undefined
+    return undefined
   }
 
   static async getAllSessionText(
@@ -249,13 +286,16 @@ class WrapperForOpencode {
     model?: string,
     provider?: string,
   ): Promise<void> {
-    const isInspected = await WrapperForOpencode.sessionMtx.runExclusive(
-      async () =>
-        inspectedSessionId in WrapperForOpencode.sessions
-        && WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus
-        === InspectionStatus.OK
+    const isNoNeedBeInspected = await WrapperForOpencode.sessionMtx.runExclusive(
+      async () => {
+        const inspectedSessionStats =
+          WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus;
+        return inspectedSessionId in WrapperForOpencode.sessions
+          && (inspectedSessionStats === InspectionStatus.OK
+            || inspectedSessionStats === InspectionStatus.NO_NEED);
+      }
     );
-    if (isInspected) {
+    if (isNoNeedBeInspected) {
       await client.app.log({
         body: {
           service: 'amphimixis-inspector',
@@ -319,6 +359,12 @@ class WrapperForOpencode {
 
     await WrapperForOpencode.sessionMtx.runExclusive(
       async () => {
+        WrapperForOpencode.sessions[String(cmdSessionId)] = {
+          attemptCount: 0,
+          inspectionStatus: InspectionStatus.NO_NEED,
+          lastMessageText: undefined,
+        };
+
         if (!(inspectedSessionId in WrapperForOpencode.sessions)) {
           WrapperForOpencode.sessions[inspectedSessionId] = {
             attemptCount: 0,
