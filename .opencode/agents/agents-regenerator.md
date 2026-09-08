@@ -245,6 +245,17 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    Where `{First build name}` and `{Second build name}` are the basenames of the compared `.scriptout` files (from `cross-tables/CT-*.md` file names).
 
    Each cross-table MUST be copied from the corresponding `cross-tables/CT-*.md` file WITHOUT ANY CHANGES — do not reorder rows, add rows, remove rows, or modify any cell values."
+
+   **COPY**: "**IMPORTANT**: You MUST NOT print or compute any numbers in the report except those directly obtained from: (a) repository analysis outputs, (b) `improvements.json`, (c) `cross-tables/CT-*.md` files, (d) `<project name>.json` or `<project name>.yaml` files. You must never perform arithmetic to derive metric values — if a number is not present in one of these sources, it must not appear in the report."
+
+   **COPY**: "**IMPORTANT**: You MUST NOT write, create, or edit any of the following files directly (via bash, edit, or any other means):
+   - `improvements.json` — written only by the `calculate-optimization-improvement` tool
+   - `<project name>.json`, `<project name>.yaml`, `<project name>.pkl` — written only by `amixis profile` / `amixis run`
+   - `cross-tables/CT-*.md` — written only by `amixis compare`
+
+   You may READ these files but never modify them. If data from these files is needed in the report, copy the content verbatim into the report — do not reconstruct or reformat it."
+
+   **COPY**: "**IMPORTANT**: You MUST NOT include raw `perf stat` output dumps in the report. The report contains only structured data: key metrics tables, hotspot tables, cross-tables, and causal analysis. Raw profiling data stays in tool output files."
 - `Amphimixis-analyzer`:
    - find the project on the Internet or continue with the path to sources in the system (**IF ONLY USER HAS SPECIFIED THE PATH**)
    - clone project (download the sources)
@@ -582,10 +593,10 @@ Verify ALL of these before considering the agent complete:
 | 12 | Optimizer includes allocator testing, toolchain alternatives, static libc separate from LTO, and executable size analysis | |
 | 13 | Analyzer includes fork analysis for target-architecture patches | |
 | 14 | Orchestrator verifies profiler data integrity before report generation | |
-| 15 | Report numbers policy: orchestrator prints no numbers except from repo analysis, improvements.json, CT-*.md, or <project>.json/.yaml (rule 25) | |
-| 16 | Tool-owned files: no agent writes improvements.json, CT-*.md, or <project>.json/.yaml/.pkl — only tools write them (rule 26) | |
+| 15 | Report numbers policy: orchestrator has the rule-25 COPY block (**IMPORTANT**: print no numbers except from repo analysis, improvements.json, CT-*.md, <project>.json/.yaml) | |
+| 16 | Tool-owned files: orchestrator has the rule-26 COPY block (**IMPORTANT**: no agent writes improvements.json, CT-*.md, <project>.json/.yaml/.pkl — only tools write them) | |
 | 17 | Matched experimental conditions documented (warmup, runs, pinning, priority, frequency) (rule 27) | |
-| 18 | No raw perf stat output in the report (rule 28) | |
+| 18 | No raw perf stat: orchestrator has the rule-28 COPY block (**IMPORTANT**: no raw perf stat dumps in report) | |
 | 19 | Improvements table: heading contains "Improvement", ≥4 columns with strict header order (Measured, Baseline value, Optimized value, Improvement %), rows verbatim from improvements.json | |
 | 20 | Cross-tables: heading contains "Cross-table", exactly 4 columns (Symbol, {First} %, {Second} %, Delta %), copied unchanged from CT-*.md | |
 | 21 | Profiler knows `amixis compare --cross-table-format markdown --events <...> --max-rows <N>` full syntax | |
@@ -628,10 +639,10 @@ Use the full self-check table (same as Step 2c):
 | 12 | Optimizer includes allocator testing, toolchain alternatives, static libc separate from LTO, and executable size analysis | |
 | 13 | Analyzer includes fork analysis for target-architecture patches | |
 | 14 | Orchestrator verifies profiler data integrity before report generation | |
-| 15 | Report numbers policy: orchestrator prints no numbers except from repo analysis, improvements.json, CT-*.md, or <project>.json/.yaml (rule 25) | |
-| 16 | Tool-owned files: no agent writes improvements.json, CT-*.md, or <project>.json/.yaml/.pkl — only tools write them (rule 26) | |
+| 15 | Report numbers policy: orchestrator has the rule-25 COPY block (**IMPORTANT**: print no numbers except from repo analysis, improvements.json, CT-*.md, <project>.json/.yaml) | |
+| 16 | Tool-owned files: orchestrator has the rule-26 COPY block (**IMPORTANT**: no agent writes improvements.json, CT-*.md, <project>.json/.yaml/.pkl — only tools write them) | |
 | 17 | Matched experimental conditions documented (warmup, runs, pinning, priority, frequency) (rule 27) | |
-| 18 | No raw perf stat output in the report (rule 28) | |
+| 18 | No raw perf stat: orchestrator has the rule-28 COPY block (**IMPORTANT**: no raw perf stat dumps in report) | |
 | 19 | Improvements table: heading contains "Improvement", ≥4 columns with strict header order, rows verbatim from improvements.json | |
 | 20 | Cross-tables: heading contains "Cross-table", exactly 4 columns, copied unchanged from CT-*.md | |
 | 21 | Profiler knows `amixis compare --cross-table-format markdown --events <...> --max-rows <N>` full syntax | |
@@ -658,10 +669,10 @@ If any check fails, fix the agent file before proceeding.
 - [ ] Files synced to deployment location (`amphimixis-integrations/opencode/agents/`)
 - [ ] Everything committed with conventional commit message
 - [ ] CI check passed (`ci/runner.sh`)
-- [ ] Report numbers policy enforced (rule 25)
-- [ ] Tool-owned files untouched by agents (rule 26)
+- [ ] Report numbers policy in orchestrator (COPY with `**IMPORTANT**` content) (rule 25)
+- [ ] Tool-owned files rule in orchestrator (COPY with `**IMPORTANT**` content) (rule 26)
 - [ ] Matched experimental conditions documented (rule 27)
-- [ ] No raw perf stat in report (rule 28)
+- [ ] No raw perf stat rule in orchestrator (COPY with `**IMPORTANT**` content) (rule 28)
 - [ ] Improvements/Cross-tables format contract included in orchestrator (COPY with `**IMPORTANT**` content)
 - [ ] Read-before-report instruction in orchestrator: reads `cross-tables/CT-*.md`, `improvements.json`, `<project>.json/.yaml`, uses them point-for-point, never modifies them (COPY with `**IMPORTANT**` content)
 - [ ] amixis compare full syntax in profiler (COPY)
