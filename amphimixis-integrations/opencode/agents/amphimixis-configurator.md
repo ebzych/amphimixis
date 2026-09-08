@@ -173,9 +173,7 @@ After `amphimixis-validate` passes, run an extended self-check:
 
 If any check fails, fix the configuration, re-validate with `amphimixis-validate`, and re-run the self-check. Repeat until all checks pass or 3 attempts are exhausted (report remaining failures to orchestrator).
 
-#### COPY IMPORTANT: qemu-system address instructions
-
-If the target platform runs under qemu-system (full system emulation), the configurator MUST obtain the QEMU VM's reachable address and write it into the platform entry's `address` field (with `username`, `password`, and `port`).
+**COPY**: "**IMPORTANT**: If the target platform runs under qemu-system (full system emulation), the configurator MUST obtain the QEMU VM's reachable address and write it into the platform entry's `address` field (with `username`, `password`, and `port`).
 
 **How to obtain the address for qemu-system**:
 
@@ -197,15 +195,13 @@ ip addr show
 ```
 Use the guest's IP as `address` and port 22 (or the SSH port configured in the guest) as `port`.
 
-**IMPORTANT**: Before writing the platform to config, verify reachability:
+**Before writing the platform to config, verify reachability**:
 ```
 ssh -o StrictHostKeyChecking=no -p <port> <username>@<address> uname -m
 ```
-The output must match the platform `arch`. If it does not match or the connection fails, DO NOT write the platform — report the issue to the orchestrator.
+The output must match the platform `arch`. If it does not match or the connection fails, DO NOT write the platform — report the issue to the orchestrator."
 
-#### COPY IMPORTANT: qemu-user executable prefix instructions
-
-If the target platform uses qemu-user mode emulation (not full system emulation), the emulator command MUST be prepended to each executable in the `executables` field of the build entry.
+**COPY**: "**IMPORTANT**: If the target platform uses qemu-user mode emulation (not full system emulation), the emulator command MUST be prepended to each executable in the `executables` field of the build entry.
 
 Example for RISC-V user-mode emulation:
 ```yaml
@@ -224,7 +220,7 @@ Common qemu-user prefixes:
 - RISC-V 64-bit: `qemu-riscv64`
 - RISC-V 32-bit: `qemu-riscv32`
 - ARM 64-bit: `qemu-aarch64`
-- ARM 32-bit: `qemu-arm`
+- ARM 32-bit: `qemu-arm`"
 
 ## Configuration Workflow Summary
 
