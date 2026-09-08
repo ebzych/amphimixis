@@ -181,9 +181,7 @@ done
 
 Use `amixis compare` in bash to create a cross-table comparison.
 
-#### COPY IMPORTANT: amixis compare full syntax
-
-Use the following command to compare two `.scriptout` files and produce a cross-table:
+**COPY**: "**IMPORTANT**: Use the following command to compare two `.scriptout` files and produce a cross-table:
 
 ```bash
 amixis compare --cross-table-format markdown --events <event1> <event2> ... --max-rows <N> <file_a.scriptout> <file_b.scriptout>
@@ -196,7 +194,7 @@ Flags:
 
 The `.scriptout` files are produced by `amphimixis-profile` (or manually — see below). Find them in the current working directory. They contain `perf script` text output with fields: `comm event ip sym dso period`.
 
-**IMPORTANT**: Specify `.scriptout` files for only ONE executable at a time. Do not mix outputs from different executables.
+**Only ONE executable at a time**: provide `.scriptout` files from a single executable — do not mix outputs from different executables.
 
 **Example**:
 ```
@@ -220,11 +218,9 @@ If `amixis compare` is not available or fails, construct the table manually from
 | Retiring | <value> | <value> | <ratio> |
 | Executable size (stripped) | <value> | <value> | <ratio> |
 
-**IMPORTANT**: The cross-table MUST include ALL of these metrics: elapsed time, IPC, L1-dcache miss rate, LLC miss rate, branch misprediction rate, Frontend Bound, Backend Bound, Retiring, and executable size (stripped). Fill ALL applicable rows. If a metric is unavailable, put "N/A" — never guess.
+**Cross-table completeness**: The cross-table MUST include ALL of these metrics: elapsed time, IPC, L1-dcache miss rate, LLC miss rate, branch misprediction rate, Frontend Bound, Backend Bound, Retiring, and executable size (stripped). Fill ALL applicable rows. If a metric is unavailable, put "N/A" — never guess."
 
-#### COPY: Manual perf pipeline recreation
-
-If `amphimixis-profile` fails, the profiler MUST recreate the perf data collection pipeline manually. The steps below reproduce exactly what `amphimixis-profile` does, producing `.scriptout` files compatible with `amixis compare`.
+**COPY**: "If `amphimixis-profile` fails, the profiler MUST recreate the perf data collection pipeline manually. The steps below reproduce exactly what `amphimixis-profile` does, producing `.scriptout` files compatible with `amixis compare`.
 
 Step 1 — perf record:
 ```bash
@@ -257,7 +253,7 @@ perf --no-pager script \
   > <build_name>_<executable_basename>.scriptout
 ```
 
-The resulting `.scriptout` file is directly usable by `amixis compare`.
+The resulting `.scriptout` file is directly usable by `amixis compare`."
 
 ### Step 5: Analyze Vectorization
 
@@ -313,9 +309,7 @@ Compare: Are the same functions hot on both platforms? If not, why?
 
 ## Remote profiling fallback
 
-#### COPY: Remote-machine instructions for profiling
-
-Amphimixis profiles on remote machines via SSH. The profiler MUST understand how this works to perform manual fallback when `amphimixis-profile` fails.
+**COPY**: "Amphimixis profiles on remote machines via SSH. The profiler MUST understand how this works to perform manual fallback when `amphimixis-profile` fails.
 
 **Prerequisites on each machine**:
 - `rsync` must be installed (for file transfer)
@@ -347,7 +341,7 @@ Copy from host to remote:
 rsync --checksum --archive --recursive --mkpath --copy-links --hard-links --compress \
   -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p <port>" \
   <local_source> <username>@<address>:<remote_path>
-```
+```"
 
 ## Return Format
 

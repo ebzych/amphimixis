@@ -191,6 +191,14 @@ Use the `calculate-optimization-improvement` tool to record improvement percenta
 
 ### Phase 7: Final Report
 
+**COPY**: "**IMPORTANT**: Before generating the report, read the following data files in the current working directory and use their data point-for-point in the report, without modifying, rewriting, or recreating any of them:
+
+- `cross-tables/CT-*.md` — present each cross-table from these files as a markdown table with the headings `Symbol`, `{First build name} %`, `{Second build name} %`, and `Delta %` in STRICT order, and copy every row from the file without any changes.
+- `improvements.json` — present each improvement as a row in a markdown table with the headings `Measured`, `Baseline value`, `Optimized value`, and `Improvement %` in STRICT order; additional columns MAY be added after these headings, but the values MUST be copied exactly as recorded.
+- `<project name>.json` or `<project name>.yaml` — present the recorded information with pretty, readable formatting.
+
+All these files are owned by the Amphimixis tools and are read-only for agents. Reflect their data in the report exactly as recorded and never write, create, or edit these files."
+
 Compile a comprehensive report covering ALL sections matching the standard report template exactly:
 
 1. **Repository & Project Status** — from analyzer output
@@ -212,9 +220,7 @@ Report sections MUST match the standard report format exactly. The report must i
 
 **IMPORTANT**: Save the report as `<project>-report.md` in the current working directory.
 
-#### COPY IMPORTANT: Improvements and Cross-tables format contract
-
-The orchestrator MUST include the following sections in the report with EXACT formatting. This block MUST be copied verbatim into the generated orchestrator definition.
+**COPY**: "**IMPORTANT**: The orchestrator MUST include the following sections in the report with EXACT formatting. This block MUST be copied verbatim into the generated orchestrator definition.
 
 **Improvements section**:
 
@@ -244,7 +250,7 @@ Where `{First build name}` and `{Second build name}` are the basenames of the co
 
 Each cross-table MUST be copied from the corresponding `cross-tables/CT-*.md` file WITHOUT ANY CHANGES — do not reorder rows, add rows, remove rows, or modify any cell values.
 
-**Self-check**: Verify the report template matches section-by-section. Check that Section 7 includes the Migration Verdict and Required Actions.
+**Self-check**: Verify the report template matches section-by-section. Check that Section 7 includes the Migration Verdict and Required Actions."
 
 ## Important Rules
 
@@ -261,19 +267,13 @@ Each cross-table MUST be copied from the corresponding `cross-tables/CT-*.md` fi
 11. **Never fabricate profiling data**: If profiling tool fails and no fallback is possible, state clearly in Section 4 and 6 that profiling data was not obtained. Do NOT invent percentages or estimated hotspots.
 12. **QEMU/emulation caveats**: If the target runs under emulation (QEMU), document in both Section 4 and Section 6 that timing includes emulation overhead and may not reflect native hardware performance.
 
-#### COPY IMPORTANT: Report numbers policy (rule 25)
+**COPY**: "**IMPORTANT**: You MUST NOT print or compute any numbers in the report except those directly obtained from: (a) repository analysis outputs, (b) `improvements.json`, (c) `cross-tables/CT-*.md` files, (d) `<project name>.json` or `<project name>.yaml` files. You must never perform arithmetic to derive metric values — if a number is not present in one of these sources, it must not appear in the report."
 
-You MUST NOT print or compute any numbers in the report except those directly obtained from: (a) repository analysis outputs, (b) `improvements.json`, (c) `cross-tables/CT-*.md` files, (d) `<project name>.json` or `<project name>.yaml` files. You must never perform arithmetic to derive metric values — if a number is not present in one of these sources, it must not appear in the report.
-
-#### COPY IMPORTANT: Tool-owned files — read-only for agents (rule 26)
-
-You MUST NOT write, create, or edit any of the following files directly (via bash, edit, or any other means):
+**COPY**: "**IMPORTANT**: You MUST NOT write, create, or edit any of the following files directly (via bash, edit, or any other means):
 - `improvements.json` — written only by the `calculate-optimization-improvement` tool
 - `<project name>.json`, `<project name>.yaml`, `<project name>.pkl` — written only by `amixis profile` / `amixis run`
 - `cross-tables/CT-*.md` — written only by `amixis compare`
 
-You may READ these files but never modify them. If data from these files is needed in the report, copy the content verbatim into the report — do not reconstruct or reformat it.
+You may READ these files but never modify them. If data from these files is needed in the report, copy the content verbatim into the report — do not reconstruct or reformat it."
 
-#### COPY IMPORTANT: No raw perf stat output in report (rule 28)
-
-You MUST NOT include raw `perf stat` output dumps in the report. The report contains only structured data: key metrics tables, hotspot tables, cross-tables, and causal analysis. Raw profiling data stays in tool output files.
+**COPY**: "**IMPORTANT**: You MUST NOT include raw `perf stat` output dumps in the report. The report contains only structured data: key metrics tables, hotspot tables, cross-tables, and causal analysis. Raw profiling data stays in tool output files."
