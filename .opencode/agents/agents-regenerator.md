@@ -27,10 +27,26 @@ You have two scenarios to process: correction of agents on expert feedback and r
 
 # Terminology for this agent
 
-When generating agent definitions, use the following marker to indicate copy operations:
+The `**COPY**` marker is used ONLY in this file (the regeneration pipeline source). It must NEVER appear in generated agent definitions — into a generated agent you copy ONLY the CONTENT of a `**COPY**` block.
 
-- **`COPY`** — fully copy the marked block from this file into the generated agent definition without changes or truncation. Use for instructions, command examples, data tables, and procedural steps that must appear verbatim.
-- A **`COPY`** block whose content begins with `**IMPORTANT**:` is a critical invariant: in the generated agent, the leading `**IMPORTANT**` label must scope all the instruction content of the block. Use for critical invariants that must never be lost or paraphrased during generation.
+- **`COPY`** — a quoted block delimited as `**COPY**: """` ... `"""`. When generating agents, copy ONLY the content between the delimiters into the agent definition: verbatim, without changes or truncation, and WITHOUT the `**COPY**: """` opener, the closing `"""`, or any other wrapper. Use for instructions, command examples, data tables, and procedural steps that must appear verbatim.
+- A **`COPY`** block whose content begins with `**IMPORTANT**:` is a critical invariant: the leading `**IMPORTANT**` label is part of the copied content and must scope all of the block's content in the generated agent. Use for critical invariants that must never be lost or paraphrased during generation.
+
+Example — the source block:
+
+```
+   **COPY**: """
+   **IMPORTANT**: Never fabricate profiling data.
+   Follow the numbered steps.
+   """
+```
+
+...must become, in the generated agent:
+
+```
+   **IMPORTANT**: Never fabricate profiling data.
+   Follow the numbered steps.
+```
 
 Apply this marker to: report template sections, anti-fabrication rules, experimental rigor blocks, remote-machine instructions, table format contracts, and any other content that must survive generation without semantic drift.
 
@@ -219,7 +235,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    """
 
    **COPY**: """
-   **IMPORTANT**: The orchestrator MUST include the following sections in the report with EXACT formatting. This block MUST be copied verbatim into the generated orchestrator definition.
+   **IMPORTANT**: The orchestrator MUST include the following sections in the report with EXACT formatting.
 
    **Improvements section**:
 
@@ -617,21 +633,22 @@ Verify ALL of these before considering the agent complete:
 | 12 | Optimizer includes allocator testing, toolchain alternatives, static libc separate from LTO, and executable size analysis | |
 | 13 | Analyzer includes fork analysis for target-architecture patches | |
 | 14 | Orchestrator verifies profiler data integrity before report generation | |
-| 15 | Report numbers policy: orchestrator has the rule-25 COPY block (**IMPORTANT**: print no numbers except from repo analysis, improvements.json, CT-*.md, <project>.json/.yaml) | |
-| 16 | Tool-owned files: orchestrator has the rule-26 COPY block (**IMPORTANT**: no agent writes improvements.json, CT-*.md, <project>.json/.yaml/.pkl — only tools write them) | |
+| 15 | Report numbers policy present in orchestrator (copied from COPY block: print no numbers except from repo analysis, improvements.json, CT-*.md, <project>.json/.yaml) | |
+| 16 | Tool-owned files rule present in orchestrator (copied from COPY block: no agent writes improvements.json, CT-*.md, <project>.json/.yaml/.pkl — only tools write them) | |
 | 17 | Matched experimental conditions documented (warmup, runs, pinning, priority, frequency) (rule 27) | |
-| 18 | No raw perf stat: orchestrator has the rule-28 COPY block (**IMPORTANT**: no raw perf stat dumps in report) | |
+| 18 | No raw perf stat rule present in orchestrator (copied from COPY block: no raw perf stat dumps in report) | |
 | 19 | Improvements table: heading contains "Improvement", ≥4 columns with strict header order (Measured, Baseline value, Optimized value, Improvement %), rows verbatim from improvements.json | |
 | 20 | Cross-tables: heading contains "Cross-table", exactly 4 columns (Symbol, {First} %, {Second} %, Delta %), copied unchanged from CT-*.md | |
 | 21 | Profiler knows `amixis compare --cross-table-format markdown --events <...> --max-rows <N>` full syntax | |
 | 22 | Profiler has manual perf record→archive→script pipeline recreation instructions | |
 | 23 | Builder has build-fix casual-loop (max 3 attempts) | |
-| 24 | Builder and profiler have COPY remote-machine instructions (ssh/rsync/ssh-agent/sshpass) | |
+| 24 | Builder and profiler have remote-machine instructions (copied from COPY block: ssh/rsync/ssh-agent/sshpass) | |
 | 25 | Configurator has qemu-system address instructions (hostfwd + bridged/TAP) | |
 | 26 | Configurator has qemu-user prefix rule (`qemu-riscv64 <executable>`) | |
 | 27 | Configurator has self-check-loop after amphimixis-validate (9 semantic checks) | |
 | 28 | `amphimixis-ai version` present, format `<maj>.<min>.<patch>-<maj>.<min>.<patch>-<maj>.<patch>`, segments 1–2 synced to methodology + regeneration-pipeline versions, segment 3 reset to `1.0` on source change and otherwise bumped per policy (rule 29) | |
-| 29 | Orchestrator has the read-before-report COPY block (reads `cross-tables/CT-*.md`, `improvements.json`, `<project>.json/.yaml`, uses them point-for-point, never modifies them) | |
+| 29 | Read-before-report instruction present in orchestrator (copied from COPY block: reads `cross-tables/CT-*.md`, `improvements.json`, `<project>.json/.yaml`, uses them point-for-point, never modifies them) | |
+| 30 | No `**COPY**` marker appears in any generated agent definition (markers live only in agents-regenerator.md) | |
 
 If any check fails, fix the agent file before proceeding.
 
@@ -663,21 +680,22 @@ Use the full self-check table (same as Step 2c):
 | 12 | Optimizer includes allocator testing, toolchain alternatives, static libc separate from LTO, and executable size analysis | |
 | 13 | Analyzer includes fork analysis for target-architecture patches | |
 | 14 | Orchestrator verifies profiler data integrity before report generation | |
-| 15 | Report numbers policy: orchestrator has the rule-25 COPY block (**IMPORTANT**: print no numbers except from repo analysis, improvements.json, CT-*.md, <project>.json/.yaml) | |
-| 16 | Tool-owned files: orchestrator has the rule-26 COPY block (**IMPORTANT**: no agent writes improvements.json, CT-*.md, <project>.json/.yaml/.pkl — only tools write them) | |
+| 15 | Report numbers policy present in orchestrator (copied from COPY block: print no numbers except from repo analysis, improvements.json, CT-*.md, <project>.json/.yaml) | |
+| 16 | Tool-owned files rule present in orchestrator (copied from COPY block: no agent writes improvements.json, CT-*.md, <project>.json/.yaml/.pkl — only tools write them) | |
 | 17 | Matched experimental conditions documented (warmup, runs, pinning, priority, frequency) (rule 27) | |
-| 18 | No raw perf stat: orchestrator has the rule-28 COPY block (**IMPORTANT**: no raw perf stat dumps in report) | |
+| 18 | No raw perf stat rule present in orchestrator (copied from COPY block: no raw perf stat dumps in report) | |
 | 19 | Improvements table: heading contains "Improvement", ≥4 columns with strict header order, rows verbatim from improvements.json | |
 | 20 | Cross-tables: heading contains "Cross-table", exactly 4 columns, copied unchanged from CT-*.md | |
 | 21 | Profiler knows `amixis compare --cross-table-format markdown --events <...> --max-rows <N>` full syntax | |
 | 22 | Profiler has manual perf record→archive→script pipeline recreation instructions | |
 | 23 | Builder has build-fix casual-loop (max 3 attempts) | |
-| 24 | Builder and profiler have COPY remote-machine instructions (ssh/rsync/ssh-agent/sshpass) | |
+| 24 | Builder and profiler have remote-machine instructions (copied from COPY block: ssh/rsync/ssh-agent/sshpass) | |
 | 25 | Configurator has qemu-system address instructions (hostfwd + bridged/TAP) | |
 | 26 | Configurator has qemu-user prefix rule (`qemu-riscv64 <executable>`) | |
 | 27 | Configurator has self-check-loop after amphimixis-validate (9 semantic checks) | |
 | 28 | `amphimixis-ai version` present, format `<maj>.<min>.<patch>-<maj>.<min>.<patch>-<maj>.<patch>`, segments 1–2 synced to methodology + regeneration-pipeline versions, segment 3 reset to `1.0` on source change and otherwise bumped per policy (rule 29) | |
-| 29 | Orchestrator has the read-before-report COPY block (reads `cross-tables/CT-*.md`, `improvements.json`, `<project>.json/.yaml`, uses them point-for-point, never modifies them) | |
+| 29 | Read-before-report instruction present in orchestrator (copied from COPY block: reads `cross-tables/CT-*.md`, `improvements.json`, `<project>.json/.yaml`, uses them point-for-point, never modifies them) | |
+| 30 | No `**COPY**` marker appears in any generated agent definition (markers live only in agents-regenerator.md) | |
 
 If any check fails, fix the agent file before proceeding.
 
@@ -693,17 +711,18 @@ If any check fails, fix the agent file before proceeding.
 - [ ] Files synced to deployment location (`amphimixis-integrations/opencode/agents/`)
 - [ ] Everything committed with conventional commit message
 - [ ] CI check passed (`ci/runner.sh`)
-- [ ] Report numbers policy in orchestrator (COPY with `**IMPORTANT**` content) (rule 25)
-- [ ] Tool-owned files rule in orchestrator (COPY with `**IMPORTANT**` content) (rule 26)
+- [ ] Report numbers policy in orchestrator (content copied from COPY block) (rule 25)
+- [ ] Tool-owned files rule in orchestrator (content copied from COPY block) (rule 26)
 - [ ] Matched experimental conditions documented (rule 27)
-- [ ] No raw perf stat rule in orchestrator (COPY with `**IMPORTANT**` content) (rule 28)
-- [ ] Improvements/Cross-tables format contract included in orchestrator (COPY with `**IMPORTANT**` content)
-- [ ] Read-before-report instruction in orchestrator: reads `cross-tables/CT-*.md`, `improvements.json`, `<project>.json/.yaml`, uses them point-for-point, never modifies them (COPY with `**IMPORTANT**` content)
-- [ ] amixis compare full syntax in profiler (COPY)
-- [ ] Manual perf pipeline in profiler (COPY)
-- [ ] Remote-machine instructions in builder and profiler (COPY)
+- [ ] No raw perf stat rule in orchestrator (content copied from COPY block) (rule 28)
+- [ ] Improvements/Cross-tables format contract included in orchestrator (content copied from COPY block)
+- [ ] Read-before-report instruction in orchestrator: reads `cross-tables/CT-*.md`, `improvements.json`, `<project>.json/.yaml`, uses them point-for-point, never modifies them (content copied from COPY block)
+- [ ] amixis compare full syntax in profiler (content copied from COPY block)
+- [ ] Manual perf pipeline in profiler (content copied from COPY block)
+- [ ] Remote-machine instructions in builder and profiler (content copied from COPY block)
 - [ ] Build-fix casual-loop in builder (max 3 attempts)
-- [ ] qemu-system address instructions in configurator (COPY with `**IMPORTANT**` content)
-- [ ] qemu-user prefix rule in configurator (COPY with `**IMPORTANT**` content)
+- [ ] qemu-system address instructions in configurator (content copied from COPY block)
+- [ ] qemu-user prefix rule in configurator (content copied from COPY block)
+- [ ] No `**COPY**` marker in any generated agent definition (markers live only in agents-regenerator.md)
 - [ ] Configurator self-check-loop (9 semantic checks)
 - [ ] `amphimixis-ai version` present in every generated agent, following format `<maj>.<min>.<patch>-<maj>.<min>.<patch>-<maj>.<patch>` with segments 1–2 synced to methodology + regeneration-pipeline versions and segment 3 bumped/reset per rule 29
