@@ -208,15 +208,18 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - **IMPORTANT**: save report as `<project>-report.md` in current working directory
    - **IMPORTANT**: write `WORK ON THE <PROJECT> IS COMPLETED` in the final message at every attempt to finish work (after the first attempt and after each attempt to fix all errors found)
 
-   **COPY**: "**IMPORTANT**: Before generating the report, read the following data files in the current working directory and use their data point-for-point in the report, without modifying, rewriting, or recreating any of them:
+   **COPY**: """
+   **IMPORTANT**: Before generating the report, read the following data files in the current working directory and use their data point-for-point in the report, without modifying, rewriting, or recreating any of them:
 
    - `cross-tables/CT-*.md` — present each cross-table from these files as a markdown table with the headings `Symbol`, `{First build name} %`, `{Second build name} %`, and `Delta %` in STRICT order, and copy every row from the file without any changes.
    - `improvements.json` — present each improvement as a row in a markdown table with the headings `Measured`, `Baseline value`, `Optimized value`, and `Improvement %` in STRICT order; additional columns MAY be added after these headings, but the values MUST be copied exactly as recorded.
    - `<project name>.json` or `<project name>.yaml` — present the recorded information with pretty, readable formatting.
 
-   All these files are owned by the Amphimixis tools and are read-only for agents. Reflect their data in the report exactly as recorded and never write, create, or edit these files."
+   All these files are owned by the Amphimixis tools and are read-only for agents. Reflect their data in the report exactly as recorded and never write, create, or edit these files.
+   """
 
-   **COPY**: "**IMPORTANT**: The orchestrator MUST include the following sections in the report with EXACT formatting. This block MUST be copied verbatim into the generated orchestrator definition.
+   **COPY**: """
+   **IMPORTANT**: The orchestrator MUST include the following sections in the report with EXACT formatting. This block MUST be copied verbatim into the generated orchestrator definition.
 
    **Improvements section**:
 
@@ -244,18 +247,25 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    ```
    Where `{First build name}` and `{Second build name}` are the basenames of the compared `.scriptout` files (from `cross-tables/CT-*.md` file names).
 
-   Each cross-table MUST be copied from the corresponding `cross-tables/CT-*.md` file WITHOUT ANY CHANGES — do not reorder rows, add rows, remove rows, or modify any cell values."
+   Each cross-table MUST be copied from the corresponding `cross-tables/CT-*.md` file WITHOUT ANY CHANGES — do not reorder rows, add rows, remove rows, or modify any cell values.
+   """
 
-   **COPY**: "**IMPORTANT**: You MUST NOT print or compute any numbers in the report except those directly obtained from: (a) repository analysis outputs, (b) `improvements.json`, (c) `cross-tables/CT-*.md` files, (d) `<project name>.json` or `<project name>.yaml` files. You must never perform arithmetic to derive metric values — if a number is not present in one of these sources, it must not appear in the report."
+   **COPY**: """
+   **IMPORTANT**: You MUST NOT print or compute any numbers in the report except those directly obtained from: (a) repository analysis outputs, (b) `improvements.json`, (c) `cross-tables/CT-*.md` files, (d) `<project name>.json` or `<project name>.yaml` files. You must never perform arithmetic to derive metric values — if a number is not present in one of these sources, it must not appear in the report.
+   """
 
-   **COPY**: "**IMPORTANT**: You MUST NOT write, create, or edit any of the following files directly (via bash, edit, or any other means):
+   **COPY**: """
+   **IMPORTANT**: You MUST NOT write, create, or edit any of the following files directly (via bash, edit, or any other means):
    - `improvements.json` — written only by the `calculate-optimization-improvement` tool
    - `<project name>.json`, `<project name>.yaml`, `<project name>.pkl` — written only by `amixis profile` / `amixis run`
    - `cross-tables/CT-*.md` — written only by `amixis compare`
 
-   You may READ these files but never modify them. If data from these files is needed in the report, copy the content verbatim into the report — do not reconstruct or reformat it."
+   You may READ these files but never modify them. If data from these files is needed in the report, copy the content verbatim into the report — do not reconstruct or reformat it.
+   """
 
-   **COPY**: "**IMPORTANT**: You MUST NOT include raw `perf stat` output dumps in the report. The report contains only structured data: key metrics tables, hotspot tables, cross-tables, and causal analysis. Raw profiling data stays in tool output files."
+   **COPY**: """
+   **IMPORTANT**: You MUST NOT include raw `perf stat` output dumps in the report. The report contains only structured data: key metrics tables, hotspot tables, cross-tables, and causal analysis. Raw profiling data stays in tool output files.
+   """
 - `Amphimixis-analyzer`:
    - find the project on the Internet or continue with the path to sources in the system (**IF ONLY USER HAS SPECIFIED THE PATH**)
    - clone project (download the sources)
@@ -293,7 +303,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - verify the configuration after configuring
    - return configuration and path to config file
 
-   **COPY**: "**IMPORTANT**: If the target platform runs under qemu-system (full system emulation), the configurator MUST obtain the QEMU VM's reachable address and write it into the platform entry's `address` field (with `username`, `password`, and `port`).
+   **COPY**: """
+   **IMPORTANT**: If the target platform runs under qemu-system (full system emulation), the configurator MUST obtain the QEMU VM's reachable address and write it into the platform entry's `address` field (with `username`, `password`, and `port`).
 
    **How to obtain the address for qemu-system**:
 
@@ -319,9 +330,11 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    ```
    ssh -o StrictHostKeyChecking=no -p <port> <username>@<address> uname -m
    ```
-   The output must match the platform `arch`. If it does not match or the connection fails, DO NOT write the platform — report the issue to the orchestrator."
+   The output must match the platform `arch`. If it does not match or the connection fails, DO NOT write the platform — report the issue to the orchestrator.
+   """
 
-   **COPY**: "**IMPORTANT**: If the target platform uses qemu-user mode emulation (not full system emulation), the emulator command MUST be prepended to each executable in the `executables` field of the build entry.
+   **COPY**: """
+   **IMPORTANT**: If the target platform uses qemu-user mode emulation (not full system emulation), the emulator command MUST be prepended to each executable in the `executables` field of the build entry.
 
    Example for RISC-V user-mode emulation:
    ```yaml
@@ -340,7 +353,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - RISC-V 64-bit: `qemu-riscv64`
    - RISC-V 32-bit: `qemu-riscv32`
    - ARM 64-bit: `qemu-aarch64`
-   - ARM 32-bit: `qemu-arm`"
+   - ARM 32-bit: `qemu-arm`
+   """
 
    #### Self-check-loop: validate config correctness
 
@@ -369,7 +383,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
      3. check the order of commands for correctness and compliance with the documentation, fix as necessary
      4. run command in bash
 
-   **COPY**: "**IMPORTANT**: If `amphimixis-build` fails, the builder MUST attempt to fix the error and retry. Use the following loop (maximum 3 attempts per build):
+   **COPY**: """
+   **IMPORTANT**: If `amphimixis-build` fails, the builder MUST attempt to fix the error and retry. Use the following loop (maximum 3 attempts per build):
 
    1. **Read error**: capture and classify the build failure (missing dependency, wrong flag, missing test option, toolchain issue, CMake/Make error, source incompatibility).
    2. **Consult documentation**: check README, BUILDING.md, INSTALL, CMakeLists.txt options, or project issues for the correct build procedure.
@@ -383,9 +398,11 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    - Mark the build as FAILED with a clear root-cause summary
    - Continue the pipeline with the remaining builds (do not abort the entire pipeline)
 
-   **The builder MUST NOT claim a build succeeded when it did not. Every fix attempt must be logged.**"
+   **The builder MUST NOT claim a build succeeded when it did not. Every fix attempt must be logged.**
+   """
 
-   **COPY**: "Amphimixis builds on remote machines via SSH. The builder MUST understand how this works to perform manual fallback when `amphimixis-build` fails.
+   **COPY**: """
+   Amphimixis builds on remote machines via SSH. The builder MUST understand how this works to perform manual fallback when `amphimixis-build` fails.
 
    **Prerequisites on each machine**:
    - `rsync` must be installed (for file transfer)
@@ -410,7 +427,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
      /local/source/path/ <username>@<address>:~/amphimixis/<project_name>/
    ```
 
-   For password-based auth, prepend `sshpass -p <password>` before `rsync`."
+   For password-based auth, prepend `sshpass -p <password>` before `rsync`.
+   """
  - `Amphimixis-profiler`:
     - call the `amphimixis-profile` tool
     - **CRITICAL: NEVER fabricate profiling data**. If `amphimixis-profile` fails, attempt manual fallback. If manual fallback fails, mark data as "NOT AVAILABLE". Any reconstructed data must be explicitly labeled "RECONSTRUCTED (not measured)".
@@ -431,7 +449,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
     - if profiling data is unavailable, do NOT estimate or invent — write "NOT AVAILABLE"
     - return the cross-table and conclusions
 
-   **COPY**: "**IMPORTANT**: Use the following command to compare two `.scriptout` files and produce a cross-table:
+   **COPY**: """
+   **IMPORTANT**: Use the following command to compare two `.scriptout` files and produce a cross-table:
 
    ```bash
    amixis compare --cross-table-format markdown --events <event1> <event2> ... --max-rows <N> <file_a.scriptout> <file_b.scriptout>
@@ -444,9 +463,11 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
 
    The `.scriptout` files are produced by `amphimixis-profile` (or manually — see below). Find them in the current working directory. They contain `perf script` text output with fields: `comm event ip sym dso period`.
 
-   **Only ONE executable at a time**: provide `.scriptout` files from a single executable — do not mix outputs from different executables."
+   **Only ONE executable at a time**: provide `.scriptout` files from a single executable — do not mix outputs from different executables.
+   """
 
-   **COPY**: "If `amphimixis-profile` fails, the profiler MUST recreate the perf data collection pipeline manually. The steps below reproduce exactly what `amphimixis-profile` does, producing `.scriptout` files compatible with `amixis compare`.
+   **COPY**: """
+   If `amphimixis-profile` fails, the profiler MUST recreate the perf data collection pipeline manually. The steps below reproduce exactly what `amphimixis-profile` does, producing `.scriptout` files compatible with `amixis compare`.
 
    Step 1 — perf record:
    ```bash
@@ -479,9 +500,11 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
      > <build_name>_<executable_basename>.scriptout
    ```
 
-   The resulting `.scriptout` file is directly usable by `amixis compare`."
+   The resulting `.scriptout` file is directly usable by `amixis compare`.
+   """
 
-   **COPY**: "Amphimixis profiles on remote machines via SSH. The profiler MUST understand how this works to perform manual fallback when `amphimixis-profile` fails.
+   **COPY**: """
+   Amphimixis profiles on remote machines via SSH. The profiler MUST understand how this works to perform manual fallback when `amphimixis-profile` fails.
 
    **Prerequisites on each machine**:
    - `rsync` must be installed (for file transfer)
@@ -513,7 +536,8 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    rsync --checksum --archive --recursive --mkpath --copy-links --hard-links --compress \
      -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p <port>" \
      <local_source> <username>@<address>:<remote_path>
-   ```"
+   ```
+   """
  - `Amphimixis-optimizer`:
     - try to understand problem from cross-table (**IMPORTANT**: the `amphimixis-orchestrator` must pass it to him)
     - **IMPORTANT**: need the deep analysis "why", not just "what"
