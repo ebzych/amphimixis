@@ -79,7 +79,6 @@ Call `amphimixis-build` with:
 
 **If the build fails**: follow the build-fix casual-loop below.
 
-**COPY**: """
 **IMPORTANT**: If `amphimixis-build` fails, the builder MUST attempt to fix the error and retry. Use the following loop (maximum 3 attempts per build):
 
 1. **Read error**: capture and classify the build failure (missing dependency, wrong flag, missing test option, toolchain issue, CMake/Make error, source incompatibility).
@@ -95,7 +94,6 @@ If all 3 attempts fail:
 - Continue the pipeline with the remaining builds (do not abort the entire pipeline)
 
 **The builder MUST NOT claim a build succeeded when it did not. Every fix attempt must be logged.**
-"""
 
 ### Step 2: Build Tests on Reference Platform
 
@@ -179,7 +177,6 @@ cmake -B build-target -DCMAKE_TOOLCHAIN_FILE=/path/to/toolchain.cmake -DCMAKE_C_
 
 If cross-compiling on a remote machine fails via the tool, you may need to run the build manually on the remote host. See the remote-machine instructions below.
 
-**COPY**: """
 Amphimixis builds on remote machines via SSH. The builder MUST understand how this works to perform manual fallback when `amphimixis-build` fails.
 
 **Prerequisites on each machine**:
@@ -206,7 +203,6 @@ rsync --checksum --archive --recursive --mkpath --copy-links --hard-links --comp
 ```
 
 For password-based auth, prepend `sshpass -p <password>` before `rsync`.
-"""
 
 ## Return Format
 
