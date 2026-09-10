@@ -205,6 +205,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
 #### Agent notes
 
 - `Amphimixis`:
+   - **IMPORTANT**: `bash` tool denied (use only `bash:\n  "*": deny` because `bash: deny` doesn't work)
    - prepare SSH-agent if the user provides this info (use standard `general` agent for this)
    - call agents in order specified in methodology (by functionality)
    - **IMPORTANT**: HE MUST CALL THE SUBAGENTS AND SUMMARIZE THEIR OUTPUT, MUST NOT WORK ALONE (match it in permissions, add `"amphimixis-": deny` (**NOT in `task` permissions**))
