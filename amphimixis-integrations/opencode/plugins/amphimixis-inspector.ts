@@ -12,13 +12,13 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
   );
   return {
     event: async ({ event }) => {
+      let agent = WrapperForOpencode.getAgentFromEvent(event);
+
       if (event.type === 'message.part.updated') {
         const msgPart = event.properties.part;
         const sessionId = msgPart.sessionID;
 
-        await WrapperForOpencode.inspectSubtaskSession(client, sessionId, msgPart);
-
-        if (msgPart.type === 'text') {
+        if (msgPart.type === 'text' || agent) {
           await WrapperForOpencode.sessionMtx.runExclusive(
             async () => {
               if (!(sessionId in WrapperForOpencode.sessions)) {
@@ -27,21 +27,33 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
                   attemptCount: 0,
                   inspectionStatus: InspectionStatus.NOT_INSPECTED,
                   lastMessageText: undefined,
+                  lastUsedAgent: agent,
                 };
               }
-              WrapperForOpencode.sessions[sessionId]
-                .lastMessageText = msgPart.text;
+              if (msgPart.type === 'text') {
+                WrapperForOpencode.sessions[sessionId]
+                  .lastMessageText = msgPart.text;
+              }
+              if (agent) {
+                WrapperForOpencode.sessions[sessionId]
+                  .lastUsedAgent = agent;
+              }
             }
-          )
+          );
         }
 
+        if (!agent) {
+          await WrapperForOpencode.sessionMtx.runExclusive(async () => {
+            agent = WrapperForOpencode.sessions[sessionId].lastUsedAgent;
+          });
+        }
+
+        await WrapperForOpencode.inspectSubtaskSession(client, sessionId, msgPart);
         await WrapperForOpencode.inspectMainSession(
           client,
           sessionId,
           msgPart,
-          String(
-            WrapperForOpencode.getAgentFromEvent(event)
-          ),
+          String(agent),
         );
       }
     }
@@ -63,6 +75,7 @@ type SessionData = {
   inspectionStatus: InspectionStatus,
   lastMessageText: string | undefined,
   parent?: string,
+  lastUsedAgent?: string | undefined,
 }
 
 class WrapperForOpencode {
@@ -187,15 +200,24 @@ class WrapperForOpencode {
     if (!ev || typeof ev !== 'object') return undefined
     const e = ev as Record<string, any>
 
-    // common place the runtime puts payload
-    const payload = e.data ?? e.event?.data ?? e.event ?? e
+    // V1 API: EventMessageUpdated structure
+    const info = e?.properties?.info
 
-    // common message/part locations that carry agent info
+    if (info) {
+      // V1 UserMessage has agent field
+      if (typeof info.agent === 'string') return info.agent
+
+      // V1 AssistantMessage uses 'mode' instead of 'agent'
+      if (typeof info.mode === 'string') return info.mode
+    }
+
+    // Fallback for other event types or structures
+    const payload = e.data ?? e.event?.data ?? e.event ?? e
     const msg = payload?.info ?? payload?.message ?? payload?.part ?? payload
 
-    // candidate agent values (order matters: prefer explicit message.agent)
     const candidate =
       msg?.agent ??
+      msg?.mode ??  // V1 uses 'mode' for assistant messages
       (Array.isArray(msg?.agents) ? msg.agents[0] : undefined) ??
       msg?.request?.agent ??
       msg?.run?.agent ??
@@ -205,8 +227,9 @@ class WrapperForOpencode {
     if (!candidate) return undefined
     if (typeof candidate === 'string') return candidate
     if (typeof candidate === 'number') return String(candidate)
-    // object like { id: 'build', name: 'Build' }
-    if (candidate && typeof candidate === 'object') return (candidate.id ?? candidate.name) as string | undefined
+    if (candidate && typeof candidate === 'object')
+      return (candidate.id ?? candidate.name) as string | undefined
+
     return undefined
   }
 
@@ -292,7 +315,8 @@ class WrapperForOpencode {
     client: OpencodeClient,
     sessionId: string,
     inspectedSessionId: string,
-    sessionAgent: string | undefined = undefined,
+    inspectedAgent: string | undefined = undefined,
+    agent: string | undefined = WrapperForOpencode.ORCHESTRATOR_AGENT_NAME,
     model?: string,
     provider?: string,
   ): Promise<void> {
@@ -320,7 +344,7 @@ class WrapperForOpencode {
     );
     writeFileSync(
       '.inspected-session',
-      `# Agent: ${sessionAgent}\n\n${String(output)}`,
+      `# Agent: ${inspectedAgent}\n\n${String(output)}`,
       'utf-8'
     );
 
@@ -333,6 +357,7 @@ class WrapperForOpencode {
       {
         command: 'amphimixis-inspect-session',
         arguments: '',
+        agent: agent,
       },
     };
 
@@ -352,7 +377,7 @@ class WrapperForOpencode {
     await WrapperForOpencode.log(
       client,
       `run command amphimixis-inspect-session. Session=${sessionId},`
-      + ` inspectedSession=${inspectedSessionId}, agent=${sessionAgent}`,
+      + ` inspectedSession=${inspectedSessionId}, agent=${inspectedAgent}`,
     );
     const cmdSessionId = (await client.session.command(commandData))
       .data?.info.sessionID;
