@@ -9,6 +9,8 @@ permission:
   write: allow
   edit: deny
   grep: allow
+  bash:
+    "*": deny
   calculate-optimization-improvement: allow
   "amphimixis-*": deny
   task:
