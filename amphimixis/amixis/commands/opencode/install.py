@@ -4,13 +4,11 @@ import shutil
 import string
 import subprocess
 from inspect import stack
-from os import environ
 from pathlib import Path
 
-from amphimixis.amixis.commands.opencode._package_utils import (
+from amphimixis.amixis.commands.opencode._utils import (
+    get_opencode_config_dir_path,
     is_package_declared,
-    load_package,
-    save_package,
 )
 
 INSPECTOR_GENERAL_NAME = "inspector_general"
@@ -141,18 +139,3 @@ def _substitute_amixis_path(tools_dir: Path) -> None:
             AMIXIS_PATH=amixis_executable_path
         )
         tool_file.write_text(content, encoding="utf-8")
-
-
-def get_opencode_config_dir_path(is_global: bool = False) -> Path:
-    """Give path to Opencode configuration directory.
-
-    :param bool is_global: If True then give path
-        to global directory otherwise local directory.
-    """
-    if is_global:
-        config_dir = (
-            Path(environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser().resolve()
-        )
-        return config_dir / "opencode"
-
-    return Path(".").resolve() / ".opencode"

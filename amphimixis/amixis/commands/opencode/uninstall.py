@@ -4,13 +4,11 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from amphimixis.amixis.commands.opencode._package_utils import (
+from amphimixis.amixis.commands.opencode._utils import (
+    get_opencode_config_dir_path,
     is_package_declared,
     load_package,
     save_package,
-)
-from amphimixis.amixis.commands.opencode.install import (
-    get_opencode_config_dir_path,
 )
 
 INSPECTOR_GENERAL_NAME = "inspector_general"
