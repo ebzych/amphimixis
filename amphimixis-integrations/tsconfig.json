@@ -21,7 +21,7 @@
         "./*"
       ],
       "inspector_general": [
-        "./inspector_general.ts"
+        "./inspector_general/inspector_general.ts"
       ]
     }
   },

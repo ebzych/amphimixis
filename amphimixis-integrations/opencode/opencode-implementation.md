@@ -16,8 +16,7 @@ This document describes how the Amphimixis-AI agent system (see [ai-system-doc.m
 ```
 amphimixis-integrations/
 ├── ai-system-doc.md       <- general info about the agent system (implementation-agnostic)
-├── inspector_general.ts   <- report inspector logic (shared, single source)
-├── inspector_general/     <- generated package dir (mirror of inspector_general.ts, created by install)
+├── inspector_general/      <- report inspector package (shared, single source)
 └── opencode/
     ├── opencode-implementation.md
     ├── agents/             <- agent definitions
@@ -58,12 +57,10 @@ Every agent file in `agents/` is a markdown definition that carries an `amphimix
 The plugin dynamically resolves `inspector_general` at runtime — it is
 installed as a declared node package in the config directory.
 
-Install prepares the `amphimixis-integrations/inspector_general/` package
-directory (regenerated on every install, it mirrors the canonical
-`inspector_general.ts`) and registers it with
-`bun add "file:<project>/amphimixis-integrations/inspector_general"`. This adds
-`inspector_general` to the config `package.json` and `bun.lock`, so neither
-Opencode's own dependency reinstall nor `bun prune` removes it from
+Install registers the committed `amphimixis-integrations/inspector_general/`
+package with `bun add "file:<project>/amphimixis-integrations/inspector_general"`.
+This adds `inspector_general` to the config `package.json` and `bun.lock`, so
+neither Opencode's own dependency reinstall nor `bun prune` removes it from
 `node_modules`. The plugin resolves it as
 `import InspectorGeneral from 'inspector_general'`.
 
@@ -75,9 +72,9 @@ substitution).
 
 ## Plugins and the inspecting method
 
-The report and session inspection is implemented in Opencode by two artifacts plus shared logic: the `amphimixis-inspector` plugin, the `amphimixis-inspect-session` command, and the shared `inspector_general.ts` report inspector.
+The report and session inspection is implemented in Opencode by two artifacts plus shared logic: the `amphimixis-inspector` plugin, the `amphimixis-inspect-session` command, and the shared `inspector_general` package.
 
-### `inspector_general.ts` — formal report inspection
+### `inspector_general` package — formal report inspection
 
 Shared report-inspection logic (not Opencode-specific) that checks the correctness of the improvements and cross-tables data in the report file:
 
@@ -86,7 +83,7 @@ Shared report-inspection logic (not Opencode-specific) that checks the correctne
 - verifies each cross-table — exactly 4 columns in strict order (`Symbol | {First build name} % | {Second build name} % | Delta %`), copied unchanged from the corresponding `cross-tables/CT-*.md` file;
 - checks that required data sources exist (cross-tables via `amphimixis-compare`, improvements via `calculate-optimization-improvement`, the report file itself) and reports missing steps otherwise.
 
-It is installed to the Opencode config directory as the declared `inspector_general` node package (mirroring the canonical `inspector_general.ts`) and resolved at runtime by the plugin.
+It is installed to the Opencode config directory as the declared `inspector_general` node package (a committed `file:` dependency into the repository) and resolved at runtime by the plugin.
 
 ### `amphimixis-inspector` plugin
 
