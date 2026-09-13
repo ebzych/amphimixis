@@ -16,7 +16,8 @@ This document describes how the Amphimixis-AI agent system (see [ai-system-doc.m
 ```
 amphimixis-integrations/
 ├── ai-system-doc.md       <- general info about the agent system (implementation-agnostic)
-├── inspector_general.ts   <- report inspector logic (shared, installed to plugins/lib/)
+├── inspector_general.ts   <- report inspector logic (shared, single source)
+├── inspector_general/     <- generated package dir (mirror of inspector_general.ts, created by install)
 └── opencode/
     ├── opencode-implementation.md
     ├── agents/             <- agent definitions
@@ -55,7 +56,16 @@ Every agent file in `agents/` is a markdown definition that carries an `amphimix
 
 `amixis opencode install` copies the above into the Opencode config directory.
 The plugin dynamically resolves `inspector_general` at runtime — it is
-installed to `node_modules/inspector_general.ts` in the config directory.
+installed as a declared node package in the config directory.
+
+Install prepares the `amphimixis-integrations/inspector_general/` package
+directory (regenerated on every install, it mirrors the canonical
+`inspector_general.ts`) and registers it with
+`bun add "file:<project>/amphimixis-integrations/inspector_general"`. This adds
+`inspector_general` to the config `package.json` and `bun.lock`, so neither
+Opencode's own dependency reinstall nor `bun prune` removes it from
+`node_modules`. The plugin resolves it as
+`import InspectorGeneral from 'inspector_general'`.
 
 Tools call `amixis` as a subprocess. The `amixis` executable path is written
 into the installed tools at install time (via the `$AMIXIS_PATH` template
@@ -76,7 +86,7 @@ Shared report-inspection logic (not Opencode-specific) that checks the correctne
 - verifies each cross-table — exactly 4 columns in strict order (`Symbol | {First build name} % | {Second build name} % | Delta %`), copied unchanged from the corresponding `cross-tables/CT-*.md` file;
 - checks that required data sources exist (cross-tables via `amphimixis-compare`, improvements via `calculate-optimization-improvement`, the report file itself) and reports missing steps otherwise.
 
-It is installed to `node_modules/inspector_general.ts` and resolved at runtime by the plugin.
+It is installed to the Opencode config directory as the declared `inspector_general` node package (mirroring the canonical `inspector_general.ts`) and resolved at runtime by the plugin.
 
 ### `amphimixis-inspector` plugin
 
