@@ -33,7 +33,7 @@ Amphimixis is an automated project intelligence and evaluation tool for performa
 
 You receive from the orchestrator:
 - **project path**: where the repository is cloned
-- **performance comparison data**: the cross-table and conclusions from profiler
+- **performance comparison data**: the cross-table (read files `cross-tables/CT-<first .scriptout basename>-<second .scriptout basename>.md`) and conclusions from profiler
 - **target architecture**: architecture being explored (e.g., riscv64, arm64)
 - **reference platform**: typically x86_64
 - **built executables paths**: paths to built binaries for both platforms

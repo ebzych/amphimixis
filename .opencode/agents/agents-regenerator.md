@@ -556,7 +556,7 @@ Output your decision clearly: `DECISION: [Full | Partial: <affected agents> | No
    ```
    """
  - `Amphimixis-optimizer`:
-    - try to understand problem from cross-table (**IMPORTANT**: the `amphimixis-orchestrator` must pass it to him)
+    - try to understand problem from cross-table (**IMPORTANT**: he has to read them from `cross-tables/CT-<first .scriptout basename>-<second .scriptout basename>.md`)
     - **IMPORTANT**: need the deep analysis "why", not just "what"
     - check vector instructions via `amphimixis-analyze-vectorization` or `objdump`
     - check executable sizes with `size` and `strip` to separate debug info bloat from actual code size increase
