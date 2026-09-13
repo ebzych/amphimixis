@@ -82,14 +82,14 @@ It is installed to `node_modules/inspector_general.ts` and resolved at runtime b
 
 The `plugins/amphimixis-inspector.ts` plugin hooks the Opencode event stream (`message.part.updated`) and performs two kinds of inspection:
 
-- **Subtask session inspection**: when a `task` tool call to an `amphimixis-*` subagent (other than `amphimixis-inspector`) completes, the whole subagent session is collected into a script (exported via `opencode export <sessionID>`), written to `.inspected-session`, and the `amphimixis-inspect-session` command is run on it in the parent session.
+- **Subtask session inspection**: when a `task` tool call to an `amphimixis-*` subagent (other than `amphimixis-inspector`) completes, the whole subagent session is collected into a script (exported via `opencode export <sessionID>`), written to `.inspected-session-<session ID>`, and the `amphimixis-inspect-session` command is run on it in the parent session.
 - **Main session inspection**: when a step finishes and the last message matches `WORK ON THE .*? IS COMPLETED`, the main session is inspected the same way, and additionally the shared `InspectorGeneral.inspect()` runs against the report. If the formal inspection fails, a prompt is sent to the orchestrator agent to check itself to completing all tasks (up to a maximum number of formal inspection attempts per session).
 
 The plugin tracks a per-session inspection status (`NOT_INSPECTED`, `OK`, `TO_FIX`): a session is marked `OK` when the inspecting command output contains `INSPECTION IS PASSED`; otherwise it stays in the `TO_FIX` state and can be re-inspected on the next completion.
 
 ### `amphimixis-inspect-session` command
 
-The `commands/amphimixis-inspect-session.md` command is most simple legal method to delegate task to subagent (native subtask delegation) and call it from code, in this case, orchestrator delegates checking to plan agent that reads the first string of `.inspected-session` to learn the inspected agent (defaults to `amphimixis`), then acts situationally:
+The `commands/amphimixis-inspect-session.md` command is most simple legal method to delegate task to subagent (native subtask delegation) and call it from code, in this case, orchestrator delegates checking to plan agent that reads the first string of `.inspected-session-<session ID>` to learn the inspected agent (defaults to `amphimixis`), then acts situationally:
 
 - for every agent — the agent must not write the tool-owned files (`CT-*.md`, `improvements.json`, `<project name>.json`) by itself, and all actions must run in the current directory;
 - for `amphimixis-builder` and `amphimixis-profiler` — the project must have been built and profiled for all machines; build and run machine info comes from the config file (usually `input.yml`): `platforms` lists machine info, `build_machine` and `run_machine` reference platform IDs;
