@@ -183,9 +183,10 @@ amixis opencode uninstall
 amixis opencode uninstall --global
 ```
 
-Removes only the files that were placed by `install`. Leaves `package.json`,
-`node_modules`, `bun.lock`, `opencode.json(c)`, and any user-owned files
-untouched.
+Removes only the files that were placed by `install` and the declared
+`inspector_general` dependency (via `bun remove`, including its `package.json`
+and `bun.lock` entries). Leaves the remaining `package.json`/`bun.lock`
+entries, `opencode.json(c)`, and any user-owned files untouched.
 
 ---
 

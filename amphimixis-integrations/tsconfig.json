@@ -21,7 +21,6 @@
         "./*"
       ],
       "inspector_general": [
-        "../node_modules/inspector_general.ts",
         "./inspector_general.ts"
       ]
     }
