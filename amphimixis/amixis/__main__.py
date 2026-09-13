@@ -44,7 +44,7 @@ def _main() -> bool:
     :rtype: bool
     """
     parser = create_parser()
-    args = parser.parse_args()
+    args, extra_args = parser.parse_known_args()
 
     if args.short_help:
         print_help(COMMANDS, False)
@@ -128,7 +128,7 @@ def _main() -> bool:
         case "add":
             return cmd.run_add(args)
         case "opencode":
-            return cmd.run_opencode(args)
+            return cmd.run_opencode(args, extra_args)
         case _:
             parser.print_help()
             return False
