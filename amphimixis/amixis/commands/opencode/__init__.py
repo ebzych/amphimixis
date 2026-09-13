@@ -1,5 +1,6 @@
 """Opencode subcommands."""
 
+import subprocess
 from argparse import ArgumentParser, Namespace
 
 from amphimixis.amixis.commands.opencode.install import run_opencode_install
@@ -14,14 +15,21 @@ _RUN_SUBCMD = "run"
 
 
 def add_args(parser: ArgumentParser) -> None:
-    """Add arguments for opencode command.
+    """Add arguments for Opencode command.
 
     :param ArgumentParser parser: subcommand parser to which arguments are added
     """
-    subparsers = parser.add_subparsers(
-        dest="opencode_subcommand", title="opencode options"
+    parser.add_argument(
+        "prompt",
+        type=str,
+        required=False,
+        help="prompt to pass to Opencode (TUI mode)",
     )
-    subparsers.required = True
+
+    subparsers = parser.add_subparsers(
+        dest="opencode_subcommand", title="Opencode options"
+    )
+    subparsers.required = False
 
     install_parser = subparsers.add_parser(
         _INSTALL_SUBCMD,
@@ -32,7 +40,7 @@ def add_args(parser: ArgumentParser) -> None:
         "--global",
         action="store_true",
         dest="is_global",
-        help="install globally into XDG_CONFIG_HOME/opencode",
+        help="install globally into $XDG_CONFIG_HOME/opencode",
     )
 
     uninstall_parser = subparsers.add_parser(
@@ -44,30 +52,25 @@ def add_args(parser: ArgumentParser) -> None:
         "--global",
         action="store_true",
         dest="is_global",
-        help="uninstall globally from XDG_CONFIG_HOME/opencode",
+        help="uninstall globally from $XDG_CONFIG_HOME/opencode",
     )
 
     run_parser = subparsers.add_parser(
         _RUN_SUBCMD,
-        help="run Amphimixis LLM-agent in Opencode with a specialized prompt",
+        help="run Amphimixis LLM-agent with a specialized prompt (package mode)",
     )
     run_parser.add_argument(
         "prompt",
         type=str,
-        help="prompt to pass to opencode",
-    )
-    run_parser.add_argument(
-        "--package-mode",
-        action="store_true",
-        help="run opencode non-interactively and print only text messages"
-        " filtered with jq",
+        help="prompt to pass to Opencode",
     )
 
 
-def run_opencode(args: Namespace) -> bool:
+def run_opencode(args: Namespace, extra_args: list[str]) -> bool:
     """Execute opencode subcommand.
 
     :param Namespace args: parsed command line arguments
+    :param list[str] extra_args: additional arguments passed to the subcommand
     :return: True if command succeeded, False otherwise
     :rtype: bool
     """
@@ -75,14 +78,24 @@ def run_opencode(args: Namespace) -> bool:
 
     if opencode_subcommand == _INSTALL_SUBCMD:
         return run_opencode_install(is_global=args.is_global)
-
     if opencode_subcommand == _UNINSTALL_SUBCMD:
         return run_opencode_uninstall(is_global=args.is_global)
-
     if opencode_subcommand == _RUN_SUBCMD:
-        return run_opencode_run(
-            prompt=args.prompt,
-            package_mode=args.package_mode,
-        )
+        return run_opencode_run(prompt=args.prompt, extra_args=extra_args)
+    if args.prompt:
+        return _run_tui_opencode(prompt=args.prompt, extra_args=extra_args)
 
-    return False
+    return subprocess.run(["opencode"] + extra_args, check=False).returncode == 0
+
+
+def _run_tui_opencode(prompt: str, extra_args: list[str]) -> bool:
+    """Run Opencode in TUI mode."""
+    try:
+        subprocess.run(
+            ["opencode", "--agent", "amphimixis", "--prompt", prompt] + extra_args,
+            check=True,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"Error running opencode: {e}")
+        return False
