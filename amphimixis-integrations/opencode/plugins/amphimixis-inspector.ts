@@ -343,7 +343,7 @@ class WrapperForOpencode {
       inspectedSessionId
     );
     writeFileSync(
-      '.inspected-session',
+      `.inspected-session-${inspectedSessionId}`,
       `# Agent: ${inspectedAgent}\n\n${String(output)}`,
       'utf-8'
     );
@@ -356,7 +356,7 @@ class WrapperForOpencode {
       body:
       {
         command: 'amphimixis-inspect-session',
-        arguments: '',
+        arguments: 'inspect session with ID=' + inspectedSessionId,
         agent: agent,
       },
     };
