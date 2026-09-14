@@ -139,10 +139,12 @@ EXAMPLES = {
       → Remove Amphimixis files from local .opencode/
   amixis opencode uninstall --global
       → Remove from XDG_CONFIG_HOME/opencode
-  amixis opencode run "<your prompt>"
+  amixis opencode
       → Open Opencode TUI with the amphimixis agent
-  amixis opencode run --package-mode "<your prompt>"
-      → Run non-interactively, print only text messages (requires jq)""",
+  amixis opencode run "<your prompt>"
+      → Run non-interactively (package mode), print only text messages (requires jq)
+  amixis opencode run --no-processing-output "<your prompt>"
+      → Run non-interactively, print raw output (jq skipped)""",
 }
 
 
