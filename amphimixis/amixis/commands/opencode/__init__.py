@@ -19,13 +19,6 @@ def add_args(parser: ArgumentParser) -> None:
 
     :param ArgumentParser parser: subcommand parser to which arguments are added
     """
-    parser.add_argument(
-        "prompt",
-        type=str,
-        required=False,
-        help="prompt to pass to Opencode (TUI mode)",
-    )
-
     subparsers = parser.add_subparsers(
         dest="opencode_subcommand", title="Opencode options"
     )
@@ -64,6 +57,11 @@ def add_args(parser: ArgumentParser) -> None:
         type=str,
         help="prompt to pass to Opencode",
     )
+    run_parser.add_argument(
+        "--no-processing-output",
+        action="store_true",
+        help="disable processing of Opencode output and print it raw",
+    )
 
 
 def run_opencode(args: Namespace, extra_args: list[str]) -> bool:
@@ -81,21 +79,10 @@ def run_opencode(args: Namespace, extra_args: list[str]) -> bool:
     if opencode_subcommand == _UNINSTALL_SUBCMD:
         return run_opencode_uninstall(is_global=args.is_global)
     if opencode_subcommand == _RUN_SUBCMD:
-        return run_opencode_run(prompt=args.prompt, extra_args=extra_args)
-    if args.prompt:
-        return _run_tui_opencode(prompt=args.prompt, extra_args=extra_args)
+        return run_opencode_run(
+            prompt=args.prompt,
+            no_processing_output=args.no_processing_output,
+            extra_args=extra_args,
+        )
 
     return subprocess.run(["opencode"] + extra_args, check=False).returncode == 0
-
-
-def _run_tui_opencode(prompt: str, extra_args: list[str]) -> bool:
-    """Run Opencode in TUI mode."""
-    try:
-        subprocess.run(
-            ["opencode", "--agent", "amphimixis", "--prompt", prompt] + extra_args,
-            check=True,
-        )
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"Error running opencode: {e}")
-        return False
