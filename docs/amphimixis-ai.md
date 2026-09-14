@@ -22,22 +22,18 @@ Amphimixis-AI helps you analyze your project for migration ability --- __it auto
 
 ## Usage
 
-```bash
-amixis opencode run "<your prompt>"
-```
+Bare `amixis opencode` opens the Opencode TUI with the `amphimixis` agent.
 
-The prompt should describe the project and task. For example:
+For non-interactive runs, use the `run` subcommand. It runs `opencode` non-interactively and prints only the text messages produced by the session (requires `jq`):
 
 ```bash
 amixis opencode run "Analyze the <Name> project, identify platform-specific code, and produce a migration report for RISC-V. Use my cross-toolchain /path/to/toolchain."
 ```
 
-This opens the Opencode TUI with `amphimixis` agent and your prompt.
-
-For non-interactive runs, use `--package-mode`. It runs `opencode` non-interactively and prints only the text messages produced by the session:
+To skip processing and print the raw session output, add `--no-processing-output` (no `jq` needed):
 
 ```bash
-amixis opencode run --package-mode "<your prompt>"
+amixis opencode run --no-processing-output "Analyze the <Name> project, identify platform-specific code, and produce a migration report for RISC-V. Use my cross-toolchain /path/to/toolchain."
 ```
 
 > **Note:** The agent expects the current working directory to contain (or point to) the project being analyzed. Use an absolute path in the prompt for clarity.
@@ -158,7 +154,7 @@ The configure tools write YAML directly rather than calling the CLI — they man
 - `amixis` must be on `PATH` (tools invoke `amixis` as a subprocess)
 - The Opencode CLI (`opencode`) installed and available on `PATH`
 - `bun` for installing test/utility dependencies
-- `jq` for `--package-mode` (installed automatically into the Opencode config dir with `amixis opencode install` via the `node-jq` package, or install it from <https://jqlang.org>)
+- `jq` for `amixis opencode run` text-only processing (installed automatically into the Opencode config dir with `amixis opencode install` via the `node-jq` package, or install it from <https://jqlang.org>; skip with `--no-processing-output`)
 
 ### Install the agents and tools
 
@@ -166,7 +162,7 @@ The configure tools write YAML directly rather than calling the CLI — they man
 amixis opencode install
 ```
 
-This copies agents, tools, commands, and plugins into the local `.opencode/` directory, writes the `amixis` executable path into the installed tools, and installs Bun dependencies (including `node-jq`, which ships the `jq` binary used by `--package-mode`).
+This copies agents, tools, commands, and plugins into the local `.opencode/` directory, writes the `amixis` executable path into the installed tools, and installs Bun dependencies (including `node-jq`, which ships the `jq` binary used by `amixis opencode run`).
 
 For a system-wide installation, pass the `--global` flag:
 
