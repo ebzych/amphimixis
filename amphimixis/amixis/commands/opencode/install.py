@@ -69,7 +69,11 @@ def run_opencode_install(is_global: bool = False) -> bool:
             if not _run_bun("add", f"file:{package_dir.resolve()}", cwd=config_dir):
                 return False
             print("  Installing Bun dependencies: " + ", ".join(_BUN_DEPENDENCIES))
-            if not _run_bun("add", *_BUN_DEPENDENCIES, cwd=config_dir):
+            if not _run_bun(
+                "add", "--only-missing", *_BUN_DEPENDENCIES, cwd=config_dir
+            ):
+                return False
+            if not _run_bun("install", cwd=config_dir):
                 return False
         else:
             print(
