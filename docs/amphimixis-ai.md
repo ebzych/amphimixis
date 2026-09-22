@@ -1,11 +1,9 @@
-# Amphimixis-AI — an LLM-powered assistant that automates the full migration-readiness analysis pipeline
+# Amphimixis-AI
 
-## About
+Amphimixis-AI helps you analyze your project for migration ability — __it automates this process__. It provides an agent system and formal tools for Opencode:
 
-Amphimixis-AI helps you analyze your project for migration ability --- __it automates this process__. It provides an agent system and formal tools for Opencode:
-
-- `Amphimixis` --- orchestrator agent, and subagents which are called by the orchestrator
-- Tools --- wrappers around the `amixis` CLI and other tools
+- `Amphimixis` — orchestrator agent, and subagents which are called by the orchestrator
+- Tools — wrappers around the `amixis` CLI and other tools
 
 ---
 
@@ -57,7 +55,7 @@ When invoked, `amphimixis` runs a 7-phase pipeline:
 | 5. Optimization                             | `amphimixis-optimizer`       | Analyse bottlenecks and suggest improvements                                                          |
 | * Session of previous agent inspection      | `amphimixis-inspect-session` | Inspect session for errors in work                                                                    |
 | 6. Repeat pipeline                          | `amphimixis`                 | Apply optimizations, rebuild, re-profile, compare before/after                                        |
-| 7. Final report                             | `amphimixis`                 | Compile a structured report by the [Report Template](methodologies/report-template.md)                |
+| 7. Final report                             | `amphimixis`                 | Compile a structured report by the [Report Template](./report-template.md)                |
 | * Session of orchestrating agent inspection | `amphimixis-inspect-session` | Inspect session for errors in work                                                                    |
 
 The agent hierarchy follows a strict delegation pattern:
