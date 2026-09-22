@@ -145,6 +145,8 @@
 
 ## 6. Notes About Exploration process
 
+<...>
+
 ---
 
 ## 7. Migration Readiness Summary

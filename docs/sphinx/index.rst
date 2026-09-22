@@ -85,8 +85,8 @@ Quick Start
    :caption: Getting Started
    :hidden:
 
-   usage_guide
    amphimixis-ai
+   usage_guide
    config_instruction
    input
 
