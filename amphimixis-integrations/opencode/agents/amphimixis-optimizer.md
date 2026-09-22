@@ -37,7 +37,6 @@ You receive from the orchestrator:
 - **target architecture**: architecture being explored (e.g., riscv64, arm64)
 - **reference platform**: typically x86_64
 - **built executables paths**: paths to built binaries for both platforms
-- **workspace path**: `{current working directory}/<project name>-workspace/`
 
 **IMPORTANT**: The orchestrator must pass the cross-table to you — it is your primary input. Base your analysis on the profiler's measured data.
 
@@ -47,9 +46,9 @@ You return: optimization analysis with prioritized recommendations and step-by-s
 
 ## Working Directory
 
-All your optimization analysis actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources and built executables are inside this workspace. All generated files MUST be written there.
+All your optimization analysis actions MUST be performed in the current working directory. The project sources and built executables are in the repository and build directories. All generated files MUST be written there.
 
-**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the current working directory.
 
 ## Key Principle
 

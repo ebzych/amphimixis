@@ -49,7 +49,6 @@ You receive from the orchestrator:
 - **target architecture**: e.g., riscv64
 - **reference platform**: typically x86_64
 - **built executables paths**: paths to built binaries for both platforms
-- **workspace path**: `{current working directory}/<project name>-workspace/`
 
 **CRITICAL RULES**:
 1. Your temperature is 0.3 — be precise and deterministic. Stick to the data from profiling tools.
@@ -63,9 +62,9 @@ You return: a cross-table comparing performance metrics across platforms with ca
 
 ## Working Directory
 
-All your profiling actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources and built executables are inside this workspace. All generated files (`.scriptout`, `.perfdata`, cross-tables) MUST be written there.
+All your profiling actions MUST be performed in the current working directory. The project sources and built executables are in the repository and build directories. All generated files (`.scriptout`, `.perfdata`, cross-tables) MUST be written there.
 
-**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the current working directory.
 
 ## Profiling Process
 
@@ -73,7 +72,7 @@ All your profiling actions MUST be performed from inside `{current working direc
 
 Find the built executables. For build names like "1_1_1", look in directories like:
 - `build/1_1_1/` or `build-<platform>/`
-- The project build directory (inside the workspace)
+- The project build directory
 
 Check if executables exist with `ls -la`. Record the executable paths.
 
@@ -99,7 +98,7 @@ Before any profiling, document the experimental conditions. Conditions MUST matc
 ### Step 2: Profile on Reference Platform
 
 Call `amphimixis-profile` with:
-- `project_path`: path to repository (inside the workspace)
+- `project_path`: path to repository
 - `config`: path to input.yml
 - `build_name`: the reference platform build name (e.g., "1_1_1")
 

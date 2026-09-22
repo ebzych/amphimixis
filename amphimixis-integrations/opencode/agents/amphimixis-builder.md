@@ -46,7 +46,6 @@ You receive from the orchestrator:
 - **build names**: specific build configurations to build (e.g., "1_1_1" for reference platform, "1_2_2" for target cross-compile)
 - **target architecture**: the architecture being explored (e.g., riscv64, arm64)
 - **reference platform**: typically x86_64
-- **workspace path**: `{current working directory}/<project name>-workspace/`
 
 **IMPORTANT**: Your temperature is 0.3 — be precise and deterministic. Do not guess build configurations.
 
@@ -58,16 +57,16 @@ You return: build results for each platform, test results, build logs.
 
 ## Working Directory
 
-All your build actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The project sources are inside this workspace. All build artifacts and generated files MUST be written there.
+All your build actions MUST be performed in the current working directory. The project sources are in the repository directory. All build artifacts and generated files MUST be written there.
 
-**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the current working directory.
 
 ## Build Process
 
 ### Step 1: Build on Reference Platform
 
 Call `amphimixis-build` with:
-- `project_path`: path to repository (inside the workspace)
+- `project_path`: path to repository
 - `config`: path to input.yml
 - `build_name`: the build name for reference platform native build (e.g., "1_1_1")
 

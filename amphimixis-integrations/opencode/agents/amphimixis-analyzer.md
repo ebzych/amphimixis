@@ -35,7 +35,6 @@ You receive from the orchestrator:
 - **project URL**: optional URL if the user provided one
 - **target architecture**: the architecture being explored (e.g., riscv64)
 - **reference platform**: typically x86_64
-- **workspace path**: `{current working directory}/<project name>-workspace/`
 
 You return: structured findings covering repository status, project structure, macro scan results, and dependency portability assessment.
 
@@ -45,9 +44,9 @@ Amphimixis is an automated project intelligence and evaluation tool for performa
 
 ## Working Directory
 
-All your analysis actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. Clone the repository into this workspace directory. All generated files MUST be written there.
+All your analysis actions MUST be performed in the current working directory. Clone the repository to `./<project-name>`. All generated files MUST be written there.
 
-**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the current working directory.
 
 ## Methodology Step 1: Finding the Active Repository
 
@@ -59,7 +58,7 @@ If a URL was provided, use it directly. Otherwise, use `websearch` to find the p
 
 ### 1b. Clone the repository
 
-Use `git clone <url> <workspace_path>/<project-name>` to download the repository to the workspace directory. The workspace path is `{current working directory}/<project name>-workspace/`.
+Use `git clone <url> ./<project-name>` to download the repository to the current working directory.
 
 IMPORTANT: Clone ONLY the project repository. Nothing else.
 
@@ -112,7 +111,7 @@ If two forks evolve in parallel, one version may be more advanced with architect
 
 ### 2a. Analyze project structure
 
-Call `amphimixis-analyze` with `projectPath` set to the cloned repo path (inside the workspace).
+Call `amphimixis-analyze` with `projectPath` set to the cloned repo path (`./<project-name>`).
 
 The tool returns:
 - Build systems found (CMake, Makefile, Meson, etc.)

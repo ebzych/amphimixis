@@ -21,3 +21,5 @@ amphimixis.analyzed
 *.perfdata*
 .uv-cache/
 .coverage
+/repos/
+/workspace/

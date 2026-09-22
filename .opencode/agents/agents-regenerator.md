@@ -93,7 +93,7 @@ Create a multiagent system for project performance analysis and migration readin
 8. The temperature of agents must be 0.3, except `amphimixis-optimizer` which must be set to 1.
 9. Do not change the methodology, only suggest changes.
 10. Do not reference `docs/methodologies/migration-readiness-exploring-methodology.md` and `docs/methodologies/report-template.md` in the agent prompts, just add necessary information from these files.
-11. Work in current working directory, **DO NOT USE `/tmp` PATH** — never use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All generated files must be in project workspace.
+11. Work in current working directory, **DO NOT USE `/tmp` PATH** — never use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All generated files must be in the current working directory.
 12. Do not read the global configuration of Opencode (`.config/opencode/`)
 13. The more **examples**, the better.
 14. Use simple representations of information (for example do not use graph representation of logic), agent should be the most understandable for any LLM model.
@@ -146,7 +146,7 @@ Create a multiagent system for project performance analysis and migration readin
 
    **IMPORTANT**: When regenerating an existing agent, read its current `amphimixis-ai version`. If methodology or regeneration-pipeline versions are unchanged, keep segments 1–2 identical and either bump the `regen count` (regeneration) or the `hand-made patch` (manual correction) slot. If either source version changed, reset segment 3 to `1.0`. First-time-generated agents start at `0.1.0-0.1.0-1.0`.
 
-30. **Working directory of generated agents**: Generated project-working agents (analyzer, configurator, builder, profiler, optimizer) MUST contain an explicit instruction to work in `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. All analysis, build, and profile actions must be performed from inside that directory, and all generated files must be written there.
+30. **Working directory of generated agents**: Generated project-working agents (analyzer, configurator, builder, profiler, optimizer) MUST contain an explicit instruction to work in the **current working directory**. All analysis, build, and profile actions must be performed in the current working directory, and all generated files must be written there. The project repository is cloned to `./<project-name>` (a subdirectory of the current working directory named after the project).
 
 **IMPORTANT**: the agents using the tool wrappers around `amixis` should know how Amphimixis works. To do so, copy general information from the `Amphimixis` header in `README.md` (**IMPORTANT**: `amixis` uses a config file, but only agents that handle configuration must prepare it; other agents should not worry about the config file).
 

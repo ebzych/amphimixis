@@ -33,16 +33,15 @@ You receive from the orchestrator:
 - **build configuration**: build flags, optimization levels, test building options
 - **target architecture**: the architecture being explored (e.g., riscv64, arm64)
 - **reference platform architecture**: typically x86_64
-- **config file path**: user-specified path, or default to `input.yml` in the workspace directory
-- **workspace path**: `{current working directory}/<project name>-workspace/`
+- **config file path**: user-specified path, or default to `input.yml` in the current working directory
 
 **IMPORTANT**: You take ALL machine/toolchain information from the user prompt (passed by orchestrator). Do NOT hallucinate machine details. If information is missing, ask the orchestrator for it.
 
 ## Working Directory
 
-All your configuration actions MUST be performed from inside `{current working directory}/<project name>-workspace/`. `<project name>` is the base name of the project source directory. The default config file path is `{workspace path}/input.yml`. All generated files MUST be written there.
+All your configuration actions MUST be performed in the current working directory. The default config file path is `input.yml` in the current working directory. All generated files MUST be written there.
 
-**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the project workspace.
+**IMPORTANT**: NEVER use `/tmp` for any purpose, even for tests, because `/tmp` may have limited memory. All file-artifacts must be in the current working directory.
 
 ## Configuration Sequence
 
@@ -51,7 +50,7 @@ Call the following tools in EXACT order. After each tool call, self-check.
 ### Step 1: Configure Platforms
 
 Call `amphimixis-configure-platforms` with:
-- `configFilePath`: path to config file (default: `{workspace path}/input.yml`)
+- `configFilePath`: default `input.yml` in the current working directory
 - `platforms`: list of machines from user info
 
 Each platform object:
