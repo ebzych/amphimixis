@@ -68,12 +68,20 @@ describe('Inspector InspectorGeneral.inspect()', () => {
   });
 
   test('marks missing steps without the fatal report message when only the report exists', async () => {
-    await prepareCase('report-only', { 'amphimixis-tinyxml2-report.md': REPORT });
+    await prepareCase('report-only', { 'tinyxml2-report.md': REPORT });
     const output = joinOutput(InspectorGeneral.inspect()[1]);
 
     expect(output).toContain('## Missing required steps');
     expect(output).not.toContain('- FATAL: no report file found, please');
     expect(output).not.toBe('');
+  });
+
+  test('marks missing steps without the fatal report message for amphimixis-prefixed report', async () => {
+    await prepareCase('report-only-prefixed', { 'amphimixis-tinyxml2-report.md': REPORT });
+    const output = joinOutput(InspectorGeneral.inspect()[1]);
+
+    expect(output).toContain('## Missing required steps');
+    expect(output).not.toContain('- FATAL: no report file found, please');
   });
 
   test('accepts correct cross-table and improvements data', async () => {
@@ -160,5 +168,60 @@ describe('Inspector plugin events', () => {
     await emit({ event: textPart('still working on the report') });
     await emit({ event: stepFinishPart });
     expect(prompts.length).toBe(0);
+  });
+
+  test('runs formal inspection when the orchestrator announces completion', async () => {
+    await prepareCase('plugin-completion', {});
+    const prompts: string[] = [];
+    const client = {
+      app: {
+        log: async () => {},
+      },
+      session: {
+        prompt: async (args: { body: { parts: Array<{ text: string }> } }) => {
+          prompts.push(args.body.parts[0].text);
+        },
+        messages: async (args: { path: { id: string } }) => {
+          if (args.path.id === 'cmd_1') {
+            return {
+              data: [{
+                parts: [
+                  { type: 'text', text: 'All fine. INSPECTION IS PASSED' },
+                  { type: 'step-finish' },
+                ],
+              }],
+            };
+          }
+          return { data: [] };
+        },
+        command: async () => ({
+          data: { info: { sessionID: 'cmd_1' } },
+        }),
+      },
+    };
+    const emit = await makeEmitter(client);
+
+    await emit({
+      event: {
+        type: 'message.updated',
+        properties: { info: { sessionID: 'ses_1', agent: 'amphimixis' } },
+      },
+    });
+    await emit({
+      event: {
+        type: 'message.part.updated',
+        properties: {
+          part: { type: 'text', text: 'WORK ON THE tinyxml2 IS COMPLETED', sessionID: 'ses_1' },
+        },
+      },
+    });
+    await emit({
+      event: {
+        type: 'message.part.updated',
+        properties: { part: { type: 'step-finish', sessionID: 'ses_1' } },
+      },
+    });
+
+    expect(prompts.length).toBe(1);
   });
 });

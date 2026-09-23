@@ -12,50 +12,58 @@ const AmphimixisInspector: Plugin = async ({ client }) => {
   );
   return {
     event: async ({ event }) => {
+      if (event.type === 'message.updated') {
+        await WrapperForOpencode.handleMessageUpdated(event);
+        return;
+      }
+
+      if (event.type !== 'message.part.updated') {
+        return;
+      }
+
       let agent = WrapperForOpencode.getAgentFromEvent(event);
+      const msgPart = event.properties.part;
+      const sessionId = msgPart.sessionID;
 
-      if (event.type === 'message.part.updated') {
-        const msgPart = event.properties.part;
-        const sessionId = msgPart.sessionID;
-
-        if (msgPart.type === 'text' || agent) {
-          await WrapperForOpencode.sessionMtx.runExclusive(
-            async () => {
-              if (!(sessionId in WrapperForOpencode.sessions)) {
-                WrapperForOpencode.sessions[sessionId] =
-                {
-                  attemptCount: 0,
-                  inspectionStatus: InspectionStatus.NOT_INSPECTED,
-                  lastMessageText: undefined,
-                  lastUsedAgent: agent,
-                };
-              }
-              if (msgPart.type === 'text') {
-                WrapperForOpencode.sessions[sessionId]
-                  .lastMessageText = msgPart.text;
-              }
-              if (agent) {
-                WrapperForOpencode.sessions[sessionId]
-                  .lastUsedAgent = agent;
-              }
+      if (msgPart.type === 'text' || agent) {
+        await WrapperForOpencode.sessionMtx.runExclusive(
+          async () => {
+            if (!(sessionId in WrapperForOpencode.sessions)) {
+              WrapperForOpencode.sessions[sessionId] =
+              {
+                attemptCount: 0,
+                inspectionStatus: InspectionStatus.NOT_INSPECTED,
+                lastMessageText: undefined,
+                lastUsedAgent: agent,
+              };
             }
-          );
-        }
-
-        if (!agent) {
-          await WrapperForOpencode.sessionMtx.runExclusive(async () => {
-            agent = WrapperForOpencode.sessions[sessionId].lastUsedAgent;
-          });
-        }
-
-        await WrapperForOpencode.inspectSubtaskSession(client, sessionId, msgPart);
-        await WrapperForOpencode.inspectMainSession(
-          client,
-          sessionId,
-          msgPart,
-          String(agent),
+            if (msgPart.type === 'text') {
+              WrapperForOpencode.sessions[sessionId]
+                .lastMessageText = msgPart.text;
+            }
+            if (agent) {
+              WrapperForOpencode.sessions[sessionId]
+                .lastUsedAgent = agent;
+            }
+          }
         );
       }
+
+      if (!agent) {
+        await WrapperForOpencode.sessionMtx.runExclusive(async () => {
+          agent = sessionId in WrapperForOpencode.sessions
+            ? WrapperForOpencode.sessions[sessionId].lastUsedAgent
+            : undefined;
+        });
+      }
+
+      await WrapperForOpencode.inspectSubtaskSession(client, sessionId, msgPart);
+      await WrapperForOpencode.inspectMainSession(
+        client,
+        sessionId,
+        msgPart,
+        String(agent),
+      );
     }
   };
 };
@@ -196,6 +204,28 @@ class WrapperForOpencode {
     }
   }
 
+  static async handleMessageUpdated(ev: unknown): Promise<void> {
+    const e = ev as Record<string, any>;
+    const info = e?.properties?.info;
+    const sessionId = info?.sessionID;
+    if (typeof sessionId !== 'string') {
+      return;
+    }
+    const agent = WrapperForOpencode.getAgentFromEvent(ev);
+    await WrapperForOpencode.sessionMtx.runExclusive(async () => {
+      if (!(sessionId in WrapperForOpencode.sessions)) {
+        WrapperForOpencode.sessions[sessionId] = {
+          attemptCount: 0,
+          inspectionStatus: InspectionStatus.NOT_INSPECTED,
+          lastMessageText: undefined,
+        };
+      }
+      if (agent) {
+        WrapperForOpencode.sessions[sessionId].lastUsedAgent = agent;
+      }
+    });
+  }
+
   static getAgentFromEvent(ev: unknown): string | undefined {
     if (!ev || typeof ev !== 'object') return undefined
     const e = ev as Record<string, any>
@@ -241,13 +271,21 @@ class WrapperForOpencode {
     const response = await client.session.messages({
       path: { id: sessionId }
     });
+    return WrapperForOpencode.textFromMessages(response.data ?? [], agent);
+  }
 
+  private static textFromMessages(
+    messages: Array<{
+      parts?: Array<{ type?: string; text?: string }>;
+    }>,
+    agent?: string,
+  ): string {
     let textContent: string = '';
     if (agent)
       textContent += `Agent: ${agent}\n\n`;
 
     // map through messages and extract text-based components
-    textContent += response.data?.map(message => {
+    textContent += messages.map(message => {
       if (!message.parts) return "";
 
       let output: string[] = [];
@@ -322,11 +360,13 @@ class WrapperForOpencode {
   ): Promise<void> {
     const isNoNeedBeInspected = await WrapperForOpencode.sessionMtx.runExclusive(
       async () => {
-        const inspectedSessionStats =
-          WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus;
-        return inspectedSessionId in WrapperForOpencode.sessions
-          && (inspectedSessionStats === InspectionStatus.OK
-            || inspectedSessionStats === InspectionStatus.NO_NEED);
+        const inspectedSessionStats = (
+          inspectedSessionId in WrapperForOpencode.sessions
+            ? WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus
+            : InspectionStatus.NOT_INSPECTED
+        );
+        return inspectedSessionStats === InspectionStatus.OK
+          || inspectedSessionStats === InspectionStatus.NO_NEED;
       }
     );
     if (isNoNeedBeInspected) {
@@ -381,12 +421,15 @@ class WrapperForOpencode {
     );
     const cmdSessionId = (await client.session.command(commandData))
       .data?.info.sessionID;
-    const cmdLastMsgText = await WrapperForOpencode.sessionMtx.runExclusive(
-      () =>
-        cmdSessionId && String(cmdSessionId) in WrapperForOpencode.sessions
-          ? WrapperForOpencode.sessions[String(cmdSessionId)].lastMessageText
-          : undefined
-    );
+
+    if (cmdSessionId === undefined) {
+      await WrapperForOpencode.log(
+        client,
+        `command session id is undefined. Session=${sessionId},`
+        + ` inspectedSession=${inspectedSessionId}`,
+      );
+      return;
+    }
 
     await WrapperForOpencode.sessionMtx.runExclusive(
       async () => {
@@ -403,7 +446,17 @@ class WrapperForOpencode {
             lastMessageText: undefined,
           };
         }
-        if (String(cmdLastMsgText).match(/INSPECTION IS PASSED/i)) {
+      }
+    );
+
+    const passed = await WrapperForOpencode.waitForInspectionResult(
+      client,
+      String(cmdSessionId),
+    );
+
+    await WrapperForOpencode.sessionMtx.runExclusive(
+      async () => {
+        if (passed) {
           WrapperForOpencode.sessions[inspectedSessionId].inspectionStatus =
             InspectionStatus.OK;
           await WrapperForOpencode.log(
@@ -422,6 +475,38 @@ class WrapperForOpencode {
           );
         }
       }
+    );
+  }
+
+  private static async waitForInspectionResult(
+    client: OpencodeClient,
+    cmdSessionId: string,
+    timeoutMs: number = 120_000,
+  ): Promise<boolean> {
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < timeoutMs) {
+      const response = await client.session.messages({
+        path: { id: cmdSessionId },
+      });
+      const messages = response.data ?? [];
+      const text = WrapperForOpencode.textFromMessages(messages);
+      if (String(text).match(/INSPECTION IS PASSED/i)) {
+        return true;
+      }
+      if (String(text).match(/INSPECTION FAILED/i)
+        || WrapperForOpencode.isSessionFinished(messages)) {
+        return false;
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    return false;
+  }
+
+  private static isSessionFinished(
+    messages: Array<{ parts?: Array<{ type?: string }> }>,
+  ): boolean {
+    return messages.some(message =>
+      (message.parts ?? []).some(part => part.type === 'step-finish')
     );
   }
 

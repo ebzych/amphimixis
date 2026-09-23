@@ -353,7 +353,7 @@ export default class InspectorGeneral {
 
   private static getReportFromAmixisFile(): Root | undefined {
     const fileName: string | undefined = fs.readdirSync(cwd()).find(
-      file => /^amphimixis[-_].+?[-_]report\.md$/i.test(file)
+      file => /^[a-zA-Z0-9_.-]+-report\.md$/i.test(file)
     );
     if (!fileName)
       return undefined;

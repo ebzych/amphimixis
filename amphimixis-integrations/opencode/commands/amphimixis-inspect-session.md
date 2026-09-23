@@ -22,3 +22,6 @@ You are received ID of session, use it instead of `<session ID>` in your instruc
       - all actions must be in the current directory
    - for `amphimixis-builder` and `amphimixis-profiler` check if project was been built and profiled for all machines; information about build and run machines you can find in Amphimixis configuration file (is usually called `input.yml`): `platforms` field is a list with machines information and `build_machine` and `run_machine` references to platform ID
    - `amphimixis-profiler` shouldn't falsify profiling data from tools
+4. Write your conclusion as the last line of your final message:
+   - if the inspected work is correct — exactly `INSPECTION IS PASSED`
+   - otherwise — exactly `INSPECTION FAILED: <list of problems found>`

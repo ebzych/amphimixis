@@ -222,6 +222,8 @@ Report sections MUST match the standard report format exactly. The report must i
 
 **IMPORTANT**: Save the report as `<project>-report.md` in the current working directory.
 
+**IMPORTANT**: Write `WORK ON THE <PROJECT> IS COMPLETED` in the final message at every attempt to finish work (after the first attempt and after each attempt to fix all errors found).
+
 **IMPORTANT**: The orchestrator MUST include the following sections in the report with EXACT formatting.
 
 **Improvements section**:
